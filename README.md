@@ -2,14 +2,14 @@
   <img src="portada.png" alt="Cover" width="800"/>
 </div>
 
-# ⚔️ Infamous BPSR DPS Meter v2.95.6
+# ⚔️ Infamous BPSR DPS Meter v2.95.7
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-2.95.6-green)](https://github.com/beaRSZT/BPSR_dev)
+[![Version](https://img.shields.io/badge/Version-2.95.7-green)](https://github.com/beaRSRZ/BPSR_dev)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
-[![Downloads](https://img.shields.io/github/downloads/beaRSZT/BPSR_dev/total)](https://github.com/beaRSZT/BPSR_dev/releases)
+[![Downloads](https://img.shields.io/github/downloads/beaRSRZ/BPSR_dev/total)](https://github.com/beaRSRZ/BPSR_dev/releases)
 
 ---
 
@@ -29,39 +29,47 @@ pnpm install
 pnpm dist
 ```
 
-### ✅ VPN Compatibility
-**Full VPN support with automatic adapter detection!**
+### ⚠️ VPN Limitations
+**VPNs interfere with packet capture - use with caution**
 
-- ✅ **ExitLag, WTFast, Haste, NoPing** - Compatible
-- ✅ **TAP-based VPNs** (WireGuard, OpenVPN) - Compatible
-- ✅ **Auto-Detection** - Automatically selects adapter with most traffic
-- 💡 **Smart Routing** - Works seamlessly with all major gaming VPNs
+- ❌ **Not Recommended** - VPNs encrypt/redirect packets causing unreliable data
+- ⚠️ **ExitLag** - "Legacy - NDIS" mode has partial compatibility (~70-80% accuracy)
+- ❌ **Kernel-Level VPNs** - Completely incompatible (packets encrypted before capture)
+- ✅ **Best Practice** - Disable VPN when using meter for 100% accuracy
+- 💡 **Auto-Detection** - Automatically selects adapter with most traffic
 
-**No workarounds needed!** The meter automatically detects and uses the correct network adapter.
+**Note:** VPN compatibility is experimental. Data may be incomplete or inaccurate when VPN is active. For best results, disable VPN during combat analysis.
 
 ---
 
-## 🌟 What Makes This Enhanced?
+## 🌟 What Makes This Special?
 
-This version combines:
-- ✨ **NeRooNx's beautiful modern UI** - Glassmorphism, rank badges, clean design
-- ⚡ **MrSnake's robust data engine** - Accurate DPS/HPS tracking, proper packet parsing
-- 🔧 **Performance optimizations** - Native webkit dragging (not sluggish JS dragging)
-- 🐛 **All bugs fixed** - Alt+Tab, window focus, duplicates removed
-- 🌍 **Complete English translation** - No more Spanish text
+This project builds upon and combines excellent work from the Blue Protocol community:
+- ✨ **Modern UI** - Clean glassmorphism design with intuitive controls
+- ⚡ **Robust Engine** - Accurate DPS/HPS tracking with proper packet parsing
+- 🔧 **Performance** - Optimized rendering and window management
+- 📊 **Enhanced Features** - Session management, player details, flexible exports
+- 🌍 **English Localization** - Full translation for global players
 
 ---
 
 # Acknowledgments and Credits
 
-This project combines work from multiple talented developers:
+This project is built upon the excellent work of the Blue Protocol community:
 
-- **dmlgzs** - Original [StarResonanceDamageCounter](https://github.com/dmlgzs/StarResonanceDamageCounter)
-- **MrSnakeVT** - Major improvements and bug fixes  
-- **NeRooNx** - Modern UI redesign ([NeRooNx/BPSR-Meter](https://github.com/NeRooNx/BPSR-Meter))
-- **Enhanced Edition** - Ultimate hybrid combining the best of all versions
+- **dmlgzs** - Original [StarResonanceDamageCounter](https://github.com/dmlgzs/StarResonanceDamageCounter) foundation
+- **MrSnakeVT** - Significant improvements to data engine and packet parsing
+- **NeRooNx** - Beautiful modern UI design ([NeRooNx/BPSR-Meter](https://github.com/NeRooNx/BPSR-Meter))
+- **Community Contributors** - Bug reports, testing, and feedback
 
-See [AUTHORS.md](AUTHORS.md) for detailed contributor information.
+**This Enhanced Edition** combines and extends their amazing work with:
+- Session management system
+- Player detail expansion
+- Flexible copy/export options
+- Window stability improvements
+- Additional UI refinements
+
+Thank you to all the talented developers who made this possible! 💙
 
 ---
 
@@ -113,8 +121,8 @@ BPSR Meter is a desktop application that acts as a real-time DPS (Damage Per Sec
 ## Installation
 
 ### Quick Install (Recommended)
-1. **Download MSI Installer:** Go to [Releases](https://github.com/beaRSZT/BPSR_dev/releases/latest) and download:
-   - `Infamous BPSR DPS Meter-Setup-2.95.6.exe`
+1. **Download MSI Installer:** Go to [Releases](https://github.com/beaRSRZ/BPSR_dev/releases/latest) and download:
+   - `Infamous BPSR DPS Meter-Setup-2.95.7.exe`
 
 2. **Install Npcap** (Required):
    - Download from: https://npcap.com/

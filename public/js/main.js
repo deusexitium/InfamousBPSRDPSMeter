@@ -975,7 +975,9 @@ async function copyPlayerToClipboard(uid, includeSkills = false) {
                         .sort((a, b) => (b[1].total_damage || 0) - (a[1].total_damage || 0))
                         .slice(0, 15) // Top 15 skills
                         .forEach(([skillId, skill]) => {
-                            const skillName = skillId.padEnd(18, ' ').substring(0, 18);
+                            // Translate skill ID to name
+                            const translatedName = skillNamesMap[skillId] || `Skill ${skillId}`;
+                            const skillName = translatedName.padEnd(18, ' ').substring(0, 18);
                             const dmg = formatNumber(skill.total_damage || 0).padStart(11, ' ');
                             const hits = String(skill.total_hit || 0).padStart(6, ' ');
                             const critRate = ((skill.crit_hit || 0) / Math.max(skill.total_hit || 1, 1) * 100).toFixed(1).padStart(5, ' ');
@@ -1605,7 +1607,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v2.95.6 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v2.95.7 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();

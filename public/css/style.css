@@ -635,6 +635,7 @@ body {
 .btn-primary:hover {
     background: #fcd34d;
     transform: translateY(-1px);
+    animation: none; /* Prevent flashing */
 }
 
 .btn-secondary {
@@ -1140,6 +1141,7 @@ body {
 .btn-small.btn-primary:hover {
     background: #fcd34d;
     transform: translateY(-1px);
+    animation: none; /* Prevent flashing */
 }
 
 /* About Section - Compact */

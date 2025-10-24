@@ -318,7 +318,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **dmlgzs** - Original StarResonanceDamageCounter
 - **MrSnakeVT** - Major improvements and engine work
 - **NeRooNx** - Modern UI redesign
-- **beaRSZT** - Enhanced Edition, v2.95.x series
+- **Enhanced Edition Team** - v2.95.x series improvements
 
 **Special Thanks:**
 - Blue Protocol community for testing and feedback

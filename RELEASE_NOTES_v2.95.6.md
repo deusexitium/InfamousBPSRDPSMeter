@@ -167,7 +167,7 @@ See [CHANGELOG.md](CHANGELOG.md) for complete history.
 ## 🙏 Credits
 
 **Enhanced Edition Development:**
-- **beaRSZT** - v2.95.x series, bug fixes, session system
+- **Community Contributors** - v2.95.x series, bug fixes, session system
 
 **Original Authors:**
 - **dmlgzs** - StarResonanceDamageCounter base
