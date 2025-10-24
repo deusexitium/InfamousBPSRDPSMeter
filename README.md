@@ -243,25 +243,189 @@ Click the buttons to sort players by:
 
 ---
 
-## 🔧 Building from Source
+## 🔧 Development & Building
 
-### Automated Build (Recommended)
-**From WSL:**
+### Development Environment Setup (WSL)
+
+**This project is developed in WSL (Windows Subsystem for Linux) and built on Windows.**
+
+#### 1. Install WSL (Ubuntu recommended)
+```powershell
+# On Windows PowerShell (as Administrator)
+wsl --install
+# Or install specific distro
+wsl --install -d Ubuntu-22.04
+```
+
+#### 2. Setup WSL Development Environment
+```bash
+# Update system
+sudo apt update && sudo apt upgrade -y
+
+# Install Node.js 22.x
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Install pnpm
+npm install -g pnpm@10.13.1
+
+# Install Git (if not already installed)
+sudo apt install -y git
+
+# Clone the repository
+cd /development
+git clone https://github.com/ssalihsrz/InfamousBPSRDPSMeter.git BPSR-Meter
+cd BPSR-Meter
+
+# Install dependencies
+pnpm install
+```
+
+---
+
+### 🚀 Build Pipeline (WSL → Windows → GitHub → Release)
+
+#### Step 1: Make Code Changes in WSL
+```bash
+# Edit files in your preferred editor (VS Code, nano, vim, etc.)
+code /development/BPSR-Meter
+
+# Test your changes
+node server.js
+```
+
+#### Step 2: Update Version Numbers
+**Before building, increment version in these files:**
+```bash
+# Edit these files to bump version (e.g., 2.95.12 → 2.95.13)
+- package.json: "version": "2.95.13"
+- server.js: const VERSION = '2.95.13'
+- public/index.html: Title and version displays (3 places)
+- public/js/main.js: console.log version
+```
+
+#### Step 3: Commit Changes
+```bash
+git add -A
+git commit -m "v2.95.13 - Description of changes"
+```
+
+#### Step 4: Build Installer (Automated)
+```bash
+# Run the automated build script
+pnpm build-msi
+
+# This script automatically:
+# 1. Creates source archive (tar.gz)
+# 2. Copies to Windows F:\dps
+# 3. Extracts on Windows via PowerShell
+# 4. Installs dependencies (pnpm install)
+# 5. Builds EXE installer (electron-builder)
+# 6. Reports location and size
+
+# Build takes ~6-13 minutes
+# Output: F:\dps\Infamous BPSR DPS Meter-Setup-2.95.13.exe (~90MB)
+```
+
+#### Step 5: Test the Installer
+```powershell
+# On Windows, navigate to F:\dps
+cd F:\dps
+
+# Run the installer to test
+.\Infamous BPSR DPS Meter-Setup-2.95.13.exe
+
+# Verify:
+# - Installation completes successfully
+# - Application launches
+# - Version number is correct
+# - Core functionality works
+```
+
+#### Step 6: Push to GitHub
+```bash
+# Push your commits
+git push origin main
+
+# View at: https://github.com/ssalihsrz/InfamousBPSRDPSMeter
+```
+
+#### Step 7: Create GitHub Release (Beta)
+1. **Go to Releases:**
+   - https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases
+   - Click **"Draft a new release"**
+
+2. **Fill Release Details:**
+   - **Tag:** `v2.95.13` (must match version)
+   - **Target:** `main` branch
+   - **Title:** `Infamous BPSR DPS Meter v2.95.13 Beta`
+   - **Description:**
+   ```markdown
+   ## ⚠️ Beta Release
+   
+   This is a beta release for testing. Please report any issues.
+   
+   ## What's New
+   - Fix: Tank detection with behavior analysis
+   - Fix: Scrollbar visibility for 20+ players
+   - Improved: Installation instructions
+   
+   ## Installation
+   1. Download `Infamous BPSR DPS Meter-Setup-2.95.13.exe`
+   2. Install Npcap from https://npcap.com/ (if not already installed)
+   3. Run the installer as Administrator
+   4. Follow the setup wizard
+   
+   ## Known Issues
+   - First launch may require changing game instance once
+   
+   ## Full Changelog
+   See [CHANGELOG.md](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/blob/main/CHANGELOG.md)
+   ```
+
+3. **Upload the Installer:**
+   - Drag and drop: `Infamous BPSR DPS Meter-Setup-2.95.13.exe`
+   - Wait for upload to complete
+
+4. **Mark as Beta:**
+   - ✅ Check **"Set as a pre-release"**
+   - ❌ Uncheck "Set as the latest release" (if not ready for stable)
+
+5. **Publish:**
+   - Click **"Publish release"**
+   - Release is now live at: `https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/tag/v2.95.13`
+
+---
+
+### 📋 Quick Reference Commands
+
+**Development:**
 ```bash
 cd /development/BPSR-Meter
-pnpm build-msi
-# MSI created at: F:\dps\Infamous BPSR DPS Meter-Setup-2.90.0.msi
+pnpm install          # Install dependencies
+node server.js        # Test locally
+git status            # Check changes
 ```
 
-**From Windows:**
-```powershell
-cd F:\dps\BPSR-Meter
-.\build-msi.ps1
+**Building:**
+```bash
+pnpm build-msi        # Build EXE installer (automated)
+# Output: F:\dps\Infamous BPSR DPS Meter-Setup-{VERSION}.exe
 ```
 
-📖 **See:** [BUILD-SCRIPTS.md](BUILD-SCRIPTS.md) for detailed instructions
+**Git Workflow:**
+```bash
+git add -A
+git commit -m "v2.95.13 - Description"
+git push origin main
+```
 
-### Manual Windows Build
+---
+
+### Manual Windows Build (Alternative)
+
+If you prefer building directly on Windows:
+
 ```powershell
 # Install Node.js 22+
 winget install OpenJS.NodeJS
@@ -278,12 +442,7 @@ pnpm dist
 # Installer will be at: dist_electron\Infamous BPSR DPS Meter-Setup-{VERSION}.exe
 ```
 
-### WSL Build (Using Automation)
-```bash
-# Automated cross-platform build
-cd /development/BPSR-Meter
-./build-msi-from-wsl.sh
-```
+📖 **See:** [BUILD-SCRIPTS.md](BUILD-SCRIPTS.md) for detailed build script documentation
 
 ---
 
