@@ -15,48 +15,153 @@ dist/logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
 
 # Build output
 /dist
 /dist_electron
 build/
 out/
+*.exe
+*.msi
+*.dmg
+*.AppImage
 
 # Electron specific
 *.asar
 
-# User data
+# User data - NEVER COMMIT USER DATA
 userdata/
 sessions/
+settings.json
+player_map.json
+users.json
+*.db
+*.sqlite
 
 # Temporary files
 *.tmp
 *.temp
 .cache/
-
-# IDE files
-.vscode/
-.idea/
 *.swp
 *.swo
 *~
+
+# IDE files - NEVER COMMIT IDE CONFIGS
+.vscode/
+.idea/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
 
 # OS files
 .DS_Store
 Thumbs.db
 Desktop.ini
+.AppleDouble
+.LSOverride
 
-# Misc
-.npmrc
-/Prerequisites/npcap-1.83.exe
-server - copia - copia.js
+# Archives and binaries - NEVER COMMIT LARGE FILES
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
+
+# Installers
+*.exe
+*.msi
+*.deb
+*.rpm
+Dist/
+Prerequisites/
+
+# Backup files
 *.bak
+*.backup
+*.old
+*-old.*
+*-copia.*
+*~
+
+# Development notes - NEVER COMMIT PERSONAL NOTES
+RESEARCH*.md
+IMPLEMENTATION*.md
+DELIVERY*.md
+MISSING*.md
+FINAL*.md
+EXTRACT*.txt
+INSTALL-WINDOWS.txt
+IMPORTANT-READ*.md
+TODO*.md
+NOTES*.md
+
+# Old versions - KEEP ONLY MAIN FILES
+CHANGELOG-v*.md
+RELEASE-NOTES-v*.md
+VPN-SUPPORT.md
+VPN-COMPATIBILITY.md
+BUILD-FROM-WSL.md
+BUILD-SCRIPTS.md
+HOW-TO-BUILD.md
+MSI-INSTALLER*.md
+QUICK-*.md
+WINDOWS-SETUP.md
+
+# Old code versions
+*-v2.*
+*-old.*
+public/index-v*.html
+public/js/main-v*.js
+public/css/style-v*.css
+
+# Python dev tools
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+translate_skills*.py
+convert_skills*.py
+venv/
+ENV/
 
 # Test files
 test/
+tests/
 coverage/
+.nyc_output/
 
-# Environment files
+# Environment files - NEVER COMMIT SECRETS
 .env
 .env.local
 .env.*.local
+.env.production
+.env.development
+
+# Security - NEVER COMMIT CREDENTIALS
+*.pem
+*.key
+*.cert
+*.crt
+id_rsa*
+id_ed25519*
+.ssh/
+
+# Git files
+*.orig
+*.BACKUP.*
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*
+*_BACKUP_*.txt
+*_BASE_*.txt
+*_LOCAL_*.txt
+*_REMOTE_*.txt
+
+# Misc
+.npmrc
+server - copia*.js
+diccionario - copia.json

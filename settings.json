@@ -1,6 +1,0 @@
-{
-    "autoClearOnServerChange": true,
-    "autoClearOnTimeout": true,
-    "onlyRecordEliteDummy": false,
-    "networkAdapter": "auto"
-}
