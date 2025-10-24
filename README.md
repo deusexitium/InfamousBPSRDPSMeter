@@ -84,13 +84,9 @@ BPSR Meter is a desktop application that acts as a real-time DPS (Damage Per Sec
 ![Session Dropdown](screenshots/session-management.jpg)
 *Auto-saved sessions with easy switching between different encounters*
 
-### Player Details
+### Player Details & Skill Breakdown
 ![Player Skill Breakdown](screenshots/player-details.jpg)
 *Detailed skill analysis with damage breakdown, crit rates, and hit counts*
-
-### Team Overview
-![Full Party View](screenshots/team-overview.jpg)
-*Complete party statistics with DPS, HPS, and damage taken metrics*
 
 ## ✨ Enhanced Features
 
