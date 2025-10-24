@@ -691,8 +691,8 @@ function renderPlayers() {
         }
     });
     
-    // Don't auto-resize on every render - only when explicitly needed
-    // (This was causing infinite resize loops)
+    // Auto-resize to fit player count (with debouncing to prevent loops)
+    setTimeout(() => autoResizeWindow(), 100);
 }
 
 // Debounce timer for resize operations
@@ -724,7 +724,8 @@ function autoResizeWindow() {
         const actualHeight = container.scrollHeight;
         
         // Add small padding for safety
-        const targetHeight = Math.max(500, Math.min(actualHeight + 20, 1080));
+        // Allow window to grow up to 1400px to fit ~20 players + expanded details
+        const targetHeight = Math.max(500, Math.min(actualHeight + 20, 1400));
         const targetWidth = Math.max(1000, window.innerWidth);
 
         // Only resize if difference is significant (reduced threshold for better responsiveness)

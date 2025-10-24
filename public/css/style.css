@@ -127,13 +127,13 @@ body {
     background: rgba(251, 191, 36, 0.1);
 }
 
-/* Player list - Dynamic height with reasonable limits */
+/* Player list - Dynamic height allowing up to 20 players before scrolling */
 .player-list {
     padding: 4px;
     overflow-y: auto;
     overflow-x: hidden;
-    /* Viewport-relative height to ensure scrolling works */
-    max-height: calc(100vh - 180px); /* Account for header, tabs, and padding */
+    /* Allow ~20 players @ 44px each + team totals + local player + margins = ~1000px */
+    max-height: 1100px;
     pointer-events: auto !important; /* CRITICAL: Ensure player rows are clickable */
 }
 
