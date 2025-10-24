@@ -265,7 +265,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Earlier Versions
 
 ### [1.0.0 - 2.59.0] - 2025-01 to 2025-08
-- Original versions by dmlgzs and NeRooNx
+- Original versions by dmlgzs, MrSnakeVT, and NeRooNx
 - Base functionality established
 - Multiple community forks and improvements
 
@@ -316,6 +316,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Original Foundation:**
 - **dmlgzs** - [StarResonanceDamageCounter](https://github.com/dmlgzs/StarResonanceDamageCounter)
+
+**Engine & Data:**
+- **MrSnakeVT** - Engine improvements and packet parsing enhancements
+
+**UI Design:**
 - **NeRooNx** - [Modern UI Design](https://github.com/NeRooNx/BPSR-Meter)
 
 **Skill Data & Translations:**

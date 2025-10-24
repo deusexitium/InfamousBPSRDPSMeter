@@ -5,6 +5,9 @@ This project is built upon the excellent work of the Blue Protocol community:
 ## Original Foundation
 *   **dmlgzs** - [StarResonanceDamageCounter](https://github.com/dmlgzs/StarResonanceDamageCounter) - Original BPSR Meter foundation
 
+## Engine & Packet Parsing
+*   **MrSnakeVT** - Engine improvements, data accuracy, and packet parsing enhancements
+
 ## UI Design
 *   **NeRooNx** - [BPSR-Meter](https://github.com/NeRooNx/BPSR-Meter) - Modern UI design and improvements
 
