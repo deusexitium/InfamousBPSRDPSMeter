@@ -12,7 +12,7 @@ const Sniffer = require(path.join(__dirname, 'src', 'server', 'sniffer'));
 const initializeApi = require(path.join(__dirname, 'src', 'server', 'api'));
 const PacketProcessor = require(path.join(__dirname, 'algo', 'packet')); // Make sure this path is correct
 
-const VERSION = '2.95.12';
+const VERSION = '2.95.13';
 
 let globalSettings = {
     autoClearOnServerChange: true, // Keep enabled - needed for actual server changes
@@ -160,7 +160,7 @@ async function main() {
         console.log('WebSocket server started');
     });
 
-    console.log('✅ Infamous BPSR Meter v2.95.12 - Ready!');
+    console.log('✅ Infamous BPSR Meter v2.95.13 - Ready!');
     console.log('💡 TIP: Works with VPNs like ExitLag! The adapter with most traffic is auto-selected.');
     console.log('Detecting game server, please wait...');
 
