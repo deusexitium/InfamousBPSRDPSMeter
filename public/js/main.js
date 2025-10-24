@@ -1663,7 +1663,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v2.95.14 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v2.95.15 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();

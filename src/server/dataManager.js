@@ -64,9 +64,9 @@ function getSubProfessionBySkillId(skillId) {
         case 1418:
             return '重装';
         case 2405:
-            return '防盾';
+            return '光盾';  // Recovery (uses Valor Bash)
         case 2406:
-            return '光盾';
+            return '防盾';  // Shield (uses Vanguard Strike)
         case 199902:
             return '岩盾';
         case 1930:
