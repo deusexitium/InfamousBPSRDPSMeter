@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v2.95.13
+# ⚔️ Infamous BPSR DPS Meter v2.95.14
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-2.95.13-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-2.95.14-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -152,7 +152,7 @@ BPSR Meter is a desktop application that acts as a real-time DPS (Damage Per Sec
 
 1. **Download the installer:**
    - Go to: [Releases](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
-   - Download: `Infamous BPSR DPS Meter-Setup-2.95.13.exe`
+   - Download: `Infamous BPSR DPS Meter-Setup-2.95.14.exe`
 
 2. **Run the EXE installer:**
    - Right-click the `.exe` file → **"Run as Administrator"**
