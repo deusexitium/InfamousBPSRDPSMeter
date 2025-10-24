@@ -270,10 +270,12 @@ winget install OpenJS.NodeJS
 npm install -g pnpm@10.13.1
 
 # Clone and build
-git clone https://github.com/yourrepo/BPSR-Meter.git
-cd BPSR-Meter
+git clone https://github.com/ssalihsrz/InfamousBPSRDPSMeter.git
+cd InfamousBPSRDPSMeter
 pnpm install
 pnpm dist
+
+# Installer will be at: dist_electron\Infamous BPSR DPS Meter-Setup-{VERSION}.exe
 ```
 
 ### WSL Build (Using Automation)
