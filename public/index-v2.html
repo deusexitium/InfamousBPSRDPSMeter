@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BPSR Meter v2.5.1</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style-v2.css">
+</head>
+<body>
+    <!-- Main Meter Container -->
+    <div class="meter-container">
+        <!-- Compact Header -->
+        <header class="header">
+            <div class="drag-handle" title="Drag to move">
+                <i class="fa-solid fa-grip-vertical"></i>
+            </div>
+            
+            <button class="header-btn" id="btn-settings" title="Settings">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            
+            <button class="header-btn" id="btn-export" title="Export">
+                <i class="fa-solid fa-download"></i>
+            </button>
+            
+            <button class="header-btn" id="btn-reset" title="Reset">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            
+            <span class="duration" id="duration">00:00</span>
+            
+            <button class="header-btn" id="btn-lock" title="Lock">
+                <i class="fa-solid fa-lock-open"></i>
+            </button>
+            
+            <button class="header-btn" id="btn-close" title="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+
+        <!-- Filter Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-filter="all">ALL</button>
+            <button class="tab" data-filter="dps">DPS</button>
+            <button class="tab" data-filter="tank">TANK</button>
+            <button class="tab" data-filter="heal">HEAL</button>
+        </div>
+
+        <!-- Player List -->
+        <div class="player-list" id="player-list">
+            <div class="loading">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Waiting for combat data...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Player Details Modal -->
+    <div class="modal" id="modal-details">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="details-title">Player Details</h3>
+                <button class="modal-close" id="details-close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="details-body">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal" id="modal-export">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Export Data</h3>
+                <button class="modal-close" id="export-close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="export-grid">
+                    <button class="export-btn" id="export-all-csv">
+                        <i class="fa-solid fa-file-csv"></i>
+                        <span>All Players (CSV)</span>
+                    </button>
+                    <button class="export-btn" id="export-all-md">
+                        <i class="fa-solid fa-file-code"></i>
+                        <span>All Players (Markdown)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="modal-settings">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Settings</h3>
+                <button class="modal-close" id="settings-close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-row">
+                    <span class="setting-label">Highlight Local Player</span>
+                    <div class="setting-control">
+                        <input type="checkbox" id="setting-highlight" checked>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">Show Gear Score (GS)</span>
+                    <div class="setting-control">
+                        <input type="checkbox" id="setting-show-gs" checked>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">Refresh Interval (seconds)</span>
+                    <div class="setting-control">
+                        <input type="number" id="setting-refresh" min="1" max="10" value="2">
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">Remember Player Names</span>
+                    <div class="setting-control">
+                        <input type="checkbox" id="setting-remember-names" checked>
+                    </div>
+                </div>
+                <button class="btn-primary" id="save-settings">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main-v2.js"></script>
+</body>
+</html>

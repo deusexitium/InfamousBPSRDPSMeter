@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infamous BPSR DPS Meter v2.95.6</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/team-totals.css">
+</head>
+<body>
+    <!-- Toast Notification System -->
+    <div id="toast-container"></div>
+
+    <!-- Main Meter Container -->
+    <div class="meter-container">
+        <!-- Title Bar with Branding -->
+        <div class="title-bar">
+            <div class="title-left">
+                <span class="logo">⚔️</span>
+                <span class="app-name">Infamous BPSR DPS Meter v2.95.6</span>
+            </div>
+            <div class="title-right">
+                <button class="header-btn" id="btn-settings" title="Settings">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+                <button class="header-btn" id="btn-always-on-top" title="Always on Top: ON">
+                    <i class="fa-solid fa-thumbtack"></i>
+                </button>
+                <button class="header-btn" id="btn-lock" title="Lock Overlay">
+                    <i class="fa-solid fa-lock-open"></i>
+                </button>
+                <button class="header-btn" id="btn-minimize" title="Minimize">
+                    <i class="fa-solid fa-window-minimize"></i>
+                </button>
+                <button class="header-btn" id="btn-close" title="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Action Buttons Bar -->
+        <header class="meter-header">
+            <!-- Session Selector -->
+            <div class="session-selector">
+                <select id="session-select" class="session-dropdown">
+                    <option value="">Current Session</option>
+                </select>
+                <button class="header-btn" id="btn-save-session" title="Save Current Session">
+                    <i class="fa-solid fa-save"></i>
+                </button>
+            </div>
+
+            <button class="header-btn" id="btn-copy" title="Copy to Clipboard">
+                <i class="fa-solid fa-copy"></i>
+            </button>
+            
+            <button class="header-btn" id="btn-export-csv" title="Export CSV">
+                <i class="fa-solid fa-file-csv"></i>
+            </button>
+            
+            <button class="header-btn" id="btn-reset" title="Reset Data">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            
+            <button class="header-btn" id="btn-pause" title="Pause">
+                <i class="fa-solid fa-pause"></i>
+            </button>
+            
+            <button class="header-btn" id="btn-solo-mode" title="Solo Mode">
+                <i class="fa-solid fa-user"></i>
+            </button>
+            
+            <span class="duration" id="duration">00:00</span>
+        </header>
+
+        <!-- Filter Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-filter="all">ALL</button>
+            <button class="tab" data-filter="dps">DPS</button>
+            <button class="tab" data-filter="tank">TANK</button>
+            <button class="tab" data-filter="heal">HEAL</button>
+        </div>
+
+        <!-- Sortable Column Headers -->
+        <div class="column-headers">
+            <div class="col-rank" data-sort="rank">#</div>
+            <div class="col-name" data-sort="name">NAME</div>
+            <div class="col-dps" data-sort="dps">DPS <i class="fa-solid fa-sort"></i></div>
+            <div class="col-max-dps" data-sort="maxDps">MAX DPS <i class="fa-solid fa-sort"></i></div>
+            <div class="col-avg-dps" data-sort="avgDps">AVG DPS <i class="fa-solid fa-sort"></i></div>
+            <div class="col-total-dmg" data-sort="totalDmg">TOTAL DMG <i class="fa-solid fa-sort"></i></div>
+            <div class="col-hps" data-sort="hps">HPS / MAX <i class="fa-solid fa-sort"></i></div>
+            <div class="col-dmg-taken" data-sort="dmgTaken">DMG TAKEN <i class="fa-solid fa-sort"></i></div>
+            <div class="col-gs" data-sort="gs">GS <i class="fa-solid fa-sort"></i></div>
+        </div>
+
+        <!-- Player List -->
+        <div class="player-list" id="player-list">
+            <div class="loading">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Waiting for combat data...</span>
+            </div>
+        </div>
+        
+        <!-- Status Bar Footer -->
+        <footer class="status-bar">
+            <div class="status-left">
+                <span id="status-players">0 Players</span>
+                <span class="status-separator">•</span>
+                <span id="status-network">Capturing Packets</span>
+            </div>
+            <div class="status-right">
+                <span id="status-dps">0 DPS</span>
+                <span class="status-separator">•</span>
+                <span>v2.89.0</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Player Details Modal -->
+    <div class="modal" id="modal-details">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="details-title">Player Details</h3>
+                <button class="modal-close" id="details-close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="details-body">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal - REDESIGNED -->
+    <div class="modal" id="modal-settings">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 class="modal-title">Settings</h3>
+                <button class="modal-close" id="settings-close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Settings Tabs -->
+                <div class="settings-tabs">
+                    <button class="settings-tab active" data-tab="general">
+                        <i class="fa-solid fa-sliders"></i> General
+                    </button>
+                    <button class="settings-tab" data-tab="display">
+                        <i class="fa-solid fa-eye"></i> Display
+                    </button>
+                    <button class="settings-tab" data-tab="overlay">
+                        <i class="fa-solid fa-layer-group"></i> Overlay
+                    </button>
+                    <button class="settings-tab" data-tab="about">
+                        <i class="fa-solid fa-info-circle"></i> About
+                    </button>
+                </div>
+
+                <!-- General Tab -->
+                <div class="settings-panel active" data-panel="general">
+                    <div class="settings-grid">
+                        <label><input type="checkbox" id="setting-highlight" checked> Highlight Local Player</label>
+                        <label><input type="checkbox" id="setting-remember-names" checked> Remember Names</label>
+                        <label><input type="checkbox" id="setting-auto-clear-zone" checked> Auto-Clear on Zone</label>
+                        <label><input type="checkbox" id="setting-keep-after-dungeon" checked> Keep After Dungeon</label>
+                    </div>
+                    <div class="settings-inline">
+                        <label>Refresh: <input type="number" id="setting-refresh" min="0.1" max="5" step="0.1" value="0.5" style="width:60px">s</label>
+                        <label>Name: <input type="text" id="setting-my-name" placeholder="Your name" style="width:140px"> <button id="btn-save-my-name" class="btn-tiny">Save</button></label>
+                    </div>
+                </div>
+
+                <!-- Display Tab -->
+                <div class="settings-panel" data-panel="display">
+                    <div class="settings-grid">
+                        <label><input type="checkbox" id="setting-col-dps" checked> Current DPS</label>
+                        <label><input type="checkbox" id="setting-col-max-dps" checked> Max DPS</label>
+                        <label><input type="checkbox" id="setting-col-avg-dps" checked> Avg DPS</label>
+                        <label><input type="checkbox" id="setting-col-total-dmg" checked> Total DMG</label>
+                        <label><input type="checkbox" id="setting-col-hps" checked> HPS / Max</label>
+                        <label><input type="checkbox" id="setting-col-dmg-taken" checked> DMG Taken</label>
+                        <label><input type="checkbox" id="setting-col-gs" checked> Gear Score</label>
+                    </div>
+                </div>
+
+                <!-- Overlay Tab -->
+                <div class="settings-panel" data-panel="overlay">
+                    <div class="settings-grid">
+                        <label><input type="checkbox" id="setting-clickthrough"> Click-through Mode</label>
+                    </div>
+                    <div class="settings-inline">
+                        <label>Opacity: <input type="range" id="setting-opacity" min="50" max="100" value="100" step="5" style="width:120px"> <span id="opacity-value">100%</span></label>
+                    </div>
+                </div>
+
+                <!-- About Tab -->
+                <div class="settings-panel" data-panel="about">
+                    <div class="about-compact">
+                        <div class="about-title">
+                            <span style="font-size:24px">⚔️</span>
+                            <div>
+                                <strong>Infamous BPSR DPS Meter</strong>
+                                <span style="color:var(--accent-gold);font-size:11px">v2.95.6</span>
+                            </div>
+                        </div>
+                        
+                        <p style="font-size:11px;color:var(--text-secondary);margin:8px 0">Real-time Blue Protocol combat tracker</p>
+                        
+                        <div class="about-section-compact">
+                            <strong style="font-size:11px;color:var(--accent-gold)">Data Location</strong>
+                            <p id="user-data-path" style="font-size:10px;color:var(--text-secondary);margin:4px 0;word-break:break-all;">Loading...</p>
+                            <button class="btn-secondary" onclick="openDataFolder()" style="width:100%;margin-top:4px;font-size:10px;padding:4px 8px;">
+                                <i class="fa-solid fa-folder-open"></i> Open Data Folder
+                            </button>
+                            <p style="font-size:9px;color:var(--text-third);margin-top:4px;">Sessions, settings, logs stored here</p>
+                        </div>
+                        
+                        <div class="about-section-compact">
+                            <strong style="font-size:11px;color:var(--accent-gold)">Credits</strong>
+                            <div class="about-links">
+                                <a href="https://github.com/dmlgzs/StarResonanceDamageCounter" target="_blank">dmlgzs</a> • 
+                                <a href="https://github.com/mrsnakke/BPSR-Meter" target="_blank">mrsnakke</a> • 
+                                <a href="https://github.com/NeRooNx/BPSR-Meter" target="_blank">NeRooNx</a> • 
+                                <a href="https://github.com/winjwinj/bpsr-logs" target="_blank">winjwinj</a>
+                            </div>
+                        </div>
+                        
+                        <div class="about-section-compact">
+                            <strong style="font-size:11px;color:var(--accent-gold)">Tech Stack</strong>
+                            <div class="tech-tags">
+                                <span>Electron</span><span>Node.js</span><span>Express</span><span>Socket.IO</span><span>Npcap</span><span>Protobuf</span>
+                            </div>
+                        </div>
+                        
+                        <p style="font-size:10px;color:var(--text-secondary);margin-top:12px;text-align:center">
+                            AGPL-3.0 License • Open Source
+                        </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn-primary" id="save-settings">
+                        <i class="fa-solid fa-save"></i> Save Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

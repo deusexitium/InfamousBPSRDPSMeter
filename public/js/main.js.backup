@@ -1,0 +1,398 @@
+            const ROLE_FILTERS = ['all', 'dps', 'tank', 'healer'];
+const SORT_KEYS = {
+    dmg: 'totalDamage',
+    tank: 'damageTaken',
+    heal: 'totalHeal',
+};
+
+let currentRole = 'all';
+let currentSortKey = 'dmg';
+let viewMode = 'nearby';
+let syncTimerId = null;
+let nameRefreshId = null;
+let lastStartTime = 0;
+
+const professionMap = {
+    '雷影剑士': { name: 'Stormblade', icon: 'Stormblade.png', role: 'dps' },
+    '冰魔导师': { name: 'Frost Mage', icon: 'Frost Mage.png', role: 'dps' },
+    '涤罪恶火·战斧': { name: 'Fire Axe', icon: 'Fire Axe.png', role: 'dps' },
+    '青岚骑士': { name: 'Wind Knight', icon: 'Wind Knight.png', role: 'tank' },
+    '森语者': { name: 'Verdant Oracle', icon: 'Verdant Oracle.png', role: 'healer' },
+    '雷霆一闪·手炮': { name: 'Gunner', icon: 'desconocido.png', role: 'dps' },
+    '巨刃守护者': { name: 'Heavy Guardian', icon: 'baluarte_ferreo.png', role: 'tank' },
+    '暗灵祈舞·仪刀/仪仗': { name: 'Spirit Dancer', icon: 'desconocido.png', role: 'dps' },
+    '神射手': { name: 'Marksman', icon: 'arco_halcon.png', role: 'dps' },
+    '神盾骑士': { name: 'Shield Knight', icon: 'guardian.png', role: 'tank' },
+    '灵魂乐手': { name: 'Soul Musician', icon: 'sonido_feroz.png', role: 'dps' },
+    '居合': { name: 'Iaido Slash', icon: 'Stormblade.png', role: 'dps' },
+    '月刃': { name: 'MoonStrike', icon: 'MoonStrike.png', role: 'dps' },
+    '冰矛': { name: 'Icicle', icon: 'lanza_hielo.png', role: 'dps' },
+    '射线': { name: 'Frostbeam', icon: 'Frost Mage.png', role: 'dps' },
+    '防盾': { name: 'Vanguard', icon: 'guardian.png', role: 'tank' },
+    '岩盾': { name: 'Skyward', icon: 'Fire Axe.png', role: 'tank' },
+    '惩戒': { name: 'Smite', icon: 'castigo.png', role: 'dps' },
+    '愈合': { name: 'Lifebind', icon: 'Verdant Oracle.png', role: 'healer' },
+    '格挡': { name: 'Block', icon: 'guardian.png', role: 'tank' },
+    '狼弓': { name: 'Wildpack', icon: 'arco_lobo.png', role: 'dps' },
+    '鹰弓': { name: 'Falconry', icon: 'arco_halcon.png', role: 'dps' },
+    '光盾': { name: 'Shield', icon: 'egida_luz.png', role: 'tank' },
+    '协奏': { name: 'Concerto', icon: 'Concierto.png', role: 'dps' },
+    '狂音': { name: 'Dissonance', icon: 'sonido_feroz.png', role: 'dps' },
+    '空枪': { name: 'Empty Gun', icon: 'francotirador.png', role: 'dps' },
+    '重装': { name: 'Heavy Armor', icon: 'Wind Knight.png', role: 'tank' },
+};
+
+const defaultProfession = { name: 'Unknown', icon: 'desconocido.png', role: 'dps' };
+
+const playerBarsContainer = document.getElementById('player-bars-container');
+const loadingIndicator = document.getElementById('loading-indicator');
+
+const roleButtons = {
+    all: document.getElementById('filter-all'),
+    dps: document.getElementById('filter-dps'),
+    tank: document.getElementById('filter-tank'),
+    healer: document.getElementById('filter-heal'),
+};
+
+const sortButtons = {
+    dmg: document.getElementById('sort-dmg'),
+    tank: document.getElementById('sort-tank'),
+    heal: document.getElementById('sort-heal'),
+};
+
+const viewToggleBtn = document.getElementById('view-toggle');
+const refreshBtn = document.getElementById('refresh-button');
+const lockBtn = document.getElementById('lock-button');
+const closeBtn = document.getElementById('close-button');
+const versionLabel = document.getElementById('version-label');
+
+function setVersionLabel(version) {
+    if (versionLabel) {
+        versionLabel.textContent = version;
+    }
+}
+
+function updateRoleButtons() {
+    ROLE_FILTERS.forEach((role) => {
+        if (roleButtons[role]) {
+            roleButtons[role].classList.toggle('active', currentRole === role);
+        }
+    });
+}
+
+function updateSortButtons() {
+    Object.entries(sortButtons).forEach(([key, btn]) => {
+        if (btn) {
+            btn.classList.toggle('active', currentSortKey === key);
+        }
+    });
+}
+
+function formatNumber(value) {
+    if (!Number.isFinite(value)) return '0';
+    if (Math.abs(value) >= 1_000_000_000) return (value / 1_000_000_000).toFixed(1) + 'B';
+    if (Math.abs(value) >= 1_000_000) return (value / 1_000_000).toFixed(1) + 'M';
+    if (Math.abs(value) >= 1_000) return (value / 1_000).toFixed(1) + 'K';
+    return Math.round(value).toString();
+}
+
+function getHealthColor(percent) {
+    if (percent >= 75) return '#22c55e';
+    if (percent >= 50) return '#facc15';
+    if (percent >= 25) return '#f97316';
+    return '#ef4444';
+}
+
+function renderPlayers(players) {
+    if (!playerBarsContainer) return;
+
+    if (!players || players.length === 0) {
+        loadingIndicator.style.display = 'flex';
+        playerBarsContainer.style.display = 'none';
+        return;
+    }
+
+    loadingIndicator.style.display = 'none';
+    playerBarsContainer.style.display = 'flex';
+
+    playerBarsContainer.innerHTML = players.map((player, index) => {
+        const prof = professionMap[player.profession?.split('-')[0]] || defaultProfession;
+        const roleIndicator = prof.role === 'tank' ? '🛡️' : prof.role === 'healer' ? '❤️' : '⚔️';
+        const roleColor = prof.role === 'tank' ? '#60a5fa' : prof.role === 'healer' ? '#34d399' : '#f87171';
+        const hpPercent = player.max_hp ? (player.hp / player.max_hp) * 100 : 0;
+        const damagePercent = Math.min(100, Math.max(0, player.damagePercent || 0));
+        const critRate = player.critRate ? player.critRate.toFixed(1) : '0.0';
+        const luckyRate = player.luckyRate ? player.luckyRate.toFixed(1) : '0.0';
+        const maxDamage = player.maxDamage || 0;
+
+        return `
+        <article class="player-card" onclick="openAnalytics(${player.uid})">
+            <header class="player-header">
+                <div class="player-rank rank-${index + 1}">${index + 1}</div>
+                <img class="class-icon" src="icons/${prof.icon}" alt="${prof.name}">
+                <div class="player-meta">
+                    <div class="player-name-row">
+                        <span class="player-name">${player.name || `Player_${player.uid}`}</span>
+                        <span class="player-role" style="color:${roleColor}">${roleIndicator} ${prof.role.toUpperCase()}</span>
+                        <span class="player-gs">GS: ${formatNumber(player.fightPoint || 0)}</span>
+                    </div>
+                    <div class="player-stats-row">
+                        <span>Crit: <strong>${critRate}%</strong></span>
+                        <span>Lucky: <strong>${luckyRate}%</strong></span>
+                        <span>Max: <strong>${formatNumber(maxDamage)}</strong></span>
+                    </div>
+                </div>
+                <span class="analytics-pill">🔬</span>
+            </header>
+            <section class="hp-section">
+                <div class="hp-bar" title="${formatNumber(player.hp || 0)} / ${formatNumber(player.max_hp || 0)}">
+                    <div class="hp-fill" style="width:${hpPercent}%; background:${getHealthColor(hpPercent)}"></div>
+                </div>
+                <div class="hp-text">${formatNumber(player.hp || 0)} / ${formatNumber(player.max_hp || 0)}</div>
+            </section>
+            <section class="stat-grid">
+                <div><span>DPS</span><strong>${formatNumber(player.total_dps || 0)}</strong></div>
+                <div><span>HPS</span><strong>${formatNumber(player.total_hps || 0)}</strong></div>
+                <div><span>Total DMG</span><strong>${formatNumber(player.total_damage?.total || 0)}</strong></div>
+                <div><span>DMG Taken</span><strong>${formatNumber(player.taken_damage || 0)}</strong></div>
+                <div><span>% DMG</span><strong>${Math.round(damagePercent)}%</strong></div>
+                <div><span>Total Heal</span><strong>${formatNumber(player.total_healing?.total || 0)}</strong></div>
+            </section>
+        </article>`;
+    }).join('');
+}
+
+async function fetchPlayers() {
+    const endpoint = viewMode === 'solo' ? '/api/solo-user' : '/api/data';
+    const res = await fetch(endpoint);
+    if (!res.ok) throw new Error('Failed to fetch player data');
+    const payload = await res.json();
+
+    if (payload.startTime && payload.startTime !== lastStartTime) {
+        lastStartTime = payload.startTime;
+    }
+
+    const players = viewMode === 'solo'
+        ? Object.entries(payload.user || {}).map(([uid, summary]) => ({ uid: Number(uid), ...summary }))
+        : payload.data || [];
+
+    return players;
+}
+
+function applyFilters(players) {
+    let result = [...players];
+
+    if (currentRole !== 'all') {
+        result = result.filter((player) => {
+            const prof = professionMap[player.profession?.split('-')[0]] || defaultProfession;
+            return prof.role === currentRole;
+        });
+    }
+
+    const key = SORT_KEYS[currentSortKey];
+    result.sort((a, b) => {
+        switch (key) {
+            case 'totalDamage':
+                return (b.total_damage?.total || 0) - (a.total_damage?.total || 0);
+            case 'damageTaken':
+                return (b.taken_damage || 0) - (a.taken_damage || 0);
+            case 'totalHeal':
+                return (b.total_healing?.total || 0) - (a.total_healing?.total || 0);
+            default:
+                return 0;
+        }
+    });
+
+    return result;
+}
+
+async function refreshPlayers() {
+    try {
+        const players = await fetchPlayers();
+        const filtered = applyFilters(players);
+        renderPlayers(filtered);
+    } catch (err) {
+        console.error(err);
+        loadingIndicator.style.display = 'flex';
+        playerBarsContainer.style.display = 'none';
+    }
+}
+
+async function refreshNames() {
+    try {
+        const res = await fetch('/api/refresh-names', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (data.count > 0) {
+            console.log(`Auto refreshed ${data.count} names`);
+        }
+    } catch (err) {
+        console.error('Failed to refresh names', err);
+    }
+}
+
+async function loadAnalytics(uid) {
+    const [timelineRes, buffRes, openerRes, skillRes] = await Promise.all([
+        fetch(`/api/analytics/${uid}/timeline`),
+        fetch(`/api/analytics/${uid}/buffs`),
+        fetch(`/api/analytics/${uid}/opener`),
+        fetch(`/api/skill/${uid}`),
+    ]);
+
+    const timeline = await timelineRes.json();
+    const buffs = await buffRes.json();
+    const opener = await openerRes.json();
+    const skills = await skillRes.json();
+
+    return { timeline: timeline.data, buffs: buffs.data, opener: opener.data, skills: skills.data };
+}
+
+function openAnalytics(uid) {
+    const modal = document.createElement('div');
+    modal.className = 'analytics-modal';
+    modal.innerHTML = `
+        <div class="analytics-dialog">
+            <header>
+                <h2>Player Analytics</h2>
+                <button class="close" id="analytics-close">✕</button>
+            </header>
+            <section id="analytics-content">
+                <div class="loading">Loading analytics...</div>
+            </section>
+            <footer>
+                <button id="export-log" class="primary">Download Combat Log</button>
+                <button id="close-modal">Close</button>
+            </footer>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById('analytics-close').onclick = () => modal.remove();
+    document.getElementById('close-modal').onclick = () => modal.remove();
+    document.getElementById('export-log').onclick = () => {
+        window.open(`/api/analytics/${uid}/export`, '_blank');
+    };
+
+    loadAnalytics(uid).then(({ timeline, buffs, opener, skills }) => {
+        document.getElementById('analytics-content').innerHTML = renderAnalytics(timeline, buffs, opener, skills);
+    }).catch((err) => {
+        document.getElementById('analytics-content').innerHTML = `<div class="error">Failed to load analytics: ${err.message}</div>`;
+    });
+}
+
+window.openAnalytics = openAnalytics;
+
+function renderAnalytics(timeline, buffs, opener, skills) {
+    const timelinePoints = timeline?.timeline?.length || 0;
+    const buffEntries = buffs ? Object.entries(buffs) : [];
+    const topSkills = skills?.skills ? Object.entries(skills.skills).sort((a, b) => b[1].totalDamage - a[1].totalDamage).slice(0, 10) : [];
+
+    return `
+        <section class="analytics-grid">
+            <div class="analytics-card">
+                <h3>Timeline</h3>
+                <p>${timelinePoints} data points collected</p>
+            </div>
+            <div class="analytics-card">
+                <h3>Buffs</h3>
+                <ul>
+                    ${buffEntries.length === 0
+                    ? '<li>No buff data</li>'
+                    : buffEntries.map(([id, info]) => `<li>${info.name}: ${info.uptimePercent?.toFixed(1) || 0}% uptime (${info.totalApplications}x)</li>`).join('')}
+                </ul>
+            </div>
+            <div class="analytics-card">
+                <h3>Opener (30s)</h3>
+                <ul>
+                    ${(opener?.sequence?.length || 0) === 0
+                    ? '<li>No opener data</li>'
+                    : opener.sequence.map((entry) => `<li>${formatNumber(entry.amount)} - ${entry.name} ${entry.isCrit ? '🔥' : ''}</li>`).join('')}
+                </ul>
+            </div>
+        </section>
+        <section class="analytics-card">
+            <h3>Top Skills</h3>
+            <table>
+                <thead><tr><th>Skill</th><th>Damage</th><th>Crit%</th><th>Lucky%</th></tr></thead>
+                <tbody>
+                    ${topSkills.length === 0
+                    ? '<tr><td colspan="4">No skill data available</td></tr>'
+                    : topSkills.map(([id, info]) => `
+                        <tr>
+                            <td>${info.displayName || id}</td>
+                            <td>${formatNumber(info.totalDamage || 0)}</td>
+                            <td>${((info.critRate || 0) * 100).toFixed(1)}%</td>
+                            <td>${((info.luckyRate || 0) * 100).toFixed(1)}%</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </section>
+    `;
+}
+
+function initControls() {
+    ROLE_FILTERS.forEach((role) => {
+        if (roleButtons[role]) {
+            roleButtons[role].addEventListener('click', () => {
+                currentRole = role;
+                updateRoleButtons();
+                refreshPlayers();
+            });
+        }
+    });
+
+    Object.entries(sortButtons).forEach(([key, btn]) => {
+        if (btn) {
+            btn.addEventListener('click', () => {
+                currentSortKey = key;
+                updateSortButtons();
+                refreshPlayers();
+            });
+        }
+    });
+
+    if (viewToggleBtn) {
+        viewToggleBtn.addEventListener('click', () => {
+            viewMode = viewMode === 'nearby' ? 'solo' : 'nearby';
+            viewToggleBtn.textContent = viewMode === 'nearby' ? 'Nearby' : 'Solo';
+            refreshPlayers();
+        });
+    }
+
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', refreshPlayers);
+    }
+
+    if (lockBtn && window.electronAPI) {
+        lockBtn.addEventListener('click', () => window.electronAPI.toggleLockState());
+        window.electronAPI.onLockStateChanged((locked) => {
+            document.body.classList.toggle('locked', locked);
+            lockBtn.textContent = locked ? 'Unlock' : 'Lock';
+        });
+    }
+
+    if (closeBtn && window.electronAPI) {
+        closeBtn.addEventListener('click', () => window.electronAPI.closeWindow());
+    }
+}
+
+function initIntervals() {
+    if (syncTimerId) clearInterval(syncTimerId);
+    syncTimerId = setInterval(refreshPlayers, 2000);
+
+    if (nameRefreshId) clearInterval(nameRefreshId);
+    refreshNames();
+    nameRefreshId = setInterval(refreshNames, 10000);
+}
+
+async function initialize() {
+    setVersionLabel('v3.0.0');
+    updateRoleButtons();
+    updateSortButtons();
+    initControls();
+    initIntervals();
+    await refreshPlayers();
+}
+
+initialize();

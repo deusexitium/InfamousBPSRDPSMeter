@@ -1,0 +1,340 @@
+# Changelog
+
+All notable changes to Infamous BPSR DPS Meter will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [2.95.6] - 2025-10-24
+
+### Fixed
+- **CRITICAL:** Removed duplicate click handler causing player details to expand then immediately collapse
+- Player rows now properly expand when clicked
+- Click event handlers no longer conflict with each other
+
+### Technical Details
+- Removed old event delegation handler that was interfering with new per-row handlers
+- Single-toggle behavior restored for player expansion
+
+---
+
+## [2.95.5] - 2025-10-24
+
+### Fixed
+- Manage Sessions modal z-index increased to prevent interaction blocking
+- Modal pointer-events explicitly enabled for full interactivity
+- Start Menu shortcut creation fixed (removed menuCategory config)
+
+### Changed
+- Modal z-index: 9999 → 999999
+- Backdrop z-index: 9998 → 999998
+- Start Menu shortcut now created at root level instead of Games folder
+
+---
+
+## [2.95.4] - 2025-10-24
+
+### Fixed
+- **CRITICAL:** Removed infinite resize loop causing window to be unmovable
+- Removed excessive "Forced movability after resize" logging spam
+- Window auto-resize now only triggered when content actually changes
+
+### Changed
+- `autoResizeWindow()` removed from end of `renderPlayers()` function
+- Resize only triggered on explicit events (expand/collapse, solo mode toggle, data clear)
+- Window drag behavior restored to normal functionality
+
+### Technical Details
+- Previous implementation called resize on every render (50ms intervals)
+- New implementation: resize only on state changes
+- Log spam reduced from hundreds per second to zero
+
+---
+
+## [2.95.3] - 2025-10-24
+
+### Added
+- Click handlers for player row expansion
+- Player details expansion with stats and skills
+- Two copy buttons per player:
+  - "Copy Stats Only" - Basic player statistics
+  - "Copy with Skills" - Stats + top 15 skill breakdown
+
+### Fixed
+- Settings About tab scrollbar (removed inner overflow)
+- Session switching to live mode now properly refreshes data
+- Session dropdown return to "Current Session" clears saved data
+
+### Changed
+- About panel CSS: `overflow-y: visible` to remove double scrollbar
+- Session loading clears previous session data before refreshing
+
+---
+
+## [2.95.2] - 2025-10-24
+
+### Added
+- Session management system
+  - Save current session with custom name
+  - Load saved sessions from dropdown
+  - Auto-save on character switch
+  - Session deletion via "Manage Sessions" modal
+- Local player auto-detection from packets
+- Character switch auto-clear functionality
+
+### Fixed
+- Solo mode window resizing (properly adjusts height)
+- Session sorting (most recent first)
+- Manage Sessions button visibility
+
+---
+
+## [2.95.1] - 2025-10-23
+
+### Added
+- Session count display showing manual vs auto-saved sessions
+- "Manage Sessions" button with deletion modal
+- Session list sorting by timestamp
+
+### Fixed
+- Session management modal styling
+- Delete confirmation dialogs
+- Session dropdown refresh after deletion
+
+---
+
+## [2.95.0] - 2025-10-22
+
+### Added
+- Window anti-stuck system
+  - Detects if window is stuck off-screen
+  - Auto-repositions to center when stuck
+  - Validates window position on startup
+- Forced movability system for Electron window bugs
+- Position caching and restoration
+
+### Fixed
+- Window getting stuck off-screen
+- Dragging issues in lock mode
+- Window position not persisting
+
+---
+
+## [2.94.0] - 2025-10-20
+
+### Added
+- Team totals row showing aggregate stats
+- Player contribution percentage display
+- Enhanced player row highlighting for local player
+
+### Changed
+- UI layout improvements for better readability
+- Team totals only show for 2+ players
+- Contribution % displayed next to total damage
+
+---
+
+## [2.93.0] - 2025-10-18
+
+### Added
+- Player details expansion with skill breakdown
+- Top 10 skills display per player
+- Skill translation support
+- Skills caching system for performance
+
+### Technical Details
+- Skill data fetched from `/api/skill/:uid` endpoint
+- Skills cached to avoid redundant API calls
+- Skills preserved when collapsing/expanding players
+
+---
+
+## [2.92.0] - 2025-10-15
+
+### Added
+- Export system improvements
+- CSV export functionality
+- Markdown export support
+- Copy all players to clipboard
+
+### Changed
+- Export modal redesigned
+- Better data formatting for exports
+
+---
+
+## [2.91.0] - 2025-10-12
+
+### Added
+- Settings persistence with localStorage
+- Multiple tab support in Settings modal
+- Display customization options
+
+### Changed
+- Settings UI completely redesigned
+- About page made compact and readable
+
+---
+
+## [2.90.0] - 2025-10-10
+
+### Added
+- VPN compatibility with auto-detection
+- Network adapter auto-selection
+- ExitLag, WTFast, NoPing support
+
+### Changed
+- Packet capture now detects adapter with most traffic
+- No more manual adapter configuration needed
+
+### Fixed
+- VPN compatibility issues
+- Network adapter detection failures
+
+---
+
+## [2.85.0] - 2025-09-28
+
+### Added
+- Solo mode toggle
+- View mode persistence
+- Compact display for solo play
+
+### Changed
+- Default view mode: Nearby (top 10)
+- Solo mode: Shows only local player
+
+---
+
+## [2.80.0] - 2025-09-20
+
+### Added
+- Rank badges (Gold, Silver, Bronze) for top 3
+- Local player highlighting with star icon
+- HP bars with color coding
+- Idle player detection
+
+### Changed
+- Player row styling improved
+- Visual feedback enhanced
+
+---
+
+## [2.75.0] - 2025-09-15
+
+### Added
+- Modern glassmorphism UI
+- Smooth animations and transitions
+- Hover effects on interactive elements
+
+### Changed
+- Complete UI redesign
+- Professional color scheme
+- Better typography
+
+---
+
+## [2.70.0] - 2025-09-10
+
+### Added
+- DPS/HPS tracking
+- Damage taken display
+- Gear score (GS) display
+
+### Fixed
+- Data accuracy improvements
+- Packet parsing bugs
+
+---
+
+## [2.60.0] - 2025-09-05
+
+### Added
+- Basic real-time combat tracking
+- Player list display
+- Window dragging
+- Always-on-top mode
+
+### Changed
+- Initial hybrid version combining NeRooNx UI + MrSnake engine
+
+---
+
+## Earlier Versions
+
+### [1.0.0 - 2.59.0] - 2025-01 to 2025-08
+- Original versions by dmlgzs, MrSnakeVT, and NeRooNx
+- Base functionality established
+- Multiple forks and improvements
+
+---
+
+## Version Numbering
+
+- **Major** (2.x.x): Significant architecture changes
+- **Minor** (x.Y.x): New features, UI changes
+- **Patch** (x.x.Z): Bug fixes, small improvements
+
+---
+
+## Migration Notes
+
+### From v2.95.5 to v2.95.6
+- No data migration needed
+- Player expansion feature now works correctly
+- Saved sessions remain compatible
+
+### From v2.95.0 to v2.95.5
+- Sessions system added - old data preserved
+- Settings format unchanged
+- No breaking changes
+
+### From v2.90.x to v2.95.x
+- New session management features
+- Auto-save functionality added
+- Backward compatible with old save format
+
+---
+
+## Known Issues
+
+### Current (v2.95.6)
+- None reported
+
+### Historical Issues (Fixed)
+- ✅ Player expansion double-toggle (v2.95.6)
+- ✅ Modal interaction blocking (v2.95.5)
+- ✅ Window unmovable due to resize loop (v2.95.4)
+- ✅ About tab double scrollbar (v2.95.3)
+- ✅ Session switching not refreshing (v2.95.3)
+
+---
+
+## Credits
+
+**Development Team:**
+- **dmlgzs** - Original StarResonanceDamageCounter
+- **MrSnakeVT** - Major improvements and engine work
+- **NeRooNx** - Modern UI redesign
+- **beaRSZT** - Enhanced Edition, v2.95.x series
+
+**Special Thanks:**
+- Blue Protocol community for testing and feedback
+- All contributors who reported bugs and suggested features
+
+---
+
+## License
+
+This project is licensed under the AGPL-3.0 License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## Links
+
+- **Repository:** https://github.com/beaRSZT/BPSR_dev
+- **Issues:** https://github.com/beaRSZT/BPSR_dev/issues
+- **Releases:** https://github.com/beaRSZT/BPSR_dev/releases
+- **Documentation:** [README.md](README.md)
