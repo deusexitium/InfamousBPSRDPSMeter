@@ -241,9 +241,11 @@ class Sniffer {
                                         this.clearTcpCache();
                                         this.tcp_next_seq = tcpPacket.info.seqno + buf.length;
                                         this.userDataManager.refreshEnemyCache();
-                                        if (this.globalSettings.autoClearOnServerChange && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
+                                        if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
                                             this.userDataManager.clearAll(this.globalSettings);
                                             console.log('Server changed, statistics cleared!');
+                                        } else if (this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0) {
+                                            console.log('Server changed, but keeping data (keepDataAfterDungeon enabled)');
                                         }
                                         console.log('Game server detected. Measuring DPS...');
                                     }
@@ -269,9 +271,11 @@ class Sniffer {
                                 this.clearTcpCache();
                                 this.tcp_next_seq = tcpPacket.info.seqno + buf.length;
                                 this.userDataManager.refreshEnemyCache();
-                                if (this.globalSettings.autoClearOnServerChange && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
+                                if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
                                     this.userDataManager.clearAll(this.globalSettings);
                                     console.log('Server changed, statistics cleared!');
+                                } else if (this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0) {
+                                    console.log('Server changed, but keeping data (keepDataAfterDungeon enabled)');
                                 }
                                 console.log('Game server detected by login packet. Measuring DPS...');
                             }
