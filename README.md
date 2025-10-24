@@ -1,7 +1,3 @@
-<div align="center">
-  <img src="portada.png" alt="Cover" width="800"/>
-</div>
-
 # ⚔️ Infamous BPSR DPS Meter v2.95.13
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
