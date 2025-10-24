@@ -186,15 +186,53 @@ const PROFESSIONS = {
     '狂音': { name: 'Dissonance', role: 'heal' },
     '空枪': { name: 'Empty Gun', role: 'dps' },
     '重装': { name: 'Heavy Armor', role: 'tank' },
+    '未知': { name: 'Unknown', role: 'unknown' },  // Undetected profession
+    '': { name: 'Unknown', role: 'unknown' },       // Empty profession
 };
 
-function getProfession(profStr) {
-    const base = profStr?.split('-')[0];
-    const result = PROFESSIONS[base];
-    if (!result) {
-        return { name: 'Unknown', role: 'dps' };
+// Detect role from sub-profession or healing/tanking behavior
+function detectRoleFromBehavior(player) {
+    const totalDmg = player.total_damage?.total || 0;
+    const totalHeal = player.total_healing?.total || 0;
+    const dmgTaken = player.taken_damage || 0;
+    
+    // If player is healing significantly, they're likely a healer
+    if (totalHeal > totalDmg * 0.3) {
+        return 'heal';
     }
-    return result;
+    
+    // If player takes a lot of damage but deals damage too, likely a tank
+    if (dmgTaken > totalDmg * 0.1 && totalDmg > 1000) {
+        return 'tank';
+    }
+    
+    // Default to DPS
+    return 'dps';
+}
+
+function getProfession(profStr, player = null) {
+    const base = profStr?.split('-')[0];
+    const sub = profStr?.split('-')[1];
+    
+    // Check sub-profession first (more specific)
+    if (sub && PROFESSIONS[sub]) {
+        return PROFESSIONS[sub];
+    }
+    
+    // Then check base profession
+    const result = PROFESSIONS[base];
+    if (result && result.role !== 'unknown') {
+        return result;
+    }
+    
+    // If unknown, try to detect from behavior
+    if (player && result && result.role === 'unknown') {
+        const behaviorRole = detectRoleFromBehavior(player);
+        return { name: 'Unknown', role: behaviorRole };
+    }
+    
+    // Absolute fallback
+    return { name: 'Unknown', role: 'dps' };
 }
 
 // ============================================================================
@@ -346,7 +384,7 @@ async function fetchPlayerData() {
 // ============================================================================
 
 function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
-    const prof = getProfession(player.profession);
+    const prof = getProfession(player.profession, player);
     const name = player.name || PLAYER_DB.get(player.uid) || `Unknown_${player.uid}`;
     
     const hp = player.hp || 0;
@@ -703,7 +741,7 @@ function autoResizeWindow() {
 function filterPlayers(players) {
     if (STATE.currentFilter === 'all') return players;
     return players.filter(p => {
-        const prof = getProfession(p.profession);
+        const prof = getProfession(p.profession, p);
         return prof.role === STATE.currentFilter;
     });
 }
@@ -729,7 +767,7 @@ async function openPlayerDetails(uid) {
         const player = STATE.players.get(uid);
         if (!player) return;
         
-        const prof = getProfession(player.profession);
+        const prof = getProfession(player.profession, player);
         const name = player.name || PLAYER_DB.get(uid) || `Player ${uid}`;
         
         document.getElementById('details-title').textContent = name;
@@ -867,7 +905,7 @@ function copyToClipboard() {
     text += `═══════════════════════════════════════════════════════════════════════════════════════════\n`;
     
     players.forEach((p, idx) => {
-        const prof = getProfession(p.profession);
+        const prof = getProfession(p.profession, p);
         const name = (p.name || PLAYER_DB.get(p.uid) || `Player_${p.uid}`).padEnd(16, ' ').substring(0, 16);
         const role = prof.role.toUpperCase().padEnd(6, ' ');
         const dps = formatNumber(p.total_dps || 0).padStart(7, ' ');
@@ -913,7 +951,7 @@ async function copyPlayerToClipboard(uid, includeSkills = false) {
         return;
     }
     
-    const prof = getProfession(player.profession);
+    const prof = getProfession(player.profession, player);
     const name = player.name || PLAYER_DB.get(uid) || `Player_${uid}`;
     const duration = STATE.startTime ? Math.floor((Date.now() - STATE.startTime) / 1000) : 0;
     
@@ -1031,7 +1069,7 @@ function exportAllCSV() {
     const rows = [headers];
     
     players.forEach((p, idx) => {
-        const prof = getProfession(p.profession);
+        const prof = getProfession(p.profession, p);
         const name = p.name || PLAYER_DB.get(p.uid) || `Player_${p.uid}`;
         const dmgPercent = ((p.total_damage?.total || 0) / players.reduce((sum, pl) => sum + (pl.total_damage?.total || 0), 1) * 100).toFixed(1);
         rows.push([
@@ -1081,7 +1119,7 @@ function exportAllMarkdown() {
     md += `|------|------|-------|------|----|-----------|---------|---------|-----------|----|-----|---------|------------|-----------|-------|--------|---------|--------|----------|\n`;
     
     players.forEach((p, idx) => {
-        const prof = getProfession(p.profession);
+        const prof = getProfession(p.profession, p);
         const name = p.name || PLAYER_DB.get(p.uid) || `Player_${p.uid}`;
         const dmgPercent = ((p.total_damage?.total || 0) / players.reduce((sum, pl) => sum + (pl.total_damage?.total || 0), 1) * 100).toFixed(0);
         const currentDps = p.current_dps || p.realtime_dps || 0;
@@ -1098,7 +1136,7 @@ function exportPlayerData(uid) {
     const player = STATE.players.get(uid);
     if (!player) return;
     
-    const prof = getProfession(player.profession);
+    const prof = getProfession(player.profession, player);
     const name = player.name || PLAYER_DB.get(uid) || `Player_${uid}`;
     
     const data = {
@@ -1610,7 +1648,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v2.95.10 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v2.95.11 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
