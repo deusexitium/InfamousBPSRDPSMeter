@@ -89,6 +89,9 @@ Prerequisites/
 RESEARCH*.md
 IMPLEMENTATION*.md
 DELIVERY*.md
+DEPLOYMENT*.md
+GITHUB_DEPLOYMENT.md
+START_HERE.md
 MISSING*.md
 FINAL*.md
 EXTRACT*.txt
@@ -96,6 +99,7 @@ INSTALL-WINDOWS.txt
 IMPORTANT-READ*.md
 TODO*.md
 NOTES*.md
+deploy-to-github.sh
 
 # Old versions - KEEP ONLY MAIN FILES
 CHANGELOG-v*.md
