@@ -77,8 +77,6 @@
       "users.json",
       "icon.ico",
       "icon.png",
-      "medidor.png",
-      "portada.png",
       "node_modules/**/*"
     ],
     "asarUnpack": [
