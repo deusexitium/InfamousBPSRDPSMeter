@@ -78,7 +78,23 @@ Thank you to all the talented developers who made this possible! 💙
 
 BPSR Meter is a desktop application that acts as a real-time DPS (Damage Per Second) meter for Blue Protocol. It overlays the game window to provide detailed combat statistics without interrupting your gameplay.
 
-![DPS Meter in action](medidor.png)
+## 📸 Screenshots
+
+### Main Interface
+![Main DPS Meter](screenshots/main-interface.png)
+*Real-time DPS tracking with player rankings, damage percentages, and role indicators*
+
+### Session Management
+![Session Dropdown](screenshots/session-management.png)
+*Auto-saved sessions with easy switching between different encounters*
+
+### Player Details
+![Player Skill Breakdown](screenshots/player-details.png)
+*Detailed skill analysis with damage breakdown, crit rates, and hit counts*
+
+### Team Overview
+![Full Party View](screenshots/team-overview.png)
+*Complete party statistics with DPS, HPS, and damage taken metrics*
 
 ## ✨ Enhanced Features
 

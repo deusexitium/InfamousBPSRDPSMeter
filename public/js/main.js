@@ -195,18 +195,32 @@ function detectRoleFromBehavior(player) {
     const totalDmg = player.total_damage?.total || 0;
     const totalHeal = player.total_healing?.total || 0;
     const dmgTaken = player.taken_damage || 0;
+    const totalHps = player.total_hps || 0;
+    const totalDps = player.total_dps || 0;
     
-    // If player is healing significantly, they're likely a healer
-    if (totalHeal > totalDmg * 0.3) {
+    // Healer detection: healing is PRIMARY role (much more healing than damage)
+    // Healers typically have healing >> damage (3x+) AND high HPS
+    if (totalHeal > totalDmg * 3 && totalHps > 100) {
         return 'heal';
     }
     
-    // If player takes a lot of damage but deals damage too, likely a tank
-    if (dmgTaken > totalDmg * 0.1 && totalDmg > 1000) {
+    // OR extremely high HPS compared to DPS (dedicated healer)
+    if (totalHps > totalDps * 5 && totalHps > 500) {
+        return 'heal';
+    }
+    
+    // Tank detection: takes significant damage relative to damage dealt
+    // Tanks may have self-heal but damage taken is the key indicator
+    if (dmgTaken > totalDmg * 0.2 && totalDmg > 5000) {
         return 'tank';
     }
     
-    // Default to DPS
+    // High damage taken with low damage output = pure tank
+    if (dmgTaken > 50000 && totalDmg < 10000) {
+        return 'tank';
+    }
+    
+    // Default to DPS (includes tanks with self-heal that don't take much damage yet)
     return 'dps';
 }
 
