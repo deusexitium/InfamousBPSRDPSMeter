@@ -7,6 +7,10 @@
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
+> **🔱 Forked From:** [NeRooNx/BPSR-Meter](https://github.com/NeRooNx/BPSR-Meter) | **🌟 Original Project:** [StarResonanceDamageCounter](https://github.com/dmlgzs/StarResonanceDamageCounter) by dmlgzs
+> 
+> This enhanced edition builds upon excellent work from the Blue Protocol community with improved stability, session management, and extended features.
+
 ---
 
 ## ⚠️ IMPORTANT NOTICES
@@ -49,22 +53,40 @@ This project builds upon and combines excellent work from the Blue Protocol comm
 
 ---
 
-# Acknowledgments and Credits
+# 🙏 Acknowledgments and Credits
 
-This project is built upon the excellent work of the Blue Protocol community:
+## Project Lineage
 
-- **dmlgzs** - Original [StarResonanceDamageCounter](https://github.com/dmlgzs/StarResonanceDamageCounter) foundation
-- **MrSnakeVT** - Engine improvements and packet parsing enhancements
-- **NeRooNx** - Beautiful modern UI design ([NeRooNx/BPSR-Meter](https://github.com/NeRooNx/BPSR-Meter))
-- **winjwinj** - Skill data and translations ([bpsr-logs](https://github.com/winjwinj/bpsr-logs))
-- **Community Contributors** - Bug reports, testing, and feedback
+This project is part of a community-driven evolution:
 
-**This Enhanced Edition** combines and extends their amazing work with:
-- Session management system
-- Player detail expansion
-- Flexible copy/export options
-- Window stability improvements
-- Additional UI refinements
+1. **🌟 Original Foundation** - [dmlgzs/StarResonanceDamageCounter](https://github.com/dmlgzs/StarResonanceDamageCounter)
+   - Created the initial DPS meter architecture
+   - Established packet capture methodology
+   
+2. **🎨 Modern UI Fork** - [NeRooNx/BPSR-Meter](https://github.com/NeRooNx/BPSR-Meter)
+   - Beautiful glassmorphism UI design
+   - Enhanced visual experience
+   - Improved user interface
+   
+3. **⚔️ This Enhanced Edition** - Infamous BPSR DPS Meter
+   - Forked from NeRooNx's version
+   - Added stability and reliability improvements
+   - Session management system
+   - Player detail expansion
+   - Flexible export options
+   - Auto-resize and window fixes
+
+## Individual Contributors
+
+- **dmlgzs** - Original project creator and packet parsing foundation
+- **MrSnakeVT** - Engine improvements and data accuracy enhancements
+- **NeRooNx** - Modern UI design and visual improvements
+- **winjwinj** - Skill data and translations from [bpsr-logs](https://github.com/winjwinj/bpsr-logs)
+- **Community Contributors** - Bug reports, testing, feedback, and suggestions
+
+## License & Attribution
+
+This project maintains the **AGPL-3.0** license from the original work and gives full credit to all contributors in the development chain.
 
 Thank you to all the talented developers who made this possible! 💙
 
