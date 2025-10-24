@@ -131,23 +131,29 @@ body {
 .player-list {
     padding: 4px;
     overflow-y: auto;
-    overflow-x: auto;
-    /* Allow reasonable growth - enough for 20 players */
-    max-height: 1100px;
+    overflow-x: hidden;
+    /* Viewport-relative height to ensure scrolling works */
+    max-height: calc(100vh - 180px); /* Account for header, tabs, and padding */
     pointer-events: auto !important; /* CRITICAL: Ensure player rows are clickable */
 }
 
 .player-list::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 .player-list::-webkit-scrollbar-track {
-    background: var(--bg-dark);
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
 }
 
 .player-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 3px;
+    background: rgba(251, 191, 36, 0.4);
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.player-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(251, 191, 36, 0.6);
 }
 
 /* Player Row Wrapper - Contains row + details */
