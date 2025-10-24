@@ -58,8 +58,8 @@ This project builds upon and combines excellent work from the Blue Protocol comm
 This project is built upon the excellent work of the Blue Protocol community:
 
 - **dmlgzs** - Original [StarResonanceDamageCounter](https://github.com/dmlgzs/StarResonanceDamageCounter) foundation
-- **MrSnakeVT** - Significant improvements to data engine and packet parsing
 - **NeRooNx** - Beautiful modern UI design ([NeRooNx/BPSR-Meter](https://github.com/NeRooNx/BPSR-Meter))
+- **winjwinj** - Skill data and translations ([bpsr-logs](https://github.com/winjwinj/bpsr-logs))
 - **Community Contributors** - Bug reports, testing, and feedback
 
 **This Enhanced Edition** combines and extends their amazing work with:
@@ -352,7 +352,7 @@ winget install Microsoft.VisualStudio.BuildTools
 > To allow the Npcap library to have low-level access to network adapters and monitor the game's packets.
 
 **What's different from the original version?**
-> This Enhanced Edition combines NeRooNx's modern UI with MrSnake's data accuracy, adds performance fixes, and includes complete English translation.
+> This Enhanced Edition features modern UI improvements, performance optimizations, complete English translation, and accurate skill data from the community.
 
 **Does it work with ExitLag?**
 > Yes, but set ExitLag to "Legacy-NDIS" mode and allow 30 seconds out of combat for auto-clear.
@@ -387,9 +387,3 @@ See [CHANGELOG.md](CHANGELOG.md) for complete version history.
 
 ---
 
-## Social Media
-
-[![Twitch](https://img.shields.io/badge/Twitch-9146FF?style=for-the-badge&logo=twitch&logoColor=white)](https://www.twitch.tv/mrsnakevt)
-[![Kick](https://img.shields.io/badge/Kick-50FF78?style=for-the-badge&logo=kick&logoColor=white)](https://kick.com/mrsnakevt)
-[![YouTube](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@MrSnake_VT)
-[![X (Twitter)](https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/MrSnakeVT)

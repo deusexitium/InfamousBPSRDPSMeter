@@ -258,16 +258,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Always-on-top mode
 
 ### Changed
-- Initial hybrid version combining NeRooNx UI + MrSnake engine
+- Initial enhanced version with improved UI and performance
 
 ---
 
 ## Earlier Versions
 
 ### [1.0.0 - 2.59.0] - 2025-01 to 2025-08
-- Original versions by dmlgzs, MrSnakeVT, and NeRooNx
+- Original versions by dmlgzs and NeRooNx
 - Base functionality established
-- Multiple forks and improvements
+- Multiple community forks and improvements
 
 ---
 
@@ -314,11 +314,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Credits
 
-**Development Team:**
-- **dmlgzs** - Original StarResonanceDamageCounter
-- **MrSnakeVT** - Major improvements and engine work
-- **NeRooNx** - Modern UI redesign
-- **Enhanced Edition Team** - v2.95.x series improvements
+**Original Foundation:**
+- **dmlgzs** - [StarResonanceDamageCounter](https://github.com/dmlgzs/StarResonanceDamageCounter)
+- **NeRooNx** - [Modern UI Design](https://github.com/NeRooNx/BPSR-Meter)
+
+**Skill Data & Translations:**
+- **winjwinj** - [bpsr-logs](https://github.com/winjwinj/bpsr-logs) - Comprehensive skill data and translations
+
+**Enhanced Edition (v2.95.x):**
+- Session management system
+- Player detail expansion
+- Performance optimizations
+- Complete English localization
 
 **Special Thanks:**
 - Blue Protocol community for testing and feedback
