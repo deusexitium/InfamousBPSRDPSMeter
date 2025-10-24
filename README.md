@@ -120,32 +120,86 @@ BPSR Meter is a desktop application that acts as a real-time DPS (Damage Per Sec
 
 ## Installation
 
-### Quick Install (Recommended)
-1. **Download EXE Installer:** Go to [Releases](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest) and download:
-   - `Infamous BPSR DPS Meter-Setup-2.95.12.exe`
+### Step 1: Install Npcap (REQUIRED)
+**Do this FIRST before installing the meter!**
 
-2. **Install Npcap** (Required):
-   - Download from: https://npcap.com/
-   - ✅ Enable "WinPcap API-compatible Mode"
-   - ✅ Enable "Support loopback traffic"
+1. Download Npcap from: https://npcap.com/
+2. Right-click the installer → **"Run as Administrator"**
+3. During installation, **CHECK THESE TWO BOXES:**
+   - ✅ **"Install Npcap in WinPcap API-compatible Mode"**
+   - ✅ **"Support loopback traffic"**
+4. Click "I Agree" and complete installation
+5. Restart your computer (recommended)
 
-3. **Run MSI Installer:**
-   - Right-click → "Run as Administrator"
-   - Follow installation wizard
-   - Choose installation directory
-   - Select shortcuts options
+⚠️ **Without Npcap, the meter will NOT work!**
 
-4. **Verify Installation:**
-   - Run `check-dependencies.ps1` (in install folder)
-   - Or run `pre-launch.bat`
-   - Ensures all requirements are met
+---
 
-5. **Launch BPSR Meter:**
-   - Use desktop shortcut
-   - Or find in Start Menu
-   - Always run as Administrator
+### Step 2: Download and Install BPSR Meter
 
-📖 **Detailed installer guide:** [INSTALLER-README.md](INSTALLER-README.md)
+1. **Download the installer:**
+   - Go to: [Releases](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
+   - Download: `Infamous BPSR DPS Meter-Setup-2.95.12.exe`
+
+2. **Run the EXE installer:**
+   - Right-click the `.exe` file → **"Run as Administrator"**
+   - Click "Next" through the installation wizard
+   - Choose installation directory (default: `C:\Program Files\Infamous BPSR DPS Meter\`)
+   - Select if you want desktop/start menu shortcuts
+   - Click "Install" and wait for completion
+
+---
+
+### Step 3: Verify Installation
+
+After installation, verify everything is working:
+
+**Option A: Automatic Check (Recommended for beginners)**
+1. Navigate to your install folder (default: `C:\Program Files\Infamous BPSR DPS Meter\`)
+2. Find `pre-launch.bat`
+3. Right-click → **"Run as Administrator"**
+4. This will:
+   - ✅ Check if Npcap is installed
+   - ✅ Check if Npcap service is running
+   - ✅ Start the service if needed
+   - ✅ Tell you if something is wrong
+
+**Option B: Detailed Check (Advanced users)**
+1. Navigate to your install folder
+2. Find `check-dependencies.ps1`
+3. Right-click → **"Run with PowerShell"**
+4. This provides a detailed report of:
+   - Npcap installation status
+   - Visual C++ Redistributables status
+   - Service status and troubleshooting
+
+---
+
+### Step 4: Launch the Meter
+
+1. Find the **"Infamous BPSR DPS Meter"** shortcut on your desktop (or Start Menu)
+2. Right-click the shortcut → **"Run as Administrator"**
+3. The meter window will appear
+4. Start Blue Protocol and enter combat - data should appear automatically!
+
+---
+
+### 🔧 Troubleshooting
+
+**Problem: No data appears**
+- Run `restart-npcap.bat` (in install folder) as Administrator
+- Change game instance once (join/leave a party)
+- Make sure you're running the meter as Administrator
+
+**Problem: "Npcap not found" error**
+- Re-install Npcap from https://npcap.com/
+- Make sure to check the two boxes during installation
+
+**Problem: Npcap service not running**
+- Run `restart-npcap.bat` as Administrator
+- Or manually start "Npcap" service in Windows Services
+
+📖 **More troubleshooting:** [INSTALLER-README.md](INSTALLER-README.md)
 
 ---
 
