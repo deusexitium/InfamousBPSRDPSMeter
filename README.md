@@ -13,7 +13,42 @@
 
 ---
 
-## ⚠️ IMPORTANT NOTICES
+## 🚀 Quick Start (For Users)
+
+### 📥 Download & Install
+
+**Step 1: Download the Latest Release**
+- 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
+- Get: `Infamous BPSR DPS Meter-Setup-2.95.14.exe` (~90MB)
+
+**Step 2: Install Npcap (Required)**
+- Download from: https://npcap.com/
+- ✅ Check **"Install Npcap in WinPcap API-compatible Mode"**
+- Install and restart your computer
+
+**Step 3: Install the Meter**
+- Right-click the `.exe` → **"Run as Administrator"**
+- Follow the installation wizard
+- Creates desktop + start menu shortcuts
+
+**Step 4: Launch & Use**
+- Run **Infamous BPSR DPS Meter** (as Administrator recommended)
+- Start or join Blue Protocol
+- Change instance/channel once to trigger packet capture
+- Meter will automatically track combat data!
+
+### 💡 Quick Tips
+- ⚡ Works best with **VPN disabled** (100% accuracy)
+- 🔄 First launch may require changing game instance once
+- 📊 Click any player row to see detailed skill breakdown
+- 💾 Sessions auto-save - switch between encounters via dropdown
+- 📋 Copy stats to clipboard with one click
+
+---
+
+## 👨‍💻 For Developers
+
+### ⚠️ IMPORTANT BUILD NOTICES
 
 ### Windows Build Only
 **This application MUST be built on Windows.** Do NOT build in WSL (Windows Subsystem for Linux).
@@ -149,7 +184,15 @@ BPSR Meter is a desktop application that acts as a real-time DPS (Damage Per Sec
 > ### Responsible Use
 > This tool is designed to help you improve your own performance. **Please do not use it to degrade, harass, or discriminate against other players.** The goal is self-improvement and enjoying the game as a community.
 
-## Installation
+---
+
+## 📖 Detailed Installation Guide
+
+**🚀 Want to get started quickly?** See the [Quick Start](#-quick-start-for-users) section above!
+
+This section provides detailed information for troubleshooting or advanced setup.
+
+### Installation
 
 ### Step 1: Install Npcap (REQUIRED)
 **Do this FIRST before installing the meter!**
