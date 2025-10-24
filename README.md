@@ -23,8 +23,9 @@
 
 **Step 2: Install Npcap (Required)**
 - Download from: https://npcap.com/
+- Right-click installer → **"Run as Administrator"** (required for API option to show!)
 - ✅ Check **"Install Npcap in WinPcap API-compatible Mode"**
-- Install and restart your computer
+- Complete installation and restart your computer
 
 **Step 3: Install the Meter**
 - Right-click the `.exe` → **"Run as Administrator"**
@@ -198,7 +199,7 @@ This section provides detailed information for troubleshooting or advanced setup
 **Do this FIRST before installing the meter!**
 
 1. Download Npcap from: https://npcap.com/
-2. Right-click the installer → **"Run as Administrator"**
+2. Right-click the installer → **"Run as Administrator"** (required for API option to appear!)
 3. During installation, **CHECK THESE TWO BOXES:**
    - ✅ **"Install Npcap in WinPcap API-compatible Mode"**
    - ✅ **"Support loopback traffic"**
