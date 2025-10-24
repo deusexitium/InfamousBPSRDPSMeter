@@ -963,32 +963,37 @@ async function copyPlayerToClipboard(uid, includeSkills = false) {
             if (res.ok) {
                 const data = await res.json();
                 const skills = data.data?.skills || data.skills || {};
-                const skillEntries = Object.entries(skills);
+                const skillEntries = Object.entries(skills)
+                    .filter(([_, skill]) => (skill.totalDamage || 0) > 0) // Only skills with damage
+                    .sort((a, b) => (b[1].totalDamage || 0) - (a[1].totalDamage || 0))
+                    .slice(0, 10); // Top 10 skills
                 
                 if (skillEntries.length > 0) {
-                    text += `\n\n📜 Skill Breakdown:\n`;
-                    text += `${'─'.repeat(65)}\n`;
-                    text += `Skill Name          Total DMG    Hits   Crit%   Avg DMG\n`;
-                    text += `${'─'.repeat(65)}\n`;
+                    text += `\n\n📜 Top Skills (Damage):\n`;
+                    text += `${'═'.repeat(67)}\n`;
                     
-                    skillEntries
-                        .sort((a, b) => (b[1].total_damage || 0) - (a[1].total_damage || 0))
-                        .slice(0, 15) // Top 15 skills
-                        .forEach(([skillId, skill]) => {
-                            // Translate skill ID to name
-                            const translatedName = skillNamesMap[skillId] || `Skill ${skillId}`;
-                            const skillName = translatedName.padEnd(18, ' ').substring(0, 18);
-                            const dmg = formatNumber(skill.total_damage || 0).padStart(11, ' ');
-                            const hits = String(skill.total_hit || 0).padStart(6, ' ');
-                            const critRate = ((skill.crit_hit || 0) / Math.max(skill.total_hit || 1, 1) * 100).toFixed(1).padStart(5, ' ');
-                            const avgDmg = formatNumber(Math.floor((skill.total_damage || 0) / Math.max(skill.total_hit || 1, 1))).padStart(9, ' ');
-                            
-                            text += `${skillName} ${dmg} ${hits}  ${critRate}% ${avgDmg}\n`;
-                        });
+                    skillEntries.forEach(([skillId, skill]) => {
+                        // Translate skill ID to name
+                        const translatedName = skillNamesMap[skillId] || skill.displayName || `Skill ${skillId}`;
+                        const dmg = formatNumber(skill.totalDamage || 0);
+                        const hits = skill.totalCount || 0;
+                        const critRate = ((skill.critRate || 0) * 100).toFixed(1);
+                        const avgDmg = formatNumber(Math.floor((skill.totalDamage || 0) / Math.max(hits, 1)));
+                        const dmgPercent = player.total_damage?.total > 0 
+                            ? ((skill.totalDamage / player.total_damage.total) * 100).toFixed(1)
+                            : '0.0';
+                        
+                        text += `  ${translatedName}\n`;
+                        text += `    ├─ Damage: ${dmg} (${dmgPercent}%) | Hits: ${hits}\n`;
+                        text += `    └─ Crit: ${critRate}% | Avg: ${avgDmg}/hit\n`;
+                    });
+                } else {
+                    text += `\n\n📜 Skills: No damage skills recorded\n`;
                 }
             }
         } catch (err) {
             console.error('Failed to fetch skills:', err);
+            text += `\n\n📜 Skills: Error loading skill data\n`;
         }
     }
     
@@ -1607,7 +1612,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v2.95.8 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v2.95.9 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
