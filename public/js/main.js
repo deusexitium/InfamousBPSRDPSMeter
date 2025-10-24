@@ -969,31 +969,29 @@ async function copyPlayerToClipboard(uid, includeSkills = false) {
                     .slice(0, 10); // Top 10 skills
                 
                 if (skillEntries.length > 0) {
-                    text += `\n\n📜 Top Skills (Damage):\n`;
-                    text += `${'═'.repeat(67)}\n`;
+                    text += `\n\n📜 SKILLS:\n`;
+                    text += `${'─'.repeat(80)}\n`;
+                    text += `${'SKILL'.padEnd(30)} ${'TOTAL DMG'.padStart(12)} ${'HITS'.padStart(6)} ${'CRIT%'.padStart(7)} ${'AVG DMG'.padStart(10)}\n`;
+                    text += `${'─'.repeat(80)}\n`;
                     
                     skillEntries.forEach(([skillId, skill]) => {
                         // Translate skill ID to name
                         const translatedName = skillNamesMap[skillId] || skill.displayName || `Skill ${skillId}`;
+                        const skillName = translatedName.length > 28 ? translatedName.substring(0, 28) + '..' : translatedName;
                         const dmg = formatNumber(skill.totalDamage || 0);
-                        const hits = skill.totalCount || 0;
-                        const critRate = ((skill.critRate || 0) * 100).toFixed(1);
-                        const avgDmg = formatNumber(Math.floor((skill.totalDamage || 0) / Math.max(hits, 1)));
-                        const dmgPercent = player.total_damage?.total > 0 
-                            ? ((skill.totalDamage / player.total_damage.total) * 100).toFixed(1)
-                            : '0.0';
+                        const hits = String(skill.totalCount || 0);
+                        const critRate = ((skill.critRate || 0) * 100).toFixed(1) + '%';
+                        const avgDmg = formatNumber(Math.floor((skill.totalDamage || 0) / Math.max(skill.totalCount || 1, 1)));
                         
-                        text += `  ${translatedName}\n`;
-                        text += `    ├─ Damage: ${dmg} (${dmgPercent}%) | Hits: ${hits}\n`;
-                        text += `    └─ Crit: ${critRate}% | Avg: ${avgDmg}/hit\n`;
+                        text += `${skillName.padEnd(30)} ${dmg.padStart(12)} ${hits.padStart(6)} ${critRate.padStart(7)} ${avgDmg.padStart(10)}\n`;
                     });
                 } else {
-                    text += `\n\n📜 Skills: No damage skills recorded\n`;
+                    text += `\n\n📜 SKILLS: No damage recorded\n`;
                 }
             }
         } catch (err) {
             console.error('Failed to fetch skills:', err);
-            text += `\n\n📜 Skills: Error loading skill data\n`;
+            text += `\n\n📜 SKILLS: Error loading data\n`;
         }
     }
     
@@ -1612,7 +1610,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v2.95.9 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v2.95.10 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
