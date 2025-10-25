@@ -1356,9 +1356,17 @@ function setupEventListeners() {
         showNotification(STATE.soloMode ? 'Solo mode enabled' : 'Solo mode disabled');
     });
     
-    // Compact Mode toggle
+    // Compact Mode (Overlay Mode) toggle
     document.getElementById('btn-compact-mode')?.addEventListener('click', () => {
         const compactMode = document.body.classList.toggle('compact-mode');
+        const btn = document.getElementById('btn-compact-mode');
+        
+        // Update button tooltip
+        if (btn) {
+            btn.title = compactMode ? 'Exit Overlay Mode (Full View)' : 'Toggle Overlay Mode (In-Game)';
+        }
+        
+        // Save preference
         SETTINGS.save('compactMode', compactMode);
         
         // Trigger window resize to fit new layout
@@ -1366,7 +1374,12 @@ function setupEventListeners() {
             autoResizeWindow();
         }, 250);
         
-        showToast(`Compact mode ${compactMode ? 'enabled' : 'disabled'}`, 'info');
+        showToast(
+            compactMode 
+                ? 'Overlay Mode: Top 5 + You (Lock for click-through)' 
+                : 'Full Mode: All players visible',
+            'info'
+        );
     });
     
     // Always on Top toggle
@@ -1718,7 +1731,11 @@ async function initialize() {
     const savedCompactMode = SETTINGS.get('compactMode');
     if (savedCompactMode) {
         document.body.classList.add('compact-mode');
-        console.log('✅ Compact mode restored from settings');
+        const btn = document.getElementById('btn-compact-mode');
+        if (btn) {
+            btn.title = 'Exit Overlay Mode (Full View)';
+        }
+        console.log('✅ Overlay mode restored from settings');
     }
     
     // Sync pause state from backend - CRITICAL: Ensure data flows
