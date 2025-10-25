@@ -1398,8 +1398,37 @@ function setupEventListeners() {
         window.electronAPI.onLockStateChanged((locked) => {
             const icon = document.querySelector('#btn-lock i');
             if (icon) icon.className = locked ? 'fa-solid fa-lock' : 'fa-solid fa-lock-open';
+            
+            // Enable click-through when locked in compact mode
+            if (locked) {
+                document.body.classList.add('locked');
+            } else {
+                document.body.classList.remove('locked');
+            }
         });
     }
+    
+    // Expand/Collapse player list in compact mode
+    document.getElementById('btn-expand-list')?.addEventListener('click', () => {
+        const playerList = document.getElementById('player-list');
+        const button = document.getElementById('btn-expand-list');
+        const icon = button?.querySelector('i');
+        const text = button?.querySelector('span');
+        
+        if (playerList && button) {
+            const isExpanded = playerList.classList.toggle('expanded');
+            
+            if (icon) {
+                icon.className = isExpanded ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
+            }
+            if (text) {
+                text.textContent = isExpanded ? 'Show Less' : 'Show More';
+            }
+            
+            // Trigger resize after animation
+            setTimeout(() => autoResizeWindow(), 250);
+        }
+    });
     
     // Minimize button
     document.getElementById('btn-minimize')?.addEventListener('click', () => {

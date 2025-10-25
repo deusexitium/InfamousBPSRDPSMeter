@@ -1417,12 +1417,12 @@ input[type="range"]::-moz-range-thumb {
 
 body.compact-mode .meter-container {
     min-width: 350px;
-    max-width: 400px;
-    background: rgba(26, 29, 41, 0.85);
-    backdrop-filter: blur(8px);
+    max-width: 420px;
+    background: rgba(26, 29, 41, 0.75);
+    backdrop-filter: blur(10px);
 }
 
-/* Compact title bar - smaller */
+/* Compact title bar - smaller, keep essential buttons */
 body.compact-mode .title-bar {
     padding: 4px 8px;
     min-height: 28px;
@@ -1437,14 +1437,25 @@ body.compact-mode .app-name {
 }
 
 body.compact-mode .header-btn {
-    width: 24px;
-    height: 24px;
-    font-size: 11px;
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
+}
+
+/* Hide ONLY minimize/close in compact mode, keep settings/lock/compact/pin */
+body.compact-mode #btn-minimize,
+body.compact-mode #btn-close {
+    display: none;
 }
 
 /* Hide full header controls in compact mode */
 body.compact-mode .meter-header {
     display: none;
+}
+
+/* Show expand button in compact mode */
+body.compact-mode .player-list-expand {
+    display: flex !important;
 }
 
 /* Compact tabs - smaller */
@@ -1553,15 +1564,61 @@ body.compact-mode .team-stat-value {
     font-size: 11px;
 }
 
-/* Ultra-minimal: Hide everything except top 5 players in compact mode */
-body.compact-mode .player-row:nth-child(n+6) {
+/* Compact mode: Show local player + top 4 others (5 total) unless expanded 
+   Local player is always first, so we keep team-totals, local, separator, then 4 others */
+body.compact-mode .player-list:not(.expanded) > .player-row:nth-of-type(n+6) {
     display: none;
 }
 
 /* Compact mode: smaller gaps */
 body.compact-mode .player-list {
     padding: 2px;
-    max-height: 200px;
+    max-height: 300px;
+}
+
+/* Expand button for compact mode */
+.player-list-expand {
+    display: none;
+    justify-content: center;
+    padding: 6px;
+    background: var(--bg-header);
+    border-top: 1px solid var(--border);
+}
+
+.player-list-expand button {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.player-list-expand button:hover {
+    background: var(--bg-dark);
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+}
+
+.player-list-expand button i {
+    font-size: 10px;
+}
+
+/* Click-through when locked in compact mode */
+body.compact-mode.locked .meter-container {
+    pointer-events: none;
+}
+
+/* But allow interaction with title bar buttons when locked */
+body.compact-mode.locked .title-bar,
+body.compact-mode.locked .header-btn {
+    pointer-events: auto;
 }
 
 /* Smooth transition between modes */
