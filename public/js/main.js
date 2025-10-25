@@ -1356,6 +1356,19 @@ function setupEventListeners() {
         showNotification(STATE.soloMode ? 'Solo mode enabled' : 'Solo mode disabled');
     });
     
+    // Compact Mode toggle
+    document.getElementById('btn-compact-mode')?.addEventListener('click', () => {
+        const compactMode = document.body.classList.toggle('compact-mode');
+        SETTINGS.save('compactMode', compactMode);
+        
+        // Trigger window resize to fit new layout
+        setTimeout(() => {
+            autoResizeWindow();
+        }, 250);
+        
+        showToast(`Compact mode ${compactMode ? 'enabled' : 'disabled'}`, 'info');
+    });
+    
     // Always on Top toggle
     document.getElementById('btn-always-on-top')?.addEventListener('click', () => {
         STATE.alwaysOnTop = !STATE.alwaysOnTop;
@@ -1671,6 +1684,13 @@ async function initialize() {
     // Load persistent data
     SETTINGS.load();
     PLAYER_DB.load();
+    
+    // Restore compact mode preference
+    const savedCompactMode = SETTINGS.get('compactMode');
+    if (savedCompactMode) {
+        document.body.classList.add('compact-mode');
+        console.log('✅ Compact mode restored from settings');
+    }
     
     // Sync pause state from backend - CRITICAL: Ensure data flows
     try {

@@ -1410,3 +1410,164 @@ input[type="range"]::-moz-range-thumb {
     font-weight: 600;
     min-width: 40px;
 }
+
+/* ============================================================================
+   COMPACT MODE - Minimal overlay for in-game use
+   ============================================================================ */
+
+body.compact-mode .meter-container {
+    min-width: 350px;
+    max-width: 400px;
+    background: rgba(26, 29, 41, 0.85);
+    backdrop-filter: blur(8px);
+}
+
+/* Compact title bar - smaller */
+body.compact-mode .title-bar {
+    padding: 4px 8px;
+    min-height: 28px;
+}
+
+body.compact-mode .logo {
+    font-size: 14px;
+}
+
+body.compact-mode .app-name {
+    font-size: 11px;
+}
+
+body.compact-mode .header-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+}
+
+/* Hide full header controls in compact mode */
+body.compact-mode .meter-header {
+    display: none;
+}
+
+/* Compact tabs - smaller */
+body.compact-mode .tabs {
+    padding: 4px;
+    gap: 4px;
+}
+
+body.compact-mode .tab {
+    padding: 4px 8px;
+    font-size: 10px;
+    min-width: 50px;
+}
+
+/* Compact player rows - essential info only */
+body.compact-mode .player-row {
+    padding: 4px 8px;
+    margin: 2px 0;
+    font-size: 11px;
+    min-height: 32px;
+}
+
+body.compact-mode .rank {
+    font-size: 10px;
+    width: 20px;
+    height: 20px;
+}
+
+body.compact-mode .rank-badge {
+    font-size: 14px;
+}
+
+body.compact-mode .player-info {
+    gap: 6px;
+}
+
+body.compact-mode .role-icon {
+    font-size: 12px;
+    width: 20px;
+    height: 20px;
+}
+
+body.compact-mode .player-name {
+    font-size: 11px;
+    max-width: 100px;
+}
+
+body.compact-mode .player-stats {
+    gap: 8px;
+}
+
+body.compact-mode .stat-value {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+body.compact-mode .stat-label {
+    font-size: 9px;
+}
+
+/* Hide less critical stats in compact mode */
+body.compact-mode .stat-group:has(.stat-label:contains("HEAL")),
+body.compact-mode .stat-group:has(.stat-label:contains("TAKEN")),
+body.compact-mode .player-percent {
+    display: none;
+}
+
+/* Compact health bar */
+body.compact-mode .health-bar-container {
+    height: 3px;
+}
+
+/* Compact status bar */
+body.compact-mode .status-bar {
+    padding: 4px 8px;
+    font-size: 10px;
+}
+
+/* Hide player details panel in compact mode */
+body.compact-mode #player-details-panel {
+    display: none !important;
+}
+
+/* Hide settings modal backdrop in compact mode for less obstruction */
+body.compact-mode .settings-modal {
+    background: rgba(26, 29, 41, 0.92);
+}
+
+/* Compact mode indicator on button */
+body.compact-mode #btn-compact-mode {
+    background: var(--accent-gold);
+    color: var(--bg-dark);
+}
+
+body.compact-mode #btn-compact-mode i::before {
+    content: "\f065"; /* fa-expand icon */
+}
+
+/* Compact team totals */
+body.compact-mode .team-totals-row {
+    padding: 4px 8px;
+    font-size: 10px;
+}
+
+body.compact-mode .team-stat-value {
+    font-size: 11px;
+}
+
+/* Ultra-minimal: Hide everything except top 5 players in compact mode */
+body.compact-mode .player-row:nth-child(n+6) {
+    display: none;
+}
+
+/* Compact mode: smaller gaps */
+body.compact-mode .player-list {
+    padding: 2px;
+    max-height: 200px;
+}
+
+/* Smooth transition between modes */
+.meter-container,
+.title-bar,
+.player-row,
+.player-stats {
+    transition: all 0.2s ease;
+}
