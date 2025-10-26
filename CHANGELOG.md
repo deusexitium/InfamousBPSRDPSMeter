@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.97.2] - 2025-10-26 🚨 CRITICAL FIX #2 - Another Init Crash
+
+### THE SECOND BUG
+```
+TypeError: Cannot read properties of null (reading 'addEventListener')
+    at setupEventListeners (main.js:1482:16)
+```
+
+### Root Cause
+- Line 1482: `compactBtn.addEventListener(...)` but `btn-compact` doesn't exist in DOM
+- Missing null check before calling addEventListener
+- Crashes during setupEventListeners()
+
+### Fixed
+- Added null check: `if (compactBtn) { ... }`
+- Added warning log if element not found
+- Initialization can now complete even if element missing
+
+---
+
 ## [2.97.1] - 2025-10-26 🚨 CRITICAL FIX - App Crash on Startup
 
 ### THE REAL BUG FOUND

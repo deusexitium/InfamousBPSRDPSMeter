@@ -1479,22 +1479,26 @@ function setupEventListeners() {
     
     // View mode toggle
     const compactBtn = document.getElementById('btn-compact');
-    compactBtn.addEventListener('click', () => {
-        STATE.viewMode = STATE.viewMode === 'compact' ? 'detailed' : 'compact';
-        const btn = document.getElementById('btn-compact');
-        if (btn) {
-            btn.title = STATE.viewMode === 'compact' ? 'Switch to Detailed View' : 'Switch to Compact View';
-            btn.querySelector('i').className = STATE.viewMode === 'compact' ? 'fa-solid fa-list' : 'fa-solid fa-table-columns';
-        }
-        
-        // PHASE 3: Reset manual resize when toggling modes
-        if (window.electronAPI?.resetManualResize) {
-            window.electronAPI.resetManualResize();
-        }
-        
-        renderPlayers();
-        showNotification(`${STATE.viewMode.charAt(0).toUpperCase() + STATE.viewMode.slice(1)} view enabled`);
-    });
+    if (compactBtn) {
+        compactBtn.addEventListener('click', () => {
+            STATE.viewMode = STATE.viewMode === 'compact' ? 'detailed' : 'compact';
+            const btn = document.getElementById('btn-compact');
+            if (btn) {
+                btn.title = STATE.viewMode === 'compact' ? 'Switch to Detailed View' : 'Switch to Compact View';
+                btn.querySelector('i').className = STATE.viewMode === 'compact' ? 'fa-solid fa-list' : 'fa-solid fa-table-columns';
+            }
+            
+            // PHASE 3: Reset manual resize when toggling modes
+            if (window.electronAPI?.resetManualResize) {
+                window.electronAPI.resetManualResize();
+            }
+            
+            renderPlayers();
+            showNotification(`${STATE.viewMode.charAt(0).toUpperCase() + STATE.viewMode.slice(1)} view enabled`);
+        });
+    } else {
+        console.warn('⚠️ btn-compact not found in DOM');
+    }
     
     // Solo mode toggle
     document.getElementById('btn-solo-mode')?.addEventListener('click', () => {
