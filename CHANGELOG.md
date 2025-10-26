@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.97.0] - 2025-10-26 🚨 CRITICAL - Fix Data Not Showing
+
+### CRITICAL BUG FOUND
+- **Data not displaying** even though server captures packets
+- Server shows `✅ CAPTURED NAME FROM PACKET` but UI shows `Waiting for combat data...`
+- Root cause: Socket.IO client library missing (NOT NEEDED - app uses HTTP polling)
+- Real issue: Investigating data fetch/render pipeline
+
+### Fixed
+- Added Socket.IO client library for future WebSocket support
+- Updated all version numbers to match (was 2.95.21, 2.89.0, 2.96.4 混乱)
+- All versions now: **2.97.0**
+
+### Investigating
+- Auto-refresh working but data not rendering
+- API endpoint may not returning player data
+- Render function may not being called
+- Data fetch succeeding but render failing
+
+---
+
 ## [2.96.4] - 2025-10-26 🔧 HOTFIX 4 - Restore Taskbar Visibility
 
 ### Fixed

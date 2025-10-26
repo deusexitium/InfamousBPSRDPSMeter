@@ -1353,11 +1353,16 @@ function startAutoRefresh() {
     
     STATE.refreshTimer = setInterval(async () => {
         try {
+            console.log('🔄 Auto-refresh tick - fetching data...');
             const players = await fetchPlayerData();
+            console.log(`📊 Fetched ${players?.length || 0} players from API`);
             STATE.lastUpdate = Date.now();
+            console.log('🎨 Calling renderPlayers()...');
             renderPlayers();
+            console.log('✅ Render complete');
         } catch (error) {
             console.error('❌ Failed to fetch player data:', error);
+            console.error('❌ Error stack:', error.stack);
             // Update connection status in UI
             const statusElement = document.querySelector('.loading div');
             if (statusElement) {
@@ -1945,7 +1950,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR Meter v2.89.0 - Ready!');
+    console.log('✅ Infamous BPSR Meter v2.96.4 - Ready!');
 }
 
 // ============================================================================
