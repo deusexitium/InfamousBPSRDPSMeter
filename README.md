@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v2.95.21
+# ⚔️ Infamous BPSR DPS Meter v2.99.4
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-2.95.21-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-2.99.4-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -19,7 +19,7 @@
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `Infamous BPSR DPS Meter-Setup-2.95.21.exe` (~90MB)
+- Get: `Infamous BPSR DPS Meter-Setup-2.99.4.exe` (~90MB)
 
 **Step 2: Install Npcap (Required)**
 - Download from: https://npcap.com/
@@ -115,7 +115,6 @@ This project is part of a community-driven evolution:
 ## Individual Contributors
 
 - **dmlgzs** - Original project creator and packet parsing foundation
-- **MrSnakeVT** - Engine improvements and data accuracy enhancements
 - **NeRooNx** - Modern UI design and visual improvements
 - **winjwinj** - Skill data and translations from [bpsr-logs](https://github.com/winjwinj/bpsr-logs)
 - **Community Contributors** - Bug reports, testing, feedback, and suggestions
