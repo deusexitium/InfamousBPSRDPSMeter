@@ -234,9 +234,16 @@ logToFile('==== ELECTRON START ====');
             // Resize trick to fix Windows transparency bug
             if (resizeTimeout) clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
+                // CRITICAL: Check if window still exists before resizing
+                if (!mainWindow || mainWindow.isDestroyed()) return;
+                
                 const [width, height] = mainWindow.getSize();
                 mainWindow.setSize(width + 1, height);
-                setTimeout(() => mainWindow.setSize(width, height), 10);
+                setTimeout(() => {
+                    // Double-check window still exists
+                    if (!mainWindow || mainWindow.isDestroyed()) return;
+                    mainWindow.setSize(width, height);
+                }, 10);
             }, 50);
         });
         
