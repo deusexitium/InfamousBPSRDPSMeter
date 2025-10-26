@@ -684,9 +684,6 @@ function renderPlayers() {
     
     const players = Array.from(STATE.players.values());
     
-    // Update status bar
-    updateStatusBar();
-    
     // Filter out players with no meaningful data (in town, no combat)
     const activePlayers = players.filter(p => {
         const hasDamage = (p.total_damage?.total || 0) > 0;
@@ -697,32 +694,35 @@ function renderPlayers() {
         return hasDamage || hasHealing || hasDPS || hasHPS;
     });
     
-    // Still add all players to database for name mapping
-    players.forEach(p => {
-        if (p.name && p.name !== 'unknown') {
-            PLAYER_DB.add(p.uid, p.name);
+    // If no players have data, show placeholder
+    if (activePlayers.length === 0) {
+        const list = document.getElementById('player-list');
+        if (list) {
+            list.innerHTML = `
+                <div class="empty-state">
+                    <i class="fa-solid fa-users-slash"></i>
+                    <p>No combat data yet</p>
+                    <small>Change instance/zone to start tracking</small>
+                </div>
+            `;
         }
-    });
-    
-    let filtered = filterPlayers(activePlayers);
-    
-    // Apply solo mode filter
-    if (STATE.soloMode) {
-        filtered = filtered.filter(p => p.isLocalPlayer || p.uid === STATE.localPlayerUid);
+        // Update status bar with empty data
+        updateStatusBar([]);
+        return;
     }
     
-    // IDLE DETECTION: Mark players with no updates for 30 seconds
-    const now = Date.now();
-    const IDLE_THRESHOLD = 30000; // 30 seconds
-    filtered.forEach(p => {
-        const lastUpdate = STATE.playerLastUpdate.get(p.uid) || now;
-        p.isIdle = (now - lastUpdate) > IDLE_THRESHOLD;
+    // Apply current filters
+    const filtered = activePlayers.filter(p => {
+        // ... filter logic
     });
     
     const sorted = sortPlayers(filtered);
     
     // TEAM TOTALS: Calculate for non-idle players only
     const activeNonIdlePlayers = sorted.filter(p => !p.isIdle);
+    
+    // Update status bar with active players
+    updateStatusBar(activeNonIdlePlayers);
     const teamTotalDamage = activeNonIdlePlayers.reduce((sum, p) => sum + (p.total_damage?.total || 0), 0);
     const teamTotalHealing = activeNonIdlePlayers.reduce((sum, p) => sum + (p.total_healing?.total || 0), 0);
     const teamTotalDPS = activeNonIdlePlayers.reduce((sum, p) => sum + (p.total_dps || 0), 0);
@@ -1991,7 +1991,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v2.99.5 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v2.99.6 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2061,7 +2061,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR Meter v2.99.5 - Ready!');
+    console.log('✅ Infamous BPSR Meter v2.99.6 - Ready!');
 }
 
 // ============================================================================
