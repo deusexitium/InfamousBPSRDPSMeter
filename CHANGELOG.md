@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.95.30] - 2025-10-26 🔧 CRITICAL FIX
+
+### Fixed
+- **CRITICAL:** App crash with exit code 3221225477 (Access Violation) during startup
+- Added try-catch wrapper around `Cap.open()` to prevent hard crashes
+- Comprehensive error messages now show Node.js version mismatch and troubleshooting steps
+- Rebuilt cap native module for compatibility
+
+### Changed
+- Packet capture initialization now gracefully handles failures
+- Error messages include current vs required Node.js version
+- Troubleshooting guide shows Npcap restart and reinstall instructions
+
+### Technical
+- Wrapped `this.capInstance.open()` in try-catch block
+- Crash caused by Node.js version mismatch (v20.x vs required v22.15.0)
+- Native module access violations now caught and reported clearly
+- Exit code 3221225477 = Windows Access Violation (0xC0000005)
+
+### Requirements
+- **Node.js v22.15.0 or higher** - Critical for native module stability
+- Npcap must be running properly
+- After Node.js update: run `pnpm install && pnpm rebuild cap`
+
+---
+
+## [2.95.29] - 2025-10-26 ✅ STABLE
+
+### Fixed
+- **Windows Electron Transparency Bug** - Implemented "resize trick" to prevent title bar appearing
+- Title bar no longer appears when window loses/gains focus on Windows 11
+- Transparent frameless window now maintains proper transparency
+
+### Technical - Resize Trick Implementation
+- Added focus/blur event handlers that slightly resize window to force redraw
+- On focus: +1px width, then restore after 10ms
+- On blur: -1px width, then restore after 10ms
+- Merged with existing always-on-top focus handler
+- Known Windows/Electron bug with `transparent: true` + `frame: false`
+
+### References
+- Windows Electron transparency bug affects Windows 10/11
+- Exacerbated by Windows 11 Mica effect
+- Resize trick forces OS to redraw window correctly
+
+---
+
 ## [2.95.28] - 2025-10-26 ✅ STABLE
 
 ### Fixed

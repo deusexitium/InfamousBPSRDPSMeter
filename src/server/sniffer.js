@@ -366,7 +366,38 @@ class Sniffer {
         const buffer = Buffer.alloc(65535);
         
         this.capInstance = new Cap();
-        const linkType = this.capInstance.open(device, filter, bufSize, buffer);
+        
+        let linkType;
+        try {
+            linkType = this.capInstance.open(device, filter, bufSize, buffer);
+        } catch (error) {
+            this.logger.error('╔════════════════════════════════════════════════════════════╗');
+            this.logger.error('║  CRITICAL ERROR - PACKET CAPTURE FAILED                    ║');
+            this.logger.error('╚════════════════════════════════════════════════════════════╝');
+            this.logger.error('');
+            this.logger.error(`Failed to open network adapter: ${device}`);
+            this.logger.error(`Error: ${error.message}`);
+            this.logger.error('');
+            this.logger.error('🔧 TROUBLESHOOTING STEPS:');
+            this.logger.error('   1. Restart Npcap service:');
+            this.logger.error('      > Run "restart-npcap.bat" as Administrator');
+            this.logger.error('');
+            this.logger.error('   2. Reinstall Npcap:');
+            this.logger.error('      > Download from https://npcap.com/#download');
+            this.logger.error('      > Uninstall old version first');
+            this.logger.error('      > Install with WinPcap compatibility mode');
+            this.logger.error('');
+            this.logger.error('   3. Check Node.js version:');
+            this.logger.error(`      > Current: ${process.version}`);
+            this.logger.error('      > Required: v22.15.0 or higher');
+            this.logger.error('      > Download from https://nodejs.org/');
+            this.logger.error('');
+            this.logger.error('   4. Rebuild native modules after updating Node.js:');
+            this.logger.error('      > pnpm install');
+            this.logger.error('      > pnpm rebuild cap');
+            this.logger.error('');
+            throw new Error('Packet capture initialization failed. See above for troubleshooting steps.');
+        }
         
         if (linkType !== 'ETHERNET') {
             this.logger.error('The device seems to be WRONG! Please check the device! Device type: ' + linkType);
