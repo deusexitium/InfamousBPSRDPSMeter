@@ -635,7 +635,7 @@ function renderPlayerDetails(player) {
     `;
 }
 
-function updateStatusBar() {
+function updateStatusBar(activeNonIdlePlayers = []) {
     const players = Array.from(STATE.players.values());
     const activePlayers = players.filter(p => {
         const hasDamage = (p.total_damage?.total || 0) > 0;
@@ -2803,8 +2803,7 @@ async function loadSelectedSession(sessionId) {
         
         // Force immediate refresh to get live data
         await refreshData();
-        renderPlayers();
-        updateStatusBar();
+        renderPlayers(); // renderPlayers() calls updateStatusBar() internally
         
         // Resume auto-refresh
         if (!isPaused) {
@@ -2830,8 +2829,7 @@ async function loadSelectedSession(sessionId) {
             });
             
             // Update UI
-            renderPlayers();
-            updateStatusBar();
+            renderPlayers(); // renderPlayers() calls updateStatusBar() internally
             
             // Show success message with instructions
             showToast(`📂 Viewing: ${session.name} (Select "Current Session" to return to live)`, 'info', 5000);
@@ -2860,8 +2858,7 @@ async function clearData() {
         const data = await response.json();
         if (data.code === 0) {
             STATE.players.clear();
-            renderPlayers();
-            updateStatusBar();
+            renderPlayers(); // renderPlayers() calls updateStatusBar() internally
         }
     } catch (error) {
         console.error('Failed to clear data:', error);
