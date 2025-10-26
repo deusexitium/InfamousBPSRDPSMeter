@@ -831,58 +831,50 @@ let resizeDebounceTimer = null;
 let isResizing = false;
 let lastResizeTime = 0;
 
-async function autoResizeWindow() {
+function autoResizeWindow() {
     if (!window.electronAPI?.resizeWindow) return;
+    if (isResizing) return; // Skip if already resizing
 
     const container = document.querySelector('.meter-container');
     if (!container) return;
-
-    // PHASE 3: Check if user has manually resized - don't fight them!
-    const shouldResize = await window.electronAPI.shouldAutoResize();
-    if (!shouldResize) {
-        console.log('⏸️ Auto-resize disabled - user has manually resized');
-        return;
-    }
 
     // Clear any pending resize
     if (resizeDebounceTimer) {
         clearTimeout(resizeDebounceTimer);
     }
 
-    // Minimal debounce for responsiveness
-    resizeDebounceTimer = setTimeout(async () => {
+    // Debounce with longer delay to prevent resize fighting
+    resizeDebounceTimer = setTimeout(() => {
         // Force browser to calculate actual layout
-        container.getBoundingClientRect();
-        
-        // Get the EXACT rendered size of visible content
         const rect = container.getBoundingClientRect();
         const actualHeight = Math.ceil(rect.height);
         const actualWidth = Math.ceil(rect.width);
         
-        // Add minimal padding (just 10px for safety, no excessive margins)
-        const targetHeight = actualHeight + 10;
-        const targetWidth = actualWidth + 10;
+        // Add small padding
+        const targetHeight = actualHeight + 15;
+        const targetWidth = actualWidth + 15;
         
-        // Apply minimum constraints - MUST be wide enough to show all buttons!
+        // Apply minimum constraints
         const finalHeight = Math.max(250, Math.min(targetHeight, 1200));
         const finalWidth = Math.max(800, Math.min(targetWidth, 1600));
 
-        // Resize immediately if ANY difference
+        // Only resize if difference is significant (not every pixel)
         const currentHeight = window.innerHeight;
         const currentWidth = window.innerWidth;
+        const heightDiff = Math.abs(finalHeight - currentHeight);
+        const widthDiff = Math.abs(finalWidth - currentWidth);
         
-        if (finalHeight !== currentHeight || finalWidth !== currentWidth) {
+        if (heightDiff > 10 || widthDiff > 10) {
             isResizing = true;
             lastResizeTime = Date.now();
             
             window.electronAPI.resizeWindow(finalWidth, finalHeight);
-            console.log(`📏 Precise resize: ${currentWidth}x${currentHeight} → ${finalWidth}x${finalHeight} (content: ${actualWidth}x${actualHeight})`);
             
             setTimeout(() => {
                 isResizing = false;
-            }, 50);
+            }, 150);
         }
-    }, 10); // Fast response
+    }, 100); // Slower debounce to prevent resize spam
 }
 
 function filterPlayers(players) {
@@ -1486,11 +1478,6 @@ function setupEventListeners() {
             if (btn) {
                 btn.title = STATE.viewMode === 'compact' ? 'Switch to Detailed View' : 'Switch to Compact View';
                 btn.querySelector('i').className = STATE.viewMode === 'compact' ? 'fa-solid fa-list' : 'fa-solid fa-table-columns';
-            }
-            
-            // PHASE 3: Reset manual resize when toggling modes
-            if (window.electronAPI?.resetManualResize) {
-                window.electronAPI.resetManualResize();
             }
             
             renderPlayers();

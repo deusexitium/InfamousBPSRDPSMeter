@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.97.3] - 2025-10-26 🔧 FIX - Window Drag & Resize Issues
+
+### Fixed
+- **Window can't move:** Removed async/await from autoResizeWindow that was blocking
+- **Window unresponsive:** Removed user resize tracking that locked window
+- **Slow expansion:** Increased debounce from 10ms to 100ms
+- **Invisible space:** Only resize if difference >10px (not every pixel)
+
+### Changes
+- Removed: User manual resize detection (was causing locks)
+- Removed: `resetManualResize()` and `shouldAutoResize()` IPC
+- Simplified: Auto-resize is now simpler and less aggressive
+- Debounce: 10ms → 100ms (prevents resize spam)
+- Threshold: 0px → 10px difference before resize
+
+### Result
+✅ Data shows correctly
+✅ Window can be moved
+✅ Compact mode works
+✅ No invisible space consumption
+
+---
+
 ## [2.97.2] - 2025-10-26 🚨 CRITICAL FIX #2 - Another Init Crash
 
 ### THE SECOND BUG

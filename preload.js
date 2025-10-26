@@ -17,8 +17,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getUserDataPath: () => ipcRenderer.invoke('get-user-data-path'),
     openFolder: (folderPath) => ipcRenderer.send('open-folder', folderPath),
     // PHASE 3: New overlay control APIs
-    resetManualResize: () => ipcRenderer.send('reset-manual-resize'),
-    shouldAutoResize: () => ipcRenderer.invoke('should-auto-resize'),
     setOverlayOpacity: (opacity) => ipcRenderer.send('set-overlay-opacity', opacity),
 });
 

@@ -112,34 +112,7 @@ logToFile('==== ELECTRON START ====');
             icon: path.join(__dirname, 'icon.ico'),
         });
         
-        // PHASE 3: Track user manual resize to prevent auto-resize conflicts
-        let userHasManuallyResized = false;
-        let userPreferredSize = null;
-        
-        mainWindow.on('will-resize', (event, newBounds) => {
-            // User is manually resizing - disable auto-resize
-            userHasManuallyResized = true;
-            logToFile('👤 User manually resized window');
-        });
-        
-        mainWindow.on('resize', () => {
-            if (userHasManuallyResized) {
-                userPreferredSize = mainWindow.getSize();
-                logToFile(`💾 Saved user preferred size: ${userPreferredSize[0]}x${userPreferredSize[1]}`);
-            }
-        });
-        
-        // Reset manual resize flag when toggling compact mode
-        ipcMain.on('reset-manual-resize', () => {
-            userHasManuallyResized = false;
-            userPreferredSize = null;
-            logToFile('🔄 Reset manual resize flag');
-        });
-        
-        // Check if auto-resize should be disabled
-        ipcMain.handle('should-auto-resize', () => {
-            return !userHasManuallyResized;
-        });
+        // REMOVED: User resize tracking - was causing window lock issues
         
         // Add Content Security Policy
         mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
