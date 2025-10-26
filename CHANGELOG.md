@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.98.0] - 2025-10-26 🎉 MAJOR - Compact Mode Overhaul
+
+### Fixed
+✅ **Invisible space in compact mode**
+- Auto-resize now detects compact vs full mode
+- Compact: 400-450px width, 200-600px height (tight fit)
+- Full: 800-1600px width, 250-1200px height (generous)
+- No more holding space for full view
+
+✅ **Missing column headers in compact**
+- Added clear labels: DPS, MAX, DMG, SHARE
+- Added HPS column for healers
+- Labels visible under each stat value
+
+✅ **Cannot move/resize window**
+- Enabled manual resize: `resizable: true`
+- Lowered constraints for compact mode
+- minWidth: 800 → 400, minHeight: 250 → 200
+- User can freely resize and drag window
+
+✅ **Skills not loading (debugging)**
+- Added error logging for skill API calls
+- Added `.catch()` handler to prevent silent failures
+- Console shows exact failure reasons
+
+### Removed
+- Expand/collapse in compact mode (was causing space issues)
+- Now compact mode is always collapsed, full mode allows expand
+
+### Changes
+- Compact mode: MAX DPS column added
+- Compact mode: Tighter padding (15px → 8px)
+- Window resize threshold: >10px difference
+
+### Settings UI Redesign
+🚧 **TODO:** Settings UI needs complete overhaul (separate task)
+- Current UI hard to see/use
+- Need column visibility toggles
+- Need better organization
+
+---
+
 ## [2.97.4] - 2025-10-26 🚨 HOTFIX - userHasManuallyResized Undefined
 
 ### Error

@@ -512,18 +512,17 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
     const isCompact = STATE.viewMode === 'compact';
     const isIdle = player.isIdle || false;
     
-    // Compact view shows only essential stats
-    if (isCompact) {
-        const dmgPercent = ((totalDmg / (STATE.players.size > 0 ? Array.from(STATE.players.values()).reduce((sum, p) => sum + (p.total_damage?.total || 0), 0) : 1)) * 100).toFixed(0);
+    // Compact view - single line with labels
+    if (document.body.classList.contains('compact-mode')) {
         return `
-            <div class="player-row ${isLocal ? 'local' : ''}" 
+            <div class="player-row ${isLocal ? 'local' : ''} ${isIdle ? 'idle' : ''}" 
                  data-uid="${player.uid}"
                  style="--dmg-percent: ${dmgBarPercent}%">
                 <div class="rank ${rankClass}">${rank}</div>
                 <div class="player-name-col">
                     <div class="name-line">
                         ${isLocal ? '<span class="local-star">★</span>' : ''}
-                        <span class="name">${name}</span>
+                        <span class="name">${name}${isIdle ? ' <span style="opacity:0.5">(IDLE)</span>' : ''}</span>
                         <span class="role-badge ${prof.role}">${prof.role.toUpperCase()}</span>
                     </div>
                     <div class="hp-bar-mini">
@@ -535,15 +534,24 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                     <div class="stat-label">DPS</div>
                 </div>
                 <div class="stat-col">
+                    <div class="stat-value">${formatNumber(maxDps)}</div>
+                    <div class="stat-label">MAX</div>
+                </div>
+                <div class="stat-col">
                     <div class="stat-value">${formatNumber(totalDmg)}</div>
-                    <div class="stat-label">TOTAL</div>
+                    <div class="stat-label">DMG</div>
                 </div>
                 <div class="stat-col highlight">
-                    <div class="stat-value">${dmgPercent}%</div>
-                    <div class="stat-label">% DMG</div>
+                    <div class="stat-value">${contributionPercent}%</div>
+                    <div class="stat-label">SHARE</div>
                 </div>
+                ${hps > 0 ? `
+                <div class="stat-col heal">
+                    <div class="stat-value">${formatNumber(hps)}</div>
+                    <div class="stat-label">HPS</div>
+                </div>
+                ` : ''}
             </div>
-            ${isExpanded ? renderPlayerDetails(player) : ''}
         `;
     }
     
@@ -850,13 +858,23 @@ function autoResizeWindow() {
         const actualHeight = Math.ceil(rect.height);
         const actualWidth = Math.ceil(rect.width);
         
-        // Add small padding
-        const targetHeight = actualHeight + 15;
-        const targetWidth = actualWidth + 15;
+        // Different constraints for compact vs full mode
+        const isCompact = document.body.classList.contains('compact-mode');
+        let targetHeight, targetWidth, finalHeight, finalWidth;
         
-        // Apply minimum constraints
-        const finalHeight = Math.max(250, Math.min(targetHeight, 1200));
-        const finalWidth = Math.max(800, Math.min(targetWidth, 1600));
+        if (isCompact) {
+            // Compact mode: tight fit, no expansion
+            targetHeight = actualHeight + 8;
+            targetWidth = actualWidth + 8;
+            finalHeight = Math.max(200, Math.min(targetHeight, 600));
+            finalWidth = Math.max(400, Math.min(targetWidth, 450));
+        } else {
+            // Full mode: generous padding
+            targetHeight = actualHeight + 15;
+            targetWidth = actualWidth + 15;
+            finalHeight = Math.max(250, Math.min(targetHeight, 1200));
+            finalWidth = Math.max(800, Math.min(targetWidth, 1600));
+        }
 
         // Only resize if difference is significant (not every pixel)
         const currentHeight = window.innerHeight;
@@ -2072,7 +2090,10 @@ function togglePlayerDetails(uid, event) {
         }
         
         renderPlayers(); // Show expanded state with "Loading..."
-        loadAndShowPlayerDetails(uid); // Then load the skills (which will trigger resize)
+        console.log(`🔍 Loading skills for UID: ${uid}`);
+        loadAndShowPlayerDetails(uid).catch(err => {
+            console.error(`❌ Failed to load skills for ${uid}:`, err);
+        }); // Then load the skills (which will trigger resize)
     }
 }
 
