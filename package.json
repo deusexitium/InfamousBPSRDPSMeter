@@ -1,6 +1,6 @@
 {
   "name": "infamous-bpsr-dps-meter",
-  "version": "2.99.2",
+  "version": "2.99.3",
   "description": "Infamous BPSR DPS Meter - The Ultimate Blue Protocol DPS Tracker",
   "main": "electron-main.js",
   "bin": {

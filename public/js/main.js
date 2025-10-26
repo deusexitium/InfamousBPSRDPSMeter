@@ -512,8 +512,12 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
     const isCompact = STATE.viewMode === 'compact';
     const isIdle = player.isIdle || false;
     
-    // Compact view - single line with labels
+    // Compact view - single line with clear labels
     if (document.body.classList.contains('compact-mode')) {
+        // Show different stats based on role
+        const isHealer = prof.role === 'heal';
+        const isTank = prof.role === 'tank';
+        
         return `
             <div class="player-row ${isLocal ? 'local' : ''} ${isIdle ? 'idle' : ''}" 
                  data-uid="${player.uid}"
@@ -529,27 +533,41 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                         <div class="hp-fill" style="width: ${hpPercent}%; background: ${getHPColor(hpPercent)}"></div>
                     </div>
                 </div>
-                <div class="stat-col">
-                    <div class="stat-value">${formatNumber(avgDps)}</div>
-                    <div class="stat-label">DPS</div>
-                </div>
-                <div class="stat-col">
-                    <div class="stat-value">${formatNumber(maxDps)}</div>
-                    <div class="stat-label">MAX</div>
-                </div>
-                <div class="stat-col">
-                    <div class="stat-value">${formatNumber(totalDmg)}</div>
-                    <div class="stat-label">DMG</div>
-                </div>
-                <div class="stat-col highlight">
-                    <div class="stat-value">${contributionPercent}%</div>
-                    <div class="stat-label">SHARE</div>
-                </div>
-                ${hps > 0 ? `
-                <div class="stat-col heal">
-                    <div class="stat-value">${formatNumber(hps)}</div>
-                    <div class="stat-label">HPS</div>
-                </div>
+                ${!isHealer ? `
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(avgDps)}</div>
+                        <div class="stat-label">DPS</div>
+                    </div>
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(maxDps)}</div>
+                        <div class="stat-label">MAX DPS</div>
+                    </div>
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(totalDmg)}</div>
+                        <div class="stat-label">TOTAL DMG</div>
+                    </div>
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(dmgTaken)}</div>
+                        <div class="stat-label">DMG TAKEN</div>
+                    </div>
+                ` : ''}
+                ${isHealer ? `
+                    <div class="stat-col heal">
+                        <div class="stat-value">${formatNumber(hps)}</div>
+                        <div class="stat-label">HPS</div>
+                    </div>
+                    <div class="stat-col heal">
+                        <div class="stat-value">${formatNumber(maxHps)}</div>
+                        <div class="stat-label">MAX HPS</div>
+                    </div>
+                    <div class="stat-col heal">
+                        <div class="stat-value">${formatNumber(totalHealing)}</div>
+                        <div class="stat-label">TOTAL HPS</div>
+                    </div>
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(dmgTaken)}</div>
+                        <div class="stat-label">DMG TAKEN</div>
+                    </div>
                 ` : ''}
             </div>
         `;

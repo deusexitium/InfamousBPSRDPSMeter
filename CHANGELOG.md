@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.99.3] - 2025-10-26 🎯 CRITICAL - Cache + Compact Mode
+
+### 🚨 CRITICAL: Browser Cache Issue Fixed
+**Problem:** Browser loading OLD JavaScript (v2.95.15), not new code!
+- Logs still showed removed console statements
+- Performance fixes not applying
+- Settings fix not working
+
+**Fixed:**
+- Added `?v=2.99.3` cache-busting to main.js script tag
+- Updated all version numbers in HTML
+- Forces browser to download new JavaScript
+
+**Result:** New code actually runs now!
+
+### 📏 Compact Mode: Bigger Text + Better Layout
+**Problem:** Text way too small, can't read anything
+- stat-value: 11px (TINY!)
+- stat-label: 8px (MICROSCOPIC!)
+- role-badge: 7px (INVISIBLE!)
+
+**Fixed:**
+- stat-value: 11px → 14px (27% bigger!)
+- stat-label: 8px → 10px (25% bigger, bolder, more visible)
+- name: 11px → 13px (18% bigger)
+- role-badge: 7px → 9px (29% bigger)
+
+**Result:** Actually readable now!
+
+### 📊 Compact Mode: Role-Specific Stats
+**Problem:** Same stats for everyone, not optimized per role
+
+**New Layout:**
+**DPS/Tank:** DPS | MAX DPS | TOTAL DMG | DMG TAKEN
+**Healer:** HPS | MAX HPS | TOTAL HPS | DMG TAKEN
+
+**Result:** See what matters for each role!
+
+---
+
 ## [2.99.2] - 2025-10-26 🧹 CLEANUP - Logging + Settings
 
 ### 📊 Performance: Logging Cleanup

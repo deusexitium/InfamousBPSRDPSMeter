@@ -1565,8 +1565,8 @@ body.compact-mode .name-line {
 }
 
 body.compact-mode .name {
-    font-size: 9px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1575,8 +1575,8 @@ body.compact-mode .name {
 }
 
 body.compact-mode .role-badge {
-    font-size: 7px;
-    padding: 1px 3px;
+    font-size: 9px;
+    padding: 2px 5px;
     border-radius: 2px;
     flex-shrink: 0;
     font-weight: 700;
@@ -1600,7 +1600,7 @@ body.compact-mode .stat-col {
 }
 
 body.compact-mode .stat-value {
-    font-size: 8px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--text-primary);
     line-height: 1.2;
@@ -1609,11 +1609,11 @@ body.compact-mode .stat-value {
 }
 
 body.compact-mode .stat-label {
-    font-size: 6px;
-    color: rgba(255, 255, 255, 0.5);
-    text-transform: uppercase;
-    letter-spacing: 0.2px;
+    font-size: 10px;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.85;
     white-space: nowrap;
 }
 
