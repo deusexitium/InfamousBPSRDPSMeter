@@ -7,13 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.95.27] - 2025-10-26
+## [2.95.28] - 2025-10-26 ✅ STABLE
+
+### Fixed
+- **CRITICAL:** Version reading now works in both development and production Electron builds
+- Added try/catch fallback for package.json loading
+- Hardcoded fallback version if package.json is not accessible in Electron asar
+
+### Technical
+- Uses `path.join(__dirname, 'package.json')` with try/catch
+- Falls back to hardcoded version in production Electron builds
+- Prevents "Cannot find module './package.json'" error
+
+---
+
+## [2.95.27] - 2025-10-26 (BROKEN - DO NOT USE)
 
 ### Fixed
 - **CRITICAL:** Fixed broken require paths in server.js that prevented app from starting
 - Restored correct paths: `PacketProcessor` from `algo/packet.js`
 - Restored correct paths: `UserDataManager` from `src/server/dataManager.js`
 - App now starts properly without MODULE_NOT_FOUND errors
+
+### Known Issues
+- ❌ Cannot find module './package.json' in production Electron build (fixed in v2.95.28)
 
 ### Technical
 - My previous edit accidentally changed the require paths

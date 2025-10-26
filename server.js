@@ -13,7 +13,7 @@ const initializeApi = require(path.join(__dirname, 'src', 'server', 'api'));
 const PacketProcessor = require(path.join(__dirname, 'algo', 'packet'));
 
 // Read version from package.json (works in both dev and production)
-let VERSION = '2.95.28';
+let VERSION = '2.95.29';
 try {
     const packageJson = require(path.join(__dirname, 'package.json'));
     VERSION = packageJson.version;
