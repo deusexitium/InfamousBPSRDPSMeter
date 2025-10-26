@@ -84,24 +84,16 @@ logToFile('==== ELECTRON START ====');
         logToFile('Attempting to kill processes on port 8989...');
         await killProcessUsingPort(8989);
 
-        server_port = await findAvailablePort();
-        logToFile('Available port found: ' + server_port);
-
         mainWindow = new BrowserWindow({
             width: 900,
             height: 350,
-            minWidth: 800,
-            minHeight: 250,
+            minWidth: 400,  // Allow compact mode minimum
+            minHeight: 200,
             maxWidth: 1600,
             maxHeight: 1200,
-            transparent: true,
             frame: false,
-            alwaysOnTop: true,
-            resizable: true,
-            show: false, // Don't show until ready
-            skipTaskbar: false,  // FIXED: Show in taskbar (user needs to see it)
-            hasShadow: false,   // Clean overlay without shadow
-            // No backgroundColor - allows full transparency
+            transparent: false,
+            resizable: true,  // ENABLE manual resize
             webPreferences: {
                 preload: path.join(__dirname, 'preload.js'),
                 nodeIntegration: false,
