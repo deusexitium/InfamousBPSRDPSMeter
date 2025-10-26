@@ -12,9 +12,15 @@ const Sniffer = require(path.join(__dirname, 'src', 'server', 'sniffer'));
 const initializeApi = require(path.join(__dirname, 'src', 'server', 'api'));
 const PacketProcessor = require(path.join(__dirname, 'algo', 'packet'));
 
-// Read version from package.json
-const packageJson = require('./package.json');
-const VERSION = packageJson.version;
+// Read version from package.json (works in both dev and production)
+let VERSION = '2.95.28';
+try {
+    const packageJson = require(path.join(__dirname, 'package.json'));
+    VERSION = packageJson.version;
+} catch (err) {
+    // In production Electron build, package.json might not be accessible
+    // Version will use the default above
+}
 
 let globalSettings = {
     autoClearOnServerChange: true, // Keep enabled - needed for actual server changes

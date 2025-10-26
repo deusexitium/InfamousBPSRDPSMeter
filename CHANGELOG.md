@@ -7,7 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.95.26] - 2025-10-26
+## [2.95.27] - 2025-10-26
+
+### Fixed
+- **CRITICAL:** Fixed broken require paths in server.js that prevented app from starting
+- Restored correct paths: `PacketProcessor` from `algo/packet.js`
+- Restored correct paths: `UserDataManager` from `src/server/dataManager.js`
+- App now starts properly without MODULE_NOT_FOUND errors
+
+### Technical
+- My previous edit accidentally changed the require paths
+- Restored to use `path.join(__dirname, ...)` for proper module resolution
+
+---
+
+## [2.95.26] - 2025-10-26 (BROKEN - DO NOT USE)
 
 ### Fixed
 - **CRITICAL:** Version number now reads from package.json instead of hardcoded value
@@ -18,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `server.js` now uses `require('./package.json').version`
 - Removed duplicate skill translation initialization from constructor
+
+### Known Issues
+- ❌ Broken require paths prevent app from starting (fixed in v2.95.27)
 
 ---
 
