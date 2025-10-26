@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.97.1] - 2025-10-26 🚨 CRITICAL FIX - App Crash on Startup
+
+### THE REAL BUG FOUND
+```
+TypeError: SETTINGS.get is not a function
+    at HTMLDocument.initialize (main.js:1897)
+```
+
+### Root Cause
+- SETTINGS is a plain JavaScript object
+- Line 1897 used `SETTINGS.get('compactMode')` (Map syntax)
+- This crashes initialization immediately
+- **App never initializes, so data never shows**
+
+### Fixed
+- Changed `SETTINGS.get('compactMode')` → `SETTINGS.compactMode`
+- Initialization now completes
+- Data flow can proceed
+
+### This Explains Everything
+- Why data didn't show: App crashed during init
+- Why buttons didn't work: Event listeners never attached
+- Why window stuck: Init never completed
+
+---
+
 ## [2.97.0] - 2025-10-26 🚨 CRITICAL - Fix Data Not Showing
 
 ### CRITICAL BUG FOUND

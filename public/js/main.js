@@ -702,6 +702,11 @@ function renderPlayers() {
     const teamTotalHPS = activeNonIdlePlayers.reduce((sum, p) => sum + (p.total_hps || 0), 0);
     
     const list = document.getElementById('player-list');
+    if (!list) {
+        console.error('❌ player-list element not found!');
+        return;
+    }
+    console.log(`📊 STATE.players.size = ${STATE.players.size}`);
     
     if (sorted.length === 0) {
         // Check if server is responsive
@@ -1889,7 +1894,7 @@ async function initialize() {
     PLAYER_DB.load();
     
     // Restore compact mode preference
-    const savedCompactMode = SETTINGS.get('compactMode');
+    const savedCompactMode = SETTINGS.compactMode;
     if (savedCompactMode) {
         document.body.classList.add('compact-mode');
         const btn = document.getElementById('btn-compact-mode');
