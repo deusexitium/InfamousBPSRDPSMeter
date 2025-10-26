@@ -662,11 +662,12 @@ function updateStatusBar() {
         }
     }
     
-    // Update total DPS
+    // Update footer DPS - Show LOCAL PLAYER DPS, not team DPS
     const dpsEl = document.getElementById('status-dps');
     if (dpsEl) {
-        const totalDps = players.reduce((sum, p) => sum + (p.total_dps || 0), 0);
-        dpsEl.textContent = `${formatNumber(totalDps)} DPS`;
+        const localPlayer = activeNonIdlePlayers.find(p => p.isLocalPlayer || p.uid === STATE.localPlayerUid);
+        const myDPS = localPlayer ? (localPlayer.current_dps || localPlayer.realtime_dps || 0) : 0;
+        dpsEl.textContent = `My DPS: ${formatNumber(myDPS)}`;
     }
 }
 
