@@ -7,7 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.99.3] - 2025-10-26 🎯 CRITICAL - Cache + Compact Mode
+## [2.99.3] - 2025-10-26 🎯 CRITICAL - Versions + Compact Mode + Footer DPS
+
+### 🔧 CRITICAL: Fixed ALL Version Number Inconsistencies
+**Problem:** Version numbers all over the place!
+- server.js: v2.96.4
+- index.html footer: v2.89.0
+- index.html header: v2.99.2
+- About modal: v2.96.4
+
+**Fixed:** ALL locations now show **v2.99.3**:
+- Server startup log
+- Window title
+- Header
+- Footer (bottom-right)
+- About modal
+- Cache-busting query param
+
+### 🐛 CRITICAL: Fixed `totalHealing is not defined` Error
+**Problem:** Compact mode crashed with JavaScript error
+```javascript
+ReferenceError: totalHealing is not defined
+at renderPlayerRow (main.js:564)
+```
+
+**Root Cause:** Line 564 used `totalHealing` variable that wasn't declared
+
+**Fixed:** Added missing variable:
+```javascript
+const totalHealing = player.total_healing?.total || 0;
+```
+
+### 📊 Fixed Footer DPS Display (Bottom-Right)
+**Problem:** User confused - "whose DPS is it showing?"
+- Footer showed TEAM TOTAL DPS
+- User expected to see THEIR OWN DPS
+
+**Fixed:**
+```javascript
+// Before (CONFUSING):
+dpsEl.textContent = `${formatNumber(teamTotalDPS)} DPS`;
+
+// After (CLEAR):
+const localPlayer = activeNonIdlePlayers.find(p => p.isLocalPlayer);
+const myDPS = localPlayer ? localPlayer.current_dps : 0;
+dpsEl.textContent = `My DPS: ${formatNumber(myDPS)}`;
+```
+
+**Result:** Bottom-right now shows "My DPS: 24.5k" (YOUR DPS, not team!)
+
+### 🎨 Fixed White Border at Bottom (Full Mode)
+**Problem:** Still seeing white border at bottom
+
+**Fixed:**
+- Added `box-sizing: border-box` to `*` (all elements)
+- Removed margin/padding from `.meter-container`
+- Ensures no extra space from CSS box model
+
+**Result:** Pixel-perfect fit, no white space!
+
+---
+
+## [2.99.2] - 2025-10-26 🎯 CRITICAL - Cache + Compact Mode (DEPRECATED - HAD BUGS)
 
 ### 🚨 CRITICAL: Browser Cache Issue Fixed
 **Problem:** Browser loading OLD JavaScript (v2.95.15), not new code!

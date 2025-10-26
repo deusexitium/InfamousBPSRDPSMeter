@@ -1466,6 +1466,15 @@ function setupEventListeners() {
             document.getElementById('setting-remember-names').checked = SETTINGS.rememberNames;
             document.getElementById('setting-auto-clear-zone').checked = SETTINGS.autoClearOnZoneChange;
             document.getElementById('setting-keep-after-dungeon').checked = SETTINGS.keepDataAfterDungeon;
+            
+            // Load opacity slider value
+            const opacitySlider = document.getElementById('setting-overlay-opacity');
+            const opacityValue = document.getElementById('opacity-value');
+            if (opacitySlider && opacityValue) {
+                const currentOpacity = SETTINGS.overlayOpacity || 1.0;
+                opacitySlider.value = currentOpacity;
+                opacityValue.textContent = Math.round(currentOpacity * 100) + '%';
+            }
         
         // Load column visibility settings
         document.getElementById('setting-col-dps').checked = SETTINGS.columns.dps;
@@ -1982,7 +1991,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v2.99.3 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v2.99.4 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2052,7 +2061,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR Meter v2.99.3 - Ready!');
+    console.log('✅ Infamous BPSR Meter v2.99.4 - Ready!');
 }
 
 // ============================================================================

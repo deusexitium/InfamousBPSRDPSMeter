@@ -100,10 +100,13 @@ logToFile('==== ELECTRON START ====');
                 contextIsolation: true,
                 enableRemoteModule: false,
                 sandbox: true,
+                cache: false // CRITICAL: Disable cache to always load fresh JS
             },
             icon: path.join(__dirname, 'icon.ico'),
         });
         
+        // CRITICAL: Clear Electron cache on startup to force fresh code load
+        mainWindow.webContents.session.clearCache();
         // REMOVED: User resize tracking - was causing window lock issues
         
         // Add Content Security Policy
