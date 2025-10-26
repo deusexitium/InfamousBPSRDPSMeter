@@ -313,10 +313,7 @@ logToFile('==== ELECTRON START ====');
     // Handle event to resize the window
     ipcMain.on('resize-window', (event, width, height) => {
         if (mainWindow && !mainWindow.isDestroyed()) {
-            // Only auto-resize if user hasn't manually resized
-            if (!userHasManuallyResized) {
-                mainWindow.setSize(width, height);
-            }
+            mainWindow.setSize(width, height);
         }
     });
     

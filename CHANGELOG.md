@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.97.4] - 2025-10-26 🚨 HOTFIX - userHasManuallyResized Undefined
+
+### Error
+```
+ReferenceError: userHasManuallyResized is not defined
+at IpcMainImpl.<anonymous> (electron-main.js:137:13)
+```
+
+### Root Cause
+- Line 317 still referenced `userHasManuallyResized` variable
+- Variable was deleted in v2.97.3 but reference remained
+- Incomplete cleanup of user resize tracking system
+
+### Fixed
+- Removed check for `userHasManuallyResized` from resize-window IPC handler
+- Now always allows auto-resize
+
+---
+
 ## [2.97.3] - 2025-10-26 🔧 FIX - Window Drag & Resize Issues
 
 ### Fixed
