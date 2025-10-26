@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v2.95.15
+# ⚔️ Infamous BPSR DPS Meter v2.95.21
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-2.95.15-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-2.95.21-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -19,7 +19,7 @@
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `Infamous BPSR DPS Meter-Setup-2.95.15.exe` (~90MB)
+- Get: `Infamous BPSR DPS Meter-Setup-2.95.21.exe` (~90MB)
 
 **Step 2: Install Npcap (Required)**
 - Download from: https://npcap.com/
@@ -214,7 +214,7 @@ This section provides detailed information for troubleshooting or advanced setup
 
 1. **Download the installer:**
    - Go to: [Releases](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
-   - Download: `Infamous BPSR DPS Meter-Setup-2.95.15.exe`
+   - Download: `Infamous BPSR DPS Meter-Setup-2.95.21.exe`
 
 2. **Run the EXE installer:**
    - Right-click the `.exe` file → **"Run as Administrator"**

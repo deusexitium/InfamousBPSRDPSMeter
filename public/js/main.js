@@ -634,6 +634,22 @@ function renderPlayers() {
     // Render local player first, then others
     let html = '';
     
+    // Add compact mode column headers
+    const isCompact = STATE.viewMode === 'compact';
+    if (isCompact) {
+        html += `
+            <div class="compact-headers">
+                <div class="compact-header-rank">#</div>
+                <div class="compact-header-name">PLAYER</div>
+                <div class="compact-header-stat">CUR</div>
+                <div class="compact-header-stat">MAX</div>
+                <div class="compact-header-stat">AVG</div>
+                <div class="compact-header-stat">TOTAL</div>
+                <div class="compact-header-stat">%</div>
+            </div>
+        `;
+    }
+    
     // TEAM TOTALS ROW - Only show if in actual party (2+ players)
     // Use sorted.length to match displayed players
     if (sorted.length >= 2) {

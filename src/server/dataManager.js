@@ -1,6 +1,8 @@
-const fsPromises = require('fs').promises;
+const fs = require('fs');
+const fsPromises = require('fs/promises');
 const path = require('path');
-const skillConfig = require('../../tables/skill_names.json').skill_names; // Ajustar la ruta
+const skillNames = require('../../tables/skill_names.json');
+const SkillTranslationManager = require('./skillTranslations');
 
 class Lock {
     constructor() {
@@ -606,19 +608,28 @@ class UserDataManager {
         this.logger = logger;
         this.globalSettings = globalSettings; // Almacenar globalSettings
         this.appVersion = appVersion;
-        this.users = new Map();
-        this.lastPlayerCount = 0;
-        this.zoneChangeDetected = false;
-        this.userCache = new Map(); // Mantener userCache para cargar nombres y fightPoint
-        this.playerMap = new Map(); // Mantener playerMap para cargar nombres
         // Use userDataPath if provided (from Electron), otherwise fall back to __dirname
         const basePath = userDataPath || path.join(__dirname, '..', '..');
-        this.userDataPath = basePath; // CRITICAL: Store userDataPath for session saving!
+        this.userDataPath = basePath;
         this.playerMapPath = path.join(basePath, 'player_map.json');
-        this.playerMapDirty = false; // Track if playerMap needs saving
-
-        this.hpCache = new Map();
+        
+        this.users = new Map();
+        this.enemies = new Map();
+        this.partyMembers = new Set();
+        this.raidGroups = new Map();
         this.startTime = Date.now();
+        this.playerMap = new Map(); // UID -> Name cache
+        this.playerMapDirty = false;
+        this.playerMapLock = new Lock();
+        this.userCache = new Map(); // UID -> cached user data (profession, fightPoint)
+        this.localPlayerUid = null;
+        this.lastPlayerCount = 0;
+        this.zoneChangeDetected = false;
+        
+        this.hpCache = new Map();
+        
+        // Initialize skill translation manager (will be loaded in initialize())
+        this.skillTranslations = new SkillTranslationManager(logger);
 
         this.logLock = new Lock();
         this.logDirExist = new Set();
@@ -634,6 +645,13 @@ class UserDataManager {
     }
 
     async initialize() {
+        // Initialize skill translations first
+        try {
+            await this.skillTranslations.initialize();
+        } catch (err) {
+            this.logger.error('Failed to initialize skill translations:', err);
+        }
+        
         // Load player_map.json for name caching
         await this.loadPlayerMap();
         

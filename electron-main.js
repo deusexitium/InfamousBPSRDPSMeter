@@ -97,7 +97,7 @@ logToFile('==== ELECTRON START ====');
             alwaysOnTop: true,
             resizable: true,
             show: false, // Don't show until ready
-            backgroundColor: '#1a1a1a', // Fallback background
+            // No backgroundColor - allows full transparency
             webPreferences: {
                 preload: path.join(__dirname, 'preload.js'),
                 nodeIntegration: false,
@@ -208,61 +208,10 @@ logToFile('==== ELECTRON START ====');
         });
 
 
-        // Ensure window stays on top when gaining focus (fixes Alt+Tab issues)
+        // Maintain always-on-top on focus
         mainWindow.on('focus', () => {
             if (mainWindow && !mainWindow.isDestroyed()) {
                 mainWindow.setAlwaysOnTop(true, isLocked ? 'screen-saver' : 'normal');
-                // Also ensure window is movable if not locked
-                if (!isLocked && !mainWindow.isMovable()) {
-                    mainWindow.setMovable(true);
-                    logToFile('⚠️ Restored movability on focus');
-                }
-            }
-        });
-
-        // Handle minimize/restore events to maintain always-on-top behavior
-        mainWindow.on('minimize', () => {
-            // When minimized and then restored, ensure always-on-top is maintained
-            setTimeout(() => {
-                if (mainWindow && !mainWindow.isDestroyed()) {
-                    mainWindow.setAlwaysOnTop(true, isLocked ? 'screen-saver' : 'normal');
-                }
-            }, 100);
-        });
-
-        mainWindow.on('restore', () => {
-            if (mainWindow && !mainWindow.isDestroyed()) {
-                mainWindow.setAlwaysOnTop(true, isLocked ? 'screen-saver' : 'normal');
-                // Also ensure window is movable if not locked
-                if (!isLocked && !mainWindow.isMovable()) {
-                    mainWindow.setMovable(true);
-                    logToFile('⚠️ Restored movability on restore');
-                }
-            }
-        });
-
-        // Additional event handlers to catch stuck state
-        mainWindow.on('blur', () => {
-            // When window loses focus, ensure it's still movable
-            if (mainWindow && !mainWindow.isDestroyed() && !isLocked && !mainWindow.isMovable()) {
-                mainWindow.setMovable(true);
-                logToFile('⚠️ Restored movability on blur');
-            }
-        });
-
-        mainWindow.on('show', () => {
-            // When window is shown, ensure it's movable
-            if (mainWindow && !mainWindow.isDestroyed() && !isLocked && !mainWindow.isMovable()) {
-                mainWindow.setMovable(true);
-                logToFile('⚠️ Restored movability on show');
-            }
-        });
-
-        mainWindow.on('move', () => {
-            // If move event fires but window isn't movable, fix it
-            if (mainWindow && !mainWindow.isDestroyed() && !isLocked && !mainWindow.isMovable()) {
-                mainWindow.setMovable(true);
-                logToFile('⚠️ Restored movability on move event');
             }
         });
 
@@ -312,27 +261,7 @@ logToFile('==== ELECTRON START ====');
     // Handle event to resize the window
     ipcMain.on('resize-window', (event, width, height) => {
         if (mainWindow && !mainWindow.isDestroyed()) {
-            // Store current movable state
-            const wasMovable = mainWindow.isMovable();
-            
             mainWindow.setSize(width, height);
-            
-            // CRITICAL: Force movability immediately after resize if not locked
-            if (!isLocked) {
-                // Force movability multiple times to overcome Electron bugs
-                setImmediate(() => {
-                    if (mainWindow && !mainWindow.isDestroyed() && !isLocked) {
-                        mainWindow.setMovable(true);
-                    }
-                });
-                
-                setTimeout(() => {
-                    if (mainWindow && !mainWindow.isDestroyed() && !isLocked) {
-                        mainWindow.setMovable(true);
-                        // Removed spammy log - only log if it was actually stuck
-                    }
-                }, 100);
-            }
         }
     });
 
@@ -391,34 +320,15 @@ logToFile('==== ELECTRON START ====');
         logToFile(`Opening folder: ${folderPath}`);
     });
 
-    // Track if resize is in progress to avoid conflicts
-    let isResizingWindow = false;
-    
-    ipcMain.on('resize-start', () => {
-        isResizingWindow = true;
-    });
-    
-    ipcMain.on('resize-end', () => {
-        isResizingWindow = false;
-        // Ensure movable after resize completes
-        if (mainWindow && !mainWindow.isDestroyed() && !isLocked && !mainWindow.isMovable()) {
-            mainWindow.setMovable(true);
-            logToFile('⚠️ Restored movability after resize ended');
-        }
-    });
-    
-    // ULTRA AGGRESSIVE periodic check to ensure window stays movable (防止卡死)
-    // Check very frequently for instant recovery
+    // Simple periodic check to fix stuck window (if it happens)
     setInterval(() => {
-        if (mainWindow && !mainWindow.isDestroyed() && !isLocked && !isResizingWindow) {
-            // Ensure window remains movable if not locked (and not actively resizing)
+        if (mainWindow && !mainWindow.isDestroyed() && !isLocked) {
             if (!mainWindow.isMovable()) {
                 mainWindow.setMovable(true);
-                logToFile('⚠️ Window was stuck - restored movability (periodic check)');
-                console.error('⚠️ WINDOW WAS STUCK - FORCE UNLOCKED');
+                logToFile('⚠️ Fixed stuck window');
             }
         }
-    }, 200); // Check every 200ms for nearly instant recovery
+    }, 1000); // Check every second - less aggressive
 
     // Send initial lock state to renderer once window is ready
     mainWindow.webContents.on('did-finish-load', () => {

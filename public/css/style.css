@@ -27,7 +27,7 @@ body {
     color: var(--text-primary);
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
-    pointer-events: none;
+    /* Removed pointer-events: none - causes click issues */
 }
 
 /* Main Container - Dynamic sizing based on content */
@@ -39,7 +39,7 @@ body {
     border-radius: 8px;
     box-shadow: var(--shadow);
     overflow: hidden;
-    pointer-events: auto;
+    /* Removed redundant pointer-events */
     /* No fixed height - let content determine size */
 }
 
@@ -72,16 +72,25 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: transparent;
     border: none;
+    background: transparent;
     color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.15s ease;
+    cursor: pointer !important; /* Force pointer cursor */
     border-radius: 4px;
-    flex-shrink: 0;
-    font-size: 12px;
-    position: relative;
+    transition: all 0.15s ease;
+    font-size: 14px;
     z-index: 100;
+    -webkit-app-region: no-drag !important;
+    pointer-events: auto !important;
+    position: relative; /* Ensure proper stacking */
+}
+
+/* Ensure icon inside button is also clickable */
+.header-btn i,
+.header-btn * {
+    pointer-events: auto !important;
+    -webkit-app-region: no-drag !important;
+    cursor: pointer !important;
 }
 
 .header-btn:hover {
@@ -875,7 +884,9 @@ body {
     align-items: center;
     gap: 10px;
     -webkit-app-region: drag; /* Drag ONLY from left side */
-    flex: 1; /* Allow dragging from most of the bar */
+    flex: 1; /* Take available space for dragging */
+    min-width: 0; /* Allow shrinking */
+    cursor: move;
 }
 
 .title-left .logo {
@@ -896,7 +907,16 @@ body {
     gap: 4px;
     -webkit-app-region: no-drag !important; /* CRITICAL: Force no-drag */
     pointer-events: auto !important; /* CRITICAL: Ensure buttons are clickable */
-    z-index: 1000; /* Ensure buttons are on top */
+    z-index: 10000; /* Ensure buttons are on top */
+    position: relative; /* Create stacking context */
+    flex-shrink: 0; /* Never compress buttons */
+    margin-left: auto; /* Push to the right */
+}
+
+/* Extra explicit - ensure ALL buttons are clickable */
+.title-right * {
+    -webkit-app-region: no-drag !important;
+    pointer-events: auto !important;
 }
 
 .title-right > * {
@@ -1416,36 +1436,47 @@ input[type="range"]::-moz-range-thumb {
    ============================================================================ */
 
 body.compact-mode .meter-container {
-    min-width: 350px;
+    min-width: 400px;
     max-width: 420px;
-    background: rgba(26, 29, 41, 0.75);
-    backdrop-filter: blur(10px);
+    background: rgba(26, 29, 41, 0.85) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
-/* Compact title bar - smaller, keep essential buttons */
+/* Compact title bar - show ALL buttons */
 body.compact-mode .title-bar {
-    padding: 4px 8px;
-    min-height: 28px;
+    padding: 3px 6px;
+    min-height: 26px;
+    background: rgba(35, 38, 47, 0.7);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 body.compact-mode .logo {
-    font-size: 14px;
+    font-size: 10px;
 }
 
 body.compact-mode .app-name {
-    font-size: 11px;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
 }
 
 body.compact-mode .header-btn {
-    width: 26px;
-    height: 26px;
-    font-size: 12px;
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
+    padding: 0;
+    min-width: 22px;
 }
 
-/* Hide ONLY minimize/close in compact mode, keep settings/lock/compact/pin */
-body.compact-mode #btn-minimize,
-body.compact-mode #btn-close {
-    display: none;
+/* Show ALL buttons in compact mode */
+body.compact-mode .title-right {
+    gap: 2px;
 }
 
 /* Hide full header controls in compact mode */
@@ -1458,69 +1489,136 @@ body.compact-mode .player-list-expand {
     display: flex !important;
 }
 
-/* Compact tabs - smaller */
+/* Compact tabs - smaller and more transparent */
 body.compact-mode .tabs {
-    padding: 4px;
-    gap: 4px;
+    padding: 2px 4px;
+    gap: 3px;
+    background: rgba(35, 38, 47, 0.4);
 }
 
 body.compact-mode .tab {
-    padding: 4px 8px;
-    font-size: 10px;
-    min-width: 50px;
+    padding: 4px 10px;
+    font-size: 9px;
+    min-width: 45px;
+    background: rgba(42, 45, 58, 0.4);
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
-/* Compact player rows - essential info only */
+body.compact-mode .tab.active {
+    background: rgba(251, 191, 36, 0.25);
+    border-bottom: 2px solid var(--accent-gold);
+}
+
+/* Compact player rows - MORE DATA, SMALLER TEXT */
 body.compact-mode .player-row {
-    padding: 4px 8px;
-    margin: 2px 0;
-    font-size: 11px;
-    min-height: 32px;
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 5px;
+    margin: 1px 3px;
+    font-size: 9px;
+    min-height: 28px;
+    background: rgba(42, 45, 58, 0.5) !important;
+    border-radius: 3px;
+    border-left: 2px solid transparent;
+}
+
+body.compact-mode .player-row:hover {
+    background: rgba(42, 45, 58, 0.75) !important;
+    border-left-color: var(--accent-gold);
+}
+
+body.compact-mode .player-row.local {
+    border: 1px solid var(--accent-gold);
+    background: rgba(251, 191, 36, 0.15) !important;
 }
 
 body.compact-mode .rank {
     font-size: 10px;
+    font-weight: 700;
     width: 20px;
     height: 20px;
+    min-width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.06);
 }
 
-body.compact-mode .rank-badge {
-    font-size: 14px;
+body.compact-mode .player-name-col {
+    flex: 1;
+    min-width: 0;
+    max-width: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
-body.compact-mode .player-info {
-    gap: 6px;
+body.compact-mode .name-line {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    overflow: hidden;
 }
 
-body.compact-mode .role-icon {
-    font-size: 12px;
-    width: 20px;
-    height: 20px;
+body.compact-mode .name {
+    font-size: 9px;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 1;
+    letter-spacing: 0.2px;
 }
 
-body.compact-mode .player-name {
-    font-size: 11px;
-    max-width: 100px;
+body.compact-mode .role-badge {
+    font-size: 7px;
+    padding: 1px 3px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    font-weight: 700;
 }
 
-body.compact-mode .player-stats {
-    gap: 8px;
+body.compact-mode .hp-bar-mini {
+    height: 2px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 1px;
+    overflow: hidden;
+}
+
+body.compact-mode .stat-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 48px;
+    gap: 1px;
+    flex-shrink: 0;
 }
 
 body.compact-mode .stat-value {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+    letter-spacing: 0.1px;
+    white-space: nowrap;
 }
 
 body.compact-mode .stat-label {
-    font-size: 9px;
+    font-size: 6px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
-/* Hide less critical stats in compact mode */
-body.compact-mode .stat-group:has(.stat-label:contains("HEAL")),
-body.compact-mode .stat-group:has(.stat-label:contains("TAKEN")),
-body.compact-mode .player-percent {
-    display: none;
+body.compact-mode .local-star {
+    font-size: 10px;
+    color: var(--accent-gold);
 }
 
 /* Compact health bar */
@@ -1528,10 +1626,53 @@ body.compact-mode .health-bar-container {
     height: 3px;
 }
 
+/* Hide normal column headers in compact mode */
+body.compact-mode .column-headers {
+    display: none !important;
+}
+
+/* Compact mode column headers */
+.compact-headers {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 5px;
+    margin: 2px 3px 4px 3px;
+    font-size: 7px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.compact-header-rank {
+    width: 20px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.compact-header-name {
+    flex: 1;
+    min-width: 0;
+    max-width: 120px;
+}
+
+.compact-header-stat {
+    min-width: 48px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
 /* Compact status bar */
 body.compact-mode .status-bar {
-    padding: 4px 8px;
-    font-size: 10px;
+    padding: 3px 6px;
+    font-size: 8px;
+    background: rgba(35, 38, 47, 0.6);
+    backdrop-filter: blur(10px);
+    font-weight: 600;
+    letter-spacing: 0.3px;
 }
 
 /* Hide player details panel in compact mode */
@@ -1556,25 +1697,37 @@ body.compact-mode #btn-compact-mode i::before {
 
 /* Compact team totals */
 body.compact-mode .team-totals-row {
-    padding: 4px 8px;
-    font-size: 10px;
+    padding: 3px 5px;
+    font-size: 8px;
+    background: rgba(251, 191, 36, 0.12);
+    border-radius: 3px;
+    margin: 2px 3px;
+    font-weight: 700;
 }
 
 body.compact-mode .team-stat-value {
-    font-size: 11px;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+body.compact-mode .team-totals-label {
+    font-size: 8px;
+    font-weight: 600;
 }
 
 /* Compact mode: Show local player + top 5 others (up to 6 total) unless expanded
    Local player is always shown first, then top 5 ranked players
    If local is in top 5, only shows 5 total. If not, shows 6 (local + top 5) */
+body.compact-mode .player-list:not(.expanded) > .player-row-wrapper:nth-of-type(n+7),
 body.compact-mode .player-list:not(.expanded) > .player-row:nth-of-type(n+7) {
     display: none;
 }
 
 /* Compact mode: smaller gaps */
 body.compact-mode .player-list {
-    padding: 2px;
-    max-height: 300px;
+    padding: 4px;
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 /* Expand button for compact mode */
@@ -1611,16 +1764,23 @@ body.compact-mode .player-list {
     font-size: 10px;
 }
 
-/* Click-through when locked in compact mode */
-body.compact-mode.locked .meter-container {
+/* Click-through ONLY when locked in compact mode */
+body.locked .player-list,
+body.locked .player-row,
+body.locked .meter-header,
+body.locked .tabs,
+body.locked .status-bar {
     pointer-events: none;
 }
 
-/* But allow interaction with title bar buttons when locked */
-body.compact-mode.locked .title-bar,
-body.compact-mode.locked .header-btn {
+/* But keep title bar interactive for unlock */
+body.locked .title-bar,
+body.locked .title-right,
+body.locked .header-btn {
     pointer-events: auto;
 }
+
+/* Ensure normal mode is fully interactive (no overrides needed) */
 
 /* Smooth transition between modes */
 .meter-container,

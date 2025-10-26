@@ -1,18 +1,23 @@
-const winston = require('winston');
-const readline = require('readline');
+const fs = require('fs');
+const fsPromises = require('fs/promises');
 const path = require('path');
-const fsPromises = require('fs').promises;
+const readline = require('readline');
+const winston = require('winston');
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const zlib = require('zlib');
 
-const { UserDataManager } = require(path.join(__dirname, 'src', 'server', 'dataManager'));
-const Sniffer = require(path.join(__dirname, 'src', 'server', 'sniffer'));
-const initializeApi = require(path.join(__dirname, 'src', 'server', 'api'));
-const PacketProcessor = require(path.join(__dirname, 'algo', 'packet')); // Make sure this path is correct
+const Sniffer = require('./src/server/sniffer');
+const PacketProcessor = require('./src/server/packetProcessor');
+const UserDataManager = require('./src/server/dataManager');
+const { setupRoutes } = require('./src/server/routes');
+const { setupWebSocket } = require('./src/server/websocket');
+const { createLogger } = require('./src/server/logger');
 
-const VERSION = '2.95.15';
+// Read version from package.json
+const packageJson = require('./package.json');
+const VERSION = packageJson.version;
 
 let globalSettings = {
     autoClearOnServerChange: true, // Keep enabled - needed for actual server changes
@@ -160,7 +165,7 @@ async function main() {
         console.log('WebSocket server started');
     });
 
-    console.log('✅ Infamous BPSR Meter v2.95.15 - Ready!');
+    console.log('✅ Infamous BPSR Meter v2.95.21 - Ready!');
     console.log('💡 TIP: Works with VPNs like ExitLag! The adapter with most traffic is auto-selected.');
     console.log('Detecting game server, please wait...');
 

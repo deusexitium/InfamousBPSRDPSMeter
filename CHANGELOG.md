@@ -7,6 +7,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.95.25] - 2025-10-26
+
+### Added
+- **Column headers for compact mode** - Now shows clear labels: #, PLAYER, CUR, MAX, AVG, TOTAL, %
+- Headers displayed at top of player list in compact mode
+
+### Changed
+- Stat value font size: 9px → 8px for better proportions
+- Stat label opacity reduced for better visual hierarchy
+- Headers use 7px font with proper spacing
+
+### Fixed
+- Missing column headers making compact mode confusing
+- Text size imbalance between values and labels
+
+---
+
+## [2.95.24] - 2025-10-26
+
+### Fixed
+- **CRITICAL:** Skill translation system initializing multiple times causing crash (exit code 3221225477)
+- Added initialization guard to prevent duplicate loads
+- Made remote download non-blocking with 10s timeout
+- Proper error handling for GitHub download failures
+
+### Changed
+- Skill translations now load once and cache the initialized state
+- Remote updates happen in background without blocking startup
+
+---
+
+## [2.95.23] - 2025-10-26
+
+### Fixed
+- Compact mode stat columns now show proper labels (DPS, MAX, AVG, TOTAL, CONTRIB)
+- Added 5 stat columns instead of 3 for more data
+- Text scaling improved with proper font sizes (9px values, 6px labels)
+- Column sizing fixed with flex-shrink: 0 to prevent squishing
+
+### Changed
+- Stat columns: 55px → 48px min-width for better fit
+- Added white-space: nowrap to prevent text wrapping
+- Better letter-spacing for readability at small sizes
+
+---
+
+## [2.95.22] - 2025-10-26
+
+### Added
+- **Skill Translation System** - Auto-downloads English translations from GitHub on startup
+  - Downloads 3 files: CombinedTranslatedWithManualOverrides.json (2.7MB), TalentTable_Clean.json (210KB), Conflicts.json
+  - Falls back to local files if GitHub unavailable
+  - Updates on every app start
+  - Translation priority: Manual Override > RecountTable > SkillTable > AI Translation
+
+### Changed
+- **Compact Mode Complete Redesign**
+  - Width: 300px → 420px (40% wider)
+  - Text sizes reduced to 9-10px for more data density
+  - All buttons now visible (Settings, Lock, Pin, Compact, Minimize, Close)
+  - Shows more stats: Rank, Name, Role, DPS, Max DPS, Total DMG, % contribution
+  - Better flexbox layout with proper scaling
+  - Smaller gaps and padding for tighter layout
+
+### Fixed
+- Constructor initialization errors in UserDataManager
+- Missing playerMapPath causing undefined errors
+- Removed non-existent loadUserCache() function call
+- Duplicate property declarations cleaned up
+
+---
+
 ## [2.95.6] - 2025-10-24
 
 ### Fixed
