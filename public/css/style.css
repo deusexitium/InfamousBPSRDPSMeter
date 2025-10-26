@@ -22,11 +22,14 @@
 }
 
 body {
+    margin: 0;
+    padding: 0;
     font-family: 'Inter', -apple-system, sans-serif;
     background: transparent;
     color: var(--text-primary);
-    overflow: hidden;
+    overflow: hidden; /* Prevent scrollbars causing extra space */
     -webkit-font-smoothing: antialiased;
+    box-sizing: border-box; /* Fix layout issues */
     /* Removed pointer-events: none - causes click issues */
 }
 
@@ -40,6 +43,8 @@ body {
     box-shadow: var(--shadow);
     overflow: hidden;
     box-sizing: border-box; /* Fix: Include padding in width calculation */
+    margin: 0; /* Remove any default margin */
+    padding: 0; /* Remove any default padding */
     /* Removed redundant pointer-events */
     /* No fixed height - let content determine size */
 }

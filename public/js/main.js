@@ -498,7 +498,7 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
     const maxHps = player.realtime_hps_max || 0;
     const totalDmg = player.total_damage?.total || 0;
     const dmgTaken = player.taken_damage || 0;
-    const totalHeal = player.total_healing?.total || 0;
+    const totalHealing = player.total_healing?.total || 0;
     const crit = (player.critRate || 0).toFixed(0);
     const luck = (player.luckyRate || 0).toFixed(0);
     const maxDmgVal = player.maxDamage || 0;
@@ -1981,7 +1981,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v2.99.1 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v2.99.3 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2051,7 +2051,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR Meter v2.99.1 - Ready!');
+    console.log('✅ Infamous BPSR Meter v2.99.3 - Ready!');
 }
 
 // ============================================================================
