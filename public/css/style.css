@@ -39,6 +39,7 @@ body {
     border-radius: 8px;
     box-shadow: var(--shadow);
     overflow: hidden;
+    box-sizing: border-box; /* Fix: Include padding in width calculation */
     /* Removed redundant pointer-events */
     /* No fixed height - let content determine size */
 }
