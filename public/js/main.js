@@ -2367,12 +2367,25 @@ async function togglePause() {
 }
 
 // Make functions globally available
+window.renderPlayers = renderPlayers;
 window.togglePlayerDetails = togglePlayerDetails;
 window.exportPlayerData = exportPlayerData;
 window.copyToClipboard = copyToClipboard;
 window.copyPlayerToClipboard = copyPlayerToClipboard;
 window.showNotification = showNotification;
 window.togglePause = togglePause;
+window.updateOpacitySlider = updateOpacitySlider;
+
+// Opacity slider real-time update function
+function updateOpacitySlider(value) {
+    const percent = Math.round(value * 100);
+    document.getElementById('opacity-value').textContent = percent + '%';
+    
+    // Apply immediately via IPC
+    if (window.electronAPI?.setOpacity) {
+        window.electronAPI.setOpacity(parseFloat(value));
+    }
+}
 
 // ============================================================================
 // V2.12.0 - NEW FEATURES
