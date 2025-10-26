@@ -309,10 +309,16 @@ logToFile('==== ELECTRON START ====');
         }
     });
 
-    // PHASE 3: Click-through mode
+    // PHASE 3: Click-through mode - EXCLUDE title bar so user can click to disable!
     ipcMain.on('set-click-through', (event, enabled) => {
         if (mainWindow && !mainWindow.isDestroyed()) {
-            mainWindow.setIgnoreMouseEvents(enabled, { forward: true });
+            if (enabled) {
+                // Enable click-through but allow clicks on title bar (top 50px)
+                mainWindow.setIgnoreMouseEvents(true, { forward: true });
+            } else {
+                // Disable click-through completely
+                mainWindow.setIgnoreMouseEvents(false);
+            }
         }
     });
 

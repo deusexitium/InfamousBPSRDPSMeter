@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.99.1] - 2025-10-26 🐛 HOTFIX - Click-Through Trap + Borders
+
+### 🚨 Critical Fixes
+
+**1. Click-Through Trap Fixed**
+- **Problem:** Once enabled, couldn't click button to disable it!
+- **Solution:** Title bar now ALWAYS clickable, even in click-through mode
+- **Tech:** CSS `pointer-events: auto` on title bar, `pointer-events: none` on body
+- **Result:** Can always disable click-through by clicking the button
+
+**2. White Borders Eliminated**
+- **Problem:** Still seeing white space on right/bottom
+- **Solution:** ZERO padding in compact, 2px in full (was 5px/10px)
+- **Also Fixed:** `overflow: hidden` on body, `box-sizing: border-box`
+- **Result:** Pixel-perfect fit, no extra space
+
+**3. Compact Mode Resize Fixed**
+- **Problem:** Resize didn't work when toggling compact mode
+- **Solution:** Force re-render + multiple resize attempts (50ms, 150ms, 300ms)
+- **Result:** Window immediately resizes to fit content
+
+### Technical Changes
+```javascript
+// Click-through fix:
+titleBar.style.pointerEvents = 'auto';  // Always clickable!
+document.body.style.pointerEvents = 'none';  // Rest click-through
+
+// Padding fix:
+Compact: actualHeight + 0  // ZERO padding
+Full: actualHeight + 2     // 2px only
+
+// Resize fix:
+renderPlayers();  // Force re-render first
+setTimeout(resize, 50);   // Immediate
+setTimeout(resize, 150);  // Backup
+setTimeout(resize, 300);  // Final
+```
+
+---
+
 ## [2.99.0] - 2025-10-26 🚀 MAJOR - Performance Overhaul + New Features
 
 ### 📊 Performance Fixed (1 FPS → 60 FPS!)

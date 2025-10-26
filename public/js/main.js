@@ -1540,16 +1540,20 @@ function setupEventListeners() {
         // Save preference
         SETTINGS.save('compactMode', compactMode);
         
-        // Trigger window resize to fit new layout
-        setTimeout(() => {
-            autoResizeWindow();
-        }, 250);
+        // Force immediate re-render to update DOM
+        renderPlayers();
+        
+        // CRITICAL: Multiple resize triggers to ensure it works
+        setTimeout(() => autoResizeWindow(), 50);
+        setTimeout(() => autoResizeWindow(), 150);
+        setTimeout(() => autoResizeWindow(), 300);
         
         showToast(
             compactMode 
-                ? 'Overlay Mode: Top 5 + You (Lock for click-through)' 
-                : 'Full Mode: All players visible',
-            'info'
+                ? 'Compact Mode: Max 6 players' 
+                : 'Full Mode: All players',
+            'info',
+            2000
         );
     });
     
@@ -1574,18 +1578,43 @@ function setupEventListeners() {
     
     // Click-through mode toggle
     let clickThroughEnabled = false;
+    const titleBar = document.querySelector('.title-bar');
+    
     document.getElementById('btn-click-through')?.addEventListener('click', () => {
         clickThroughEnabled = !clickThroughEnabled;
         const btn = document.getElementById('btn-click-through');
         if (btn) {
-            btn.title = clickThroughEnabled ? 'Click-Through Mode: ON' : 'Click-Through Mode: OFF';
+            btn.title = clickThroughEnabled ? 'Click-Through: ON (Click me to disable)' : 'Click-Through Mode: OFF';
             btn.style.background = clickThroughEnabled ? 'rgba(251, 191, 36, 0.2)' : '';
             btn.style.borderColor = clickThroughEnabled ? 'var(--accent-gold)' : '';
         }
+        
+        // Make title bar always clickable even in click-through mode
+        if (titleBar) {
+            if (clickThroughEnabled) {
+                titleBar.style.pointerEvents = 'auto';
+                // Make rest of window click-through
+                document.body.style.pointerEvents = 'none';
+                titleBar.style.position = 'relative';
+                titleBar.style.zIndex = '9999';
+            } else {
+                titleBar.style.pointerEvents = '';
+                document.body.style.pointerEvents = '';
+                titleBar.style.position = '';
+                titleBar.style.zIndex = '';
+            }
+        }
+        
         if (window.electronAPI?.setClickThrough) {
             window.electronAPI.setClickThrough(clickThroughEnabled);
         }
-        showToast(`Click-Through ${clickThroughEnabled ? 'enabled' : 'disabled'}`, 'info');
+        showToast(
+            clickThroughEnabled 
+                ? 'Click-Through ON - Title bar still clickable!' 
+                : 'Click-Through OFF', 
+            'info',
+            3000
+        );
     });
 
     // Transparency adjustment
