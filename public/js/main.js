@@ -4,6 +4,86 @@
 'use strict';
 
 // ============================================================================
+// ERROR BOUNDARY & PERFORMANCE MONITORING
+// ============================================================================
+
+// Global error handler - prevents blank screen crashes
+window.addEventListener('error', (event) => {
+    console.error('💥 Uncaught error:', event.error);
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:99999;font-family:Arial;';
+    errorDiv.innerHTML = `
+        <div style="max-width:600px;text-align:center;padding:40px;">
+            <h1 style="color:#ef4444;margin-bottom:20px;font-size:32px;">⚠️ Something went wrong</h1>
+            <p style="color:#9ca3af;font-size:16px;margin-bottom:10px;">
+                ${event.error?.message || 'An unexpected error occurred'}
+            </p>
+            <pre style="background:#2d2d2d;padding:15px;border-radius:8px;overflow:auto;max-width:100%;text-align:left;margin:20px 0;font-size:12px;max-height:200px;">${event.error?.stack || 'No stack trace available'}</pre>
+            <button onclick="location.reload()" style="margin-top:20px;padding:12px 32px;background:#3b82f6;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:600;">
+                🔄 Reload Application
+            </button>
+        </div>
+    `;
+    document.body.appendChild(errorDiv);
+    return false;
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+    console.error('💥 Unhandled promise rejection:', event.reason);
+});
+
+// Performance monitoring
+const PerformanceMonitor = {
+    enabled: true,
+    fps: 0,
+    frameCount: 0,
+    lastTime: performance.now(),
+    lastLog: performance.now(),
+    renderCount: 0,
+    lastRenderCount: 0,
+    
+    update() {
+        if (!this.enabled) return;
+        
+        this.frameCount++;
+        const now = performance.now();
+        
+        if (now >= this.lastTime + 1000) {
+            this.fps = Math.round((this.frameCount * 1000) / (now - this.lastTime));
+            this.frameCount = 0;
+            this.lastTime = now;
+        }
+        
+        if (now >= this.lastLog + 10000) {
+            const memoryMB = performance.memory 
+                ? (performance.memory.usedJSHeapSize / 1048576).toFixed(2)
+                : 'N/A';
+            const domNodes = document.querySelectorAll('*').length;
+            const renderRate = this.renderCount - this.lastRenderCount;
+            
+            console.log(`📊 Performance: FPS=${this.fps} | Memory=${memoryMB}MB | DOM=${domNodes} nodes | Renders/10s=${renderRate}`);
+            this.lastRenderCount = this.renderCount;
+            this.lastLog = now;
+        }
+    },
+    
+    recordRender() {
+        this.renderCount++;
+    }
+};
+
+// Start performance monitoring loop
+function startPerformanceMonitoring() {
+    requestAnimationFrame(function loop() {
+        PerformanceMonitor.update();
+        requestAnimationFrame(loop);
+    });
+}
+
+startPerformanceMonitoring();
+
+// ============================================================================
 // CONFIGURATION
 // ============================================================================
 
@@ -560,7 +640,17 @@ function updateStatusBar() {
     }
 }
 
+// Track which players have changed for incremental updates
+const dirtyPlayers = new Set();
+let lastPlayerState = new Map();
+
+function markPlayerDirty(uid) {
+    dirtyPlayers.add(uid);
+}
+
 function renderPlayers() {
+    PerformanceMonitor.recordRender();
+    
     const players = Array.from(STATE.players.values());
     
     // Update status bar
@@ -610,8 +700,20 @@ function renderPlayers() {
     const list = document.getElementById('player-list');
     
     if (sorted.length === 0) {
-        list.innerHTML = '<div class="loading"><i class="fa-solid fa-spinner fa-spin"></i><span>Waiting for combat data...</span></div>';
-        // CRITICAL: Resize window even when empty
+        // Check if server is responsive
+        const connectionStatus = STATE.lastUpdate > 0 
+            ? `Connected • Last update: ${Math.floor((Date.now() - STATE.lastUpdate) / 1000)}s ago`
+            : 'Connecting to server...';
+        
+        list.innerHTML = `
+            <div class="loading">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Waiting for combat data...</span>
+                <div style="margin-top:10px;font-size:12px;color:#9ca3af;">${connectionStatus}</div>
+                <div style="margin-top:5px;font-size:11px;color:#6b7280;">Server port: ${window.location.port || '8989'}</div>
+            </div>
+        `;
+        // CRITICAL: Resize window to fit empty state
         setTimeout(() => autoResizeWindow(), 100);
         return;
     }
@@ -735,38 +837,33 @@ function autoResizeWindow() {
 
     // Debounce resize to prevent rapid calls during user interaction
     resizeDebounceTimer = setTimeout(() => {
-        // MEASURE actual content height instead of calculating
-        // This automatically accounts for expanded player details
+        // MEASURE actual content dimensions
         const actualHeight = container.scrollHeight;
+        const actualWidth = container.scrollWidth;
         
-        // Add small padding for safety
-        // Allow window to grow up to 1400px to fit ~20 players + expanded details
-        const targetHeight = Math.max(500, Math.min(actualHeight + 20, 1400));
-        const targetWidth = Math.max(1000, window.innerWidth);
+        // FIX: Match window to ACTUAL content size, not hardcoded minimums
+        // Add small padding for scrollbars and safety
+        const targetHeight = Math.max(400, Math.min(actualHeight + 40, 1400));
+        const targetWidth = Math.max(420, Math.min(actualWidth + 40, 1600)); // Removed hardcoded 1000px minimum
 
-        // Only resize if difference is significant (reduced threshold for better responsiveness)
+        // Only resize if difference is significant
         const currentHeight = window.innerHeight;
-        if (Math.abs(targetHeight - currentHeight) > 20) {
+        const currentWidth = window.innerWidth;
+        const heightDiff = Math.abs(targetHeight - currentHeight);
+        const widthDiff = Math.abs(targetWidth - currentWidth);
+        
+        if (heightDiff > 20 || widthDiff > 20) {
             isResizing = true;
             lastResizeTime = Date.now();
             
-            // Signal resize start
-            if (window.electronAPI?.resizeStart) {
-                window.electronAPI.resizeStart();
-            }
-            
             window.electronAPI.resizeWindow(targetWidth, targetHeight);
-            console.log(`📏 Resized window: ${currentHeight}px → ${targetHeight}px (content: ${actualHeight}px)`);
+            console.log(`📏 Resized window: ${currentWidth}x${currentHeight} → ${targetWidth}x${targetHeight} (content: ${actualWidth}x${actualHeight})`);
             
-            // Signal resize end after window has time to adjust
             setTimeout(() => {
                 isResizing = false;
-                if (window.electronAPI?.resizeEnd) {
-                    window.electronAPI.resizeEnd();
-                }
             }, 150);
         }
-    }, 50); // Reduced debounce time for faster response
+    }, 50);
 }
 
 function filterPlayers(players) {
@@ -1241,8 +1338,18 @@ function startAutoRefresh() {
     const interval = SETTINGS.refreshInterval * 1000;
     
     STATE.refreshTimer = setInterval(async () => {
-        const players = await fetchPlayerData();
-        renderPlayers();
+        try {
+            const players = await fetchPlayerData();
+            STATE.lastUpdate = Date.now();
+            renderPlayers();
+        } catch (error) {
+            console.error('❌ Failed to fetch player data:', error);
+            // Update connection status in UI
+            const statusElement = document.querySelector('.loading div');
+            if (statusElement) {
+                statusElement.textContent = `Connection error: ${error.message}`;
+            }
+        }
     }, interval);
     
     // Refresh skills for expanded players every 5 seconds

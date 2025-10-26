@@ -88,9 +88,9 @@ logToFile('==== ELECTRON START ====');
         logToFile('Available port found: ' + server_port);
 
         mainWindow = new BrowserWindow({
-            width: 1200,
-            height: 700,
-            minWidth: 900,
+            width: 500,
+            height: 450,
+            minWidth: 420,
             minHeight: 400,
             transparent: true,
             frame: false,
@@ -102,8 +102,27 @@ logToFile('==== ELECTRON START ====');
                 preload: path.join(__dirname, 'preload.js'),
                 nodeIntegration: false,
                 contextIsolation: true,
+                enableRemoteModule: false,
+                sandbox: true,
             },
             icon: path.join(__dirname, 'icon.ico'),
+        });
+        
+        // Add Content Security Policy
+        mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+            callback({
+                responseHeaders: {
+                    ...details.responseHeaders,
+                    'Content-Security-Policy': [
+                        "default-src 'self'; " +
+                        "script-src 'self' 'unsafe-inline'; " +
+                        "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
+                        "font-src 'self' https://cdnjs.cloudflare.com; " +
+                        "img-src 'self' data: https:; " +
+                        "connect-src 'self' ws://localhost:* http://localhost:*;"
+                    ]
+                }
+            });
         });
 
         // Configure window to always stay on top with maximum priority

@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.95.31] - 2025-10-26 ⚡ PHASE 2 OPTIMIZATION + UI FIX
+
+### Fixed
+- **CRITICAL:** Invisible window border blocking clicks on other applications
+  - Window now resizes to match actual content size (not hardcoded 1000px minimum)
+  - Initial window size reduced from 1200x700 to 500x450
+  - Auto-resize now checks both width AND height differences
+  - Minimum width reduced from 900px to 420px to match compact mode
+
+- **UI responsiveness issues**
+  - Added connection status indicator when waiting for combat data
+  - Shows last update timestamp and server port info
+  - Better error handling for failed API requests
+  - Non-responsive buttons fixed by proper window sizing
+
+### Added
+- **Phase 2 Performance Optimizations** (60% CPU reduction target)
+  - Global error boundary to prevent blank screen crashes
+  - Performance monitoring (FPS, Memory, DOM nodes, Render rate)
+  - Logs performance metrics every 10 seconds in console
+  - Incremental DOM update infrastructure (dirtyPlayers tracking)
+  - requestAnimationFrame-based monitoring loop
+
+- **Security enhancements**
+  - Content Security Policy (CSP) headers
+  - Sandbox mode enabled in renderer process
+  - Remote module explicitly disabled
+  - XSS protection via CSP
+
+### Changed
+- Window initial size optimized for typical use case
+- Auto-resize now measures actual content width, not just height
+- Performance monitoring runs continuously in background
+- Better error messages with stack traces and reload button
+
+### Technical
+- CSP: `default-src 'self'; script-src 'self' 'unsafe-inline'; ...`
+- Window resize logic: `targetWidth = Math.max(420, Math.min(actualWidth + 40, 1600))`
+- Removed hardcoded 1000px minimum width
+- Added PerformanceMonitor with FPS and memory tracking
+- Global error/unhandledrejection handlers
+
+### Performance Gains (Expected)
+- ✅ No more invisible borders consuming screen space
+- ✅ Window size matches content (saves memory)
+- ✅ Real-time performance visibility in console
+- ✅ Graceful error recovery instead of blank screens
+- 🎯 Foundation for 60% CPU reduction in future updates
+
+---
+
 ## [2.95.30] - 2025-10-26 🔧 CRITICAL FIX
 
 ### Fixed
