@@ -308,6 +308,20 @@ logToFile('==== ELECTRON START ====');
             mainWindow.setSize(width, height);
         }
     });
+
+    // PHASE 3: Click-through mode
+    ipcMain.on('set-click-through', (event, enabled) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.setIgnoreMouseEvents(enabled, { forward: true });
+        }
+    });
+
+    // PHASE 3: Transparency control
+    ipcMain.on('set-opacity', (event, opacity) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.setOpacity(opacity);
+        }
+    });
     
     // PHASE 3: Set overlay opacity
     ipcMain.on('set-overlay-opacity', (event, opacity) => {

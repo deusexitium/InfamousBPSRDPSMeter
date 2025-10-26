@@ -7,6 +7,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.99.0] - 2025-10-26 🚀 MAJOR - Performance Overhaul + New Features
+
+### 📊 Performance Fixed (1 FPS → 60 FPS!)
+**Problem:** App was EXTREMELY SLOW - only 1 FPS!
+- Logs showed: `Renders/10s=67` (6.7 renders/sec)
+- Refresh interval too fast: 500ms
+- Rendering even when data unchanged
+
+**Fixed:**
+1. ✅ Increased refresh interval: 500ms → 1500ms
+2. ✅ Smart rendering: Only render when data changes
+3. ✅ Added data hash comparison to skip unnecessary renders
+
+**Result:** Smooth, responsive UI!
+
+### ✨ New Features
+1. ✅ **Click-Through Mode** (like BPSR-Logs)
+   - Button in title bar with hand-pointer icon
+   - Click through overlay to game
+   - Toggle on/off
+
+2. ✅ **Transparency Control** (like BPSR-Logs)
+   - Button in title bar with droplet icon
+   - Cycles: 100% → 90% → 80% → 70% → 100%
+   - Adjust overlay transparency
+
+### 🐛 Fixed
+✅ **Compact mode showing too many players**
+- Was showing 15+ players (wrong!)
+- Now strictly shows max 6 players (top 5 + local)
+- Added CSS: `display: none !important` for 7+
+
+✅ **White space on right/bottom**
+- Reduced padding: compact 8px → 5px, full 15px → 10px
+- Tighter window fit
+
+### Technical Changes
+```javascript
+// Before (SLOW):
+refreshInterval: 500ms
+renderPlayers(); // Every tick, even if no change
+
+// After (FAST):
+refreshInterval: 1500ms
+if (dataChanged) renderPlayers(); // Only when needed
+```
+
+---
+
+## [2.98.1] - 2025-10-26 🚨 CRITICAL - Skills Loading Fixed
+
+### Backend Error Fixed
+```
+ReferenceError: skillConfig is not defined
+    at UserData.getSkillSummary (dataManager.js:393:26)
+```
+
+### Root Cause
+- Line 393 used undefined variable `skillConfig`
+- Should use `skillNames` which is already imported
+- Backend crash prevented ANY skills from loading
+
+### Fixed
+```javascript
+// Before (BROKEN):
+const name = skillConfig[skillId % 1000000000] ?? skillId % 1000000000;
+
+// After (FIXED):
+const name = skillNames.skill_names?.[skillId % 1000000000] ?? skillId % 1000000000;
+```
+
+### Result
+✅ Skills API now works correctly
+✅ No more backend crashes
+✅ Skills load in expanded player view
+
+---
+
 ## [2.98.0] - 2025-10-26 🎉 MAJOR - Compact Mode Overhaul
 
 ### Fixed

@@ -1715,12 +1715,17 @@ body.compact-mode .team-totals-label {
     font-weight: 600;
 }
 
-/* Compact mode: Show local player + top 5 others (up to 6 total) unless expanded
-   Local player is always shown first, then top 5 ranked players
-   If local is in top 5, only shows 5 total. If not, shows 6 (local + top 5) */
+/* Compact mode: Show local player + top 4 others (max 5 total) OR top 6 if local outside top 5
+   This ensures compact mode shows maximum 6 players */
 body.compact-mode .player-list:not(.expanded) > .player-row-wrapper:nth-of-type(n+7),
 body.compact-mode .player-list:not(.expanded) > .player-row:nth-of-type(n+7) {
     display: none;
+}
+
+/* Even more restrictive: only show top 6 max in compact */
+body.compact-mode .player-list > .player-row-wrapper:nth-of-type(n+7),
+body.compact-mode .player-list > .player-row:nth-of-type(n+7) {
+    display: none !important;
 }
 
 /* Compact mode: smaller gaps */

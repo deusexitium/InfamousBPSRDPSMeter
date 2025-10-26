@@ -88,7 +88,7 @@ startPerformanceMonitoring();
 // ============================================================================
 
 const CONFIG = {
-    refreshInterval: 500, // 500ms for smooth updates (was 2000ms)
+    refreshInterval: 1500, // 1500ms balanced performance (was 500ms - TOO FAST!)
     apiBase: '/api',
     apiData: '/api/data',
     apiSkill: '/api/skill',
@@ -129,7 +129,7 @@ const SETTINGS = {
     version: CONFIG_VERSION,
     highlightLocal: true,
     showGS: true,
-    refreshInterval: 0.5, // 500ms for UI refresh (data updates every 2s from backend)
+    refreshInterval: 1.5, // 1500ms - prevents excessive renders (was 0.5s)
     rememberNames: true,
     autoClearOnZoneChange: true, // Clear data when entering combat after zone change
     keepDataAfterDungeon: true, // Don't clear immediately on zone exit
@@ -863,15 +863,15 @@ function autoResizeWindow() {
         let targetHeight, targetWidth, finalHeight, finalWidth;
         
         if (isCompact) {
-            // Compact mode: tight fit, no expansion
-            targetHeight = actualHeight + 8;
-            targetWidth = actualWidth + 8;
+            // Compact mode: tight fit, minimal padding
+            targetHeight = actualHeight + 5;
+            targetWidth = actualWidth + 5;
             finalHeight = Math.max(200, Math.min(targetHeight, 600));
             finalWidth = Math.max(400, Math.min(targetWidth, 450));
         } else {
             // Full mode: generous padding
-            targetHeight = actualHeight + 15;
-            targetWidth = actualWidth + 15;
+            targetHeight = actualHeight + 10;
+            targetWidth = actualWidth + 10;
             finalHeight = Math.max(250, Math.min(targetHeight, 1200));
             finalWidth = Math.max(800, Math.min(targetWidth, 1600));
         }
@@ -1366,15 +1366,23 @@ function startAutoRefresh() {
     
     const interval = SETTINGS.refreshInterval * 1000;
     
+    let lastPlayerCount = 0;
+    let lastRenderHash = '';
+    
     STATE.refreshTimer = setInterval(async () => {
         try {
-            console.log('🔄 Auto-refresh tick - fetching data...');
             const players = await fetchPlayerData();
-            console.log(`📊 Fetched ${players?.length || 0} players from API`);
-            STATE.lastUpdate = Date.now();
-            console.log('🎨 Calling renderPlayers()...');
-            renderPlayers();
-            console.log('✅ Render complete');
+            const currentCount = players?.length || 0;
+            
+            // Only render if data actually changed
+            const currentHash = STATE.players.size + ':' + Array.from(STATE.players.values()).map(p => p.total_damage?.total || 0).join(',');
+            
+            if (currentHash !== lastRenderHash || currentCount !== lastPlayerCount) {
+                lastPlayerCount = currentCount;
+                lastRenderHash = currentHash;
+                STATE.lastUpdate = Date.now();
+                renderPlayers();
+            }
         } catch (error) {
             console.error('❌ Failed to fetch player data:', error);
             console.error('❌ Error stack:', error.stack);
@@ -1564,6 +1572,33 @@ function setupEventListeners() {
         showToast(`Always on Top ${STATE.alwaysOnTop ? 'enabled' : 'disabled'}`, 'info');
     });
     
+    // Click-through mode toggle
+    let clickThroughEnabled = false;
+    document.getElementById('btn-click-through')?.addEventListener('click', () => {
+        clickThroughEnabled = !clickThroughEnabled;
+        const btn = document.getElementById('btn-click-through');
+        if (btn) {
+            btn.title = clickThroughEnabled ? 'Click-Through Mode: ON' : 'Click-Through Mode: OFF';
+            btn.style.background = clickThroughEnabled ? 'rgba(251, 191, 36, 0.2)' : '';
+            btn.style.borderColor = clickThroughEnabled ? 'var(--accent-gold)' : '';
+        }
+        if (window.electronAPI?.setClickThrough) {
+            window.electronAPI.setClickThrough(clickThroughEnabled);
+        }
+        showToast(`Click-Through ${clickThroughEnabled ? 'enabled' : 'disabled'}`, 'info');
+    });
+
+    // Transparency adjustment
+    let currentOpacity = 1.0;
+    document.getElementById('btn-transparency')?.addEventListener('click', () => {
+        // Cycle: 100% → 90% → 80% → 70% → 100%
+        currentOpacity = currentOpacity > 0.7 ? currentOpacity - 0.1 : 1.0;
+        if (window.electronAPI?.setOpacity) {
+            window.electronAPI.setOpacity(currentOpacity);
+        }
+        showToast(`Opacity: ${Math.round(currentOpacity * 100)}%`, 'info');
+    });
+
     document.getElementById('btn-lock')?.addEventListener('click', () => {
         if (window.electronAPI) {
             window.electronAPI.toggleLockState();
