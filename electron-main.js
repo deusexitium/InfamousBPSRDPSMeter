@@ -195,24 +195,51 @@ logToFile('==== ELECTRON START ====');
                 
                 // Show window once content is ready to load
                 mainWindow.once('ready-to-show', () => {
-                    mainWindow.show();
                     logToFile('Window shown');
+                    mainWindow.show();
                 });
             }
         });
+
+        // FIX: Windows Electron transparency bug - "resize trick"
+        // Forces window redraw on focus/blur to prevent title bar appearing
+        let resizeTimeout = null;
+        
+        mainWindow.on('focus', () => {
+            // Maintain always-on-top
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.setAlwaysOnTop(true, isLocked ? 'screen-saver' : 'normal');
+            }
+            
+            // Resize trick to fix Windows transparency bug
+            if (resizeTimeout) clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                const [width, height] = mainWindow.getSize();
+                mainWindow.setSize(width + 1, height);
+                setTimeout(() => mainWindow.setSize(width, height), 10);
+            }, 50);
+        });
+        
+        mainWindow.on('blur', () => {
+            if (resizeTimeout) clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                const [width, height] = mainWindow.getSize();
+                mainWindow.setSize(width - 1, height);
+                setTimeout(() => mainWindow.setSize(width, height), 10);
+            }, 50);
+        });
+
+        // Handle opening external links
+        mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+            shell.openExternal(url);
+            return { action: 'deny' };
+        });
+
         serverProcess.stderr.on('data', (data) => {
             logToFile('server stderr: ' + data);
         });
         serverProcess.on('close', (code) => {
             logToFile('server process exited with code ' + code);
-        });
-
-
-        // Maintain always-on-top on focus
-        mainWindow.on('focus', () => {
-            if (mainWindow && !mainWindow.isDestroyed()) {
-                mainWindow.setAlwaysOnTop(true, isLocked ? 'screen-saver' : 'normal');
-            }
         });
 
         mainWindow.on('closed', () => {
