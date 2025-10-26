@@ -88,10 +88,12 @@ logToFile('==== ELECTRON START ====');
         logToFile('Available port found: ' + server_port);
 
         mainWindow = new BrowserWindow({
-            width: 500,
-            height: 450,
-            minWidth: 420,
-            minHeight: 400,
+            width: 600,
+            height: 300,
+            minWidth: 400,
+            minHeight: 200,
+            maxWidth: 1600,
+            maxHeight: 1400,
             transparent: true,
             frame: false,
             alwaysOnTop: true,

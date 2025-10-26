@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.96.1] - 2025-10-26 🔧 HOTFIX - Accurate Window Sizing
+
+### Fixed
+- **CRITICAL:** Window sizing now matches ACTUAL visible content precisely
+  - Using `getBoundingClientRect()` for exact measurements
+  - Reduced padding from 40px to 10px (minimal safety margin)
+  - Debounce reduced from 50ms to 10ms (faster response)
+  - Uses `requestAnimationFrame` for immediate DOM-ready resizing
+  - Initial window size: 600x300 (smaller, will grow to content)
+
+### Changed
+- Window measurement: `container.scrollHeight` → `container.getBoundingClientRect().height`
+- Padding: 40px → 10px
+- Debounce: 50ms → 10ms  
+- Resize trigger: After DOM paint completes
+- Min constraints: 400x200 (allows smaller windows)
+
+### Technical
+- Force layout calculation before measurement
+- Double requestAnimationFrame ensures DOM is painted
+- Resize on ANY size difference (not just >20px)
+- Faster response time for dynamic content
+
+---
+
 ## [2.96.0] - 2025-10-26 🚀 PHASE 3 & 4 - Overlay Perfection
 
 ### **Inspired by bpsr-logs Professional Overlay**

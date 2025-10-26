@@ -714,8 +714,10 @@ function renderPlayers() {
                 <div style="margin-top:5px;font-size:11px;color:#6b7280;">Server port: ${window.location.port || '8989'}</div>
             </div>
         `;
-        // CRITICAL: Resize window to fit empty state
-        setTimeout(() => autoResizeWindow(), 100);
+        // CRITICAL: Resize IMMEDIATELY after DOM updates
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => autoResizeWindow());
+        });
         return;
     }
     
@@ -810,8 +812,10 @@ function renderPlayers() {
         }
     });
     
-    // Auto-resize to fit player count (with debouncing to prevent loops)
-    setTimeout(() => autoResizeWindow(), 100);
+    // Auto-resize IMMEDIATELY after render completes
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => autoResizeWindow());
+    });
 }
 
 // Debounce timer for resize operations
@@ -832,46 +836,45 @@ async function autoResizeWindow() {
         return;
     }
 
-    // Prevent resize spam - minimum 150ms between resizes
-    const now = Date.now();
-    if (now - lastResizeTime < 150 && resizeDebounceTimer) {
-        return;
-    }
-
     // Clear any pending resize
     if (resizeDebounceTimer) {
         clearTimeout(resizeDebounceTimer);
     }
 
-    // Debounce resize to prevent rapid calls during user interaction
+    // Minimal debounce for responsiveness
     resizeDebounceTimer = setTimeout(async () => {
-        // MEASURE actual content dimensions
-        const actualHeight = container.scrollHeight;
-        const actualWidth = container.scrollWidth;
+        // Force browser to calculate actual layout
+        container.getBoundingClientRect();
         
-        // FIX: Match window to ACTUAL content size, not hardcoded minimums
-        // Add small padding for scrollbars and safety
-        const targetHeight = Math.max(400, Math.min(actualHeight + 40, 1400));
-        const targetWidth = Math.max(420, Math.min(actualWidth + 40, 1600)); // Removed hardcoded 1000px minimum
+        // Get the EXACT rendered size of visible content
+        const rect = container.getBoundingClientRect();
+        const actualHeight = Math.ceil(rect.height);
+        const actualWidth = Math.ceil(rect.width);
+        
+        // Add minimal padding (just 10px for safety, no excessive margins)
+        const targetHeight = actualHeight + 10;
+        const targetWidth = actualWidth + 10;
+        
+        // Apply minimum constraints
+        const finalHeight = Math.max(200, Math.min(targetHeight, 1400));
+        const finalWidth = Math.max(400, Math.min(targetWidth, 1600));
 
-        // Only resize if difference is significant
+        // Resize immediately if ANY difference
         const currentHeight = window.innerHeight;
         const currentWidth = window.innerWidth;
-        const heightDiff = Math.abs(targetHeight - currentHeight);
-        const widthDiff = Math.abs(targetWidth - currentWidth);
         
-        if (heightDiff > 20 || widthDiff > 20) {
+        if (finalHeight !== currentHeight || finalWidth !== currentWidth) {
             isResizing = true;
             lastResizeTime = Date.now();
             
-            window.electronAPI.resizeWindow(targetWidth, targetHeight);
-            console.log(`📏 Resized window: ${currentWidth}x${currentHeight} → ${targetWidth}x${targetHeight} (content: ${actualWidth}x${actualHeight})`);
+            window.electronAPI.resizeWindow(finalWidth, finalHeight);
+            console.log(`📏 Precise resize: ${currentWidth}x${currentHeight} → ${finalWidth}x${finalHeight} (content: ${actualWidth}x${actualHeight})`);
             
             setTimeout(() => {
                 isResizing = false;
-            }, 150);
+            }, 50);
         }
-    }, 50);
+    }, 10); // Fast response
 }
 
 function filterPlayers(players) {
