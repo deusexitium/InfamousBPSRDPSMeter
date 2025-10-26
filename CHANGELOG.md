@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.99.4] - 2025-10-26 🔥 CRITICAL - Electron Cache Fix + Opacity Slider
+
+### 🚨 CRITICAL: Electron Cache Clearing
+**Problem:** User installed v2.99.3 but browser loaded v2.99.2 (old cached code!)
+```
+main.js?v=2.99.2:1984 🚀 Infamous BPSR Meter v2.99.1 - Initializing...
+main.js?v=2.99.2:564  Uncaught ReferenceError: totalHealing is not defined
+```
+
+**Root Cause:** Electron caches web content, cache-busting query param not enough!
+
+**Fixed:**
+```javascript
+// electron-main.js
+mainWindow = new BrowserWindow({
+    webPreferences: {
+        cache: false // Disable cache!
+    }
+});
+
+// Force clear cache on startup
+mainWindow.webContents.session.clearCache();
+```
+
+**Result:** Fresh JavaScript EVERY time app starts!
+
+### 🎚️ Opacity Slider in Settings
+**Problem:** User wanted slider to adjust opacity, not just button cycling
+
+**Before:** Droplet button cycled through 4 values (100%, 90%, 80%, 70%)
+
+**After:** Settings modal has slider!
+- Range: 30% to 100% (0.3 to 1.0)
+- Step: 5% increments
+- Real-time preview while dragging
+- Saved to settings
+
+**Location:** Settings → Overlay tab → "Window Opacity" slider
+
+---
+
 ## [2.99.3] - 2025-10-26 🎯 CRITICAL - Versions + Compact Mode + Footer DPS
 
 ### 🔧 CRITICAL: Fixed ALL Version Number Inconsistencies

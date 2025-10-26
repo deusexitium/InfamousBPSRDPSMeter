@@ -100,14 +100,28 @@ IMPORTANT-READ*.md
 TODO*.md
 NOTES*.md
 deploy-to-github.sh
+ELECTRON-OPTIMIZATION-PLAN.md
+UPGRADE-NODE-GUIDE.md
+QUICK-START*.md
+COMPACT-MODE-FIX.md
+COMPACT_MODE*.md
+CRITICAL-BUG-FIX.md
+FIXES_APPLIED.md
+OVERLAY-IMPLEMENTATION-PLAN.md
+QUICK_TEST.md
+UID_FIX.md
+PORTADA*.jpg
+PORTADA*.png
 
 # Old versions - KEEP ONLY MAIN FILES
 CHANGELOG-v*.md
 RELEASE-NOTES-v*.md
+RELEASE_NOTES*.md
 VPN-SUPPORT.md
 VPN-COMPATIBILITY.md
 BUILD-FROM-WSL.md
 BUILD-SCRIPTS.md
+BUILD_SUMMARY.md
 HOW-TO-BUILD.md
 MSI-INSTALLER*.md
 QUICK-*.md
@@ -168,4 +182,14 @@ id_ed25519*
 # Misc
 .npmrc
 server - copia*.js
-diccionario - copia.json
+diccionario*.json
+pnpm-workspace.yaml
+*.code-workspace
+
+# Old/duplicate folders
+algo/
+sampleproto/
+
+# Development python scripts
+convert_skills*.py
+translate_skills*.py

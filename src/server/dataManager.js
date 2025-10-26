@@ -390,7 +390,7 @@ class UserData {
             const luckyCount = stat.count.lucky;
             const critRate = stat.count.total > 0 ? critCount / stat.count.total : 0;
             const luckyRate = stat.count.total > 0 ? luckyCount / stat.count.total : 0;
-            const name = skillConfig[skillId % 1000000000] ?? skillId % 1000000000;
+            const name = skillNames.skill_names?.[skillId % 1000000000] ?? skillId % 1000000000;
             const elementype = stat.element;
 
             skills[skillId] = {
