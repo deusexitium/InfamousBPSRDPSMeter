@@ -66,7 +66,7 @@ echo ""
 
 echo "[5/5] Copying installer..."
 # Find installer dynamically (version-independent)
-INSTALLER=$(find "$WIN_TEMP/dist_electron" -name "Infamous BPSR DPS Meter Setup *.exe" -type f | head -n 1)
+INSTALLER=$(find "$WIN_TEMP/dist_electron" -name "Infamous BPSR DPS Meter-Setup-*.exe" -type f | head -n 1)
 if [ -f "$INSTALLER" ]; then
     BASENAME=$(basename "$INSTALLER")
     
@@ -82,25 +82,10 @@ if [ -f "$INSTALLER" ]; then
         echo "⚠ Warning: F:/DPS directory not found, skipping"
     fi
     
-    # Get file size
-    SIZE=$(ls -lh "/development/$BASENAME" | awk '{print $5}')
-    echo ""
-    echo "========================================================"
-    echo " BUILD SUCCESSFUL!"
-    echo "========================================================"
-    echo ""
-    echo "Installer: /development/$BASENAME"
-    echo "Also at: F:/DPS/$BASENAME"
-    echo "Size: $SIZE"
-    echo ""
-    
-    # Auto-cleanup
-    echo "Cleaning up temporary files..."
-    rm -rf "$WIN_TEMP"
-    echo "✓ Cleanup complete"
 else
-    echo "[ERROR] Installer not found at expected location"
-    echo "Check: $WIN_TEMP/dist_electron/"
+    echo "[ERROR] Installer not found at: $DIST_DIR"
+    echo "Available files:"
+    ls -la "$DIST_DIR" 2>/dev/null || echo "  Directory not found"
     exit 1
 fi
 
