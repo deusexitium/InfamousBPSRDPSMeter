@@ -1,19 +1,16 @@
-const fs = require('fs');
-const fsPromises = require('fs/promises');
-const path = require('path');
-const readline = require('readline');
 const winston = require('winston');
+const readline = require('readline');
+const path = require('path');
+const fsPromises = require('fs').promises;
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const zlib = require('zlib');
 
-const Sniffer = require('./src/server/sniffer');
-const PacketProcessor = require('./src/server/packetProcessor');
-const UserDataManager = require('./src/server/dataManager');
-const { setupRoutes } = require('./src/server/routes');
-const { setupWebSocket } = require('./src/server/websocket');
-const { createLogger } = require('./src/server/logger');
+const { UserDataManager } = require(path.join(__dirname, 'src', 'server', 'dataManager'));
+const Sniffer = require(path.join(__dirname, 'src', 'server', 'sniffer'));
+const initializeApi = require(path.join(__dirname, 'src', 'server', 'api'));
+const PacketProcessor = require(path.join(__dirname, 'algo', 'packet'));
 
 // Read version from package.json
 const packageJson = require('./package.json');

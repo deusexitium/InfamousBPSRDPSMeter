@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.95.26] - 2025-10-26
+
+### Fixed
+- **CRITICAL:** Version number now reads from package.json instead of hardcoded value
+- **CRITICAL:** Skill translations no longer initialize in constructor (was causing multiple loads)
+- Skill translations now only initialize once in `initialize()` method
+- Version number will auto-update with each build
+
+### Changed
+- `server.js` now uses `require('./package.json').version`
+- Removed duplicate skill translation initialization from constructor
+
+---
+
 ## [2.95.25] - 2025-10-26
 
 ### Added
