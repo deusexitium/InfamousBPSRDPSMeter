@@ -1991,7 +1991,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v2.99.4 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v2.99.5 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2061,7 +2061,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR Meter v2.99.4 - Ready!');
+    console.log('✅ Infamous BPSR Meter v2.99.5 - Ready!');
 }
 
 // ============================================================================

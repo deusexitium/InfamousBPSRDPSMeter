@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.99.5] - 2025-10-26 🐛 CRITICAL CRASH FIX - Window Close Bug
+
+### 🚨 CRITICAL: Fixed Crash on Window Close
+**Problem:** App crashed with JavaScript error when closing:
+```
+TypeError: Cannot read properties of null (reading 'setSize')
+  at Timeout._onTimeout (electron-main.js:245:45)
+```
+
+**Root Cause:** Windows transparency bug "resize trick" continued firing after window destroyed
+- Timeouts scheduled by focus/blur events
+- Window closed but timeouts still pending
+- Tried to call `setSize()` on null/destroyed window
+
+**Fixed:**
+```javascript
+// Before (CRASHED):
+resizeTimeout = setTimeout(() => {
+    const [width, height] = mainWindow.getSize();  // CRASH if window destroyed!
+    mainWindow.setSize(width + 1, height);
+}, 50);
+
+// After (SAFE):
+resizeTimeout = setTimeout(() => {
+    // CRITICAL: Check if window still exists
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    
+    const [width, height] = mainWindow.getSize();
+    mainWindow.setSize(width + 1, height);
+    setTimeout(() => {
+        if (!mainWindow || mainWindow.isDestroyed()) return;  // Double-check!
+        mainWindow.setSize(width, height);
+    }, 10);
+}, 50);
+```
+
+**Also Fixed:**
+- Added null checks in `blur` event handler
+- Clear all pending timeouts on `window-all-closed`
+- Prevents race conditions during shutdown
+
+**Result:** App closes cleanly without JavaScript errors! 🎯
+
+---
+
 ## [2.99.4] - 2025-10-26 🔥 CRITICAL - Electron Cache Fix + Opacity Slider
 
 ### 🚨 CRITICAL: Electron Cache Clearing
