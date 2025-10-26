@@ -361,8 +361,11 @@ function getHPColor(percent) {
 async function fetchPlayerData() {
     // Don't fetch new data when paused - maintain frozen state
     if (isPaused) {
+        console.log('⏸️ Data fetch skipped - paused');
         return Array.from(STATE.players.values());
     }
+    
+    console.log('📡 Fetching player data from API...');
     
     try {
         const res = await fetch(CONFIG.apiData);
@@ -855,9 +858,9 @@ async function autoResizeWindow() {
         const targetHeight = actualHeight + 10;
         const targetWidth = actualWidth + 10;
         
-        // Apply minimum constraints
-        const finalHeight = Math.max(200, Math.min(targetHeight, 1400));
-        const finalWidth = Math.max(400, Math.min(targetWidth, 1600));
+        // Apply minimum constraints - MUST be wide enough to show all buttons!
+        const finalHeight = Math.max(250, Math.min(targetHeight, 1200));
+        const finalWidth = Math.max(800, Math.min(targetWidth, 1600));
 
         // Resize immediately if ANY difference
         const currentHeight = window.innerHeight;

@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.96.3] - 2025-10-26 🔧 HOTFIX 3 - Fix Too Narrow Width
+
+### Fixed
+- **CRITICAL:** Window was TOO NARROW - right side buttons cut off
+- Initial width: 450px → 900px (show full UI)
+- Min width: 350px → 800px (ensure all buttons visible)
+- Min height: 150px → 250px
+- Max width restored: 1400px → 1600px
+
+### The Real Problem
+- Previous versions made window too narrow
+- Header buttons (settings, lock, pin, etc) were cut off on right side
+- User couldn't see or click critical UI controls
+- Window needs minimum 800px width to show complete interface
+
+---
+
+## [2.96.2] - 2025-10-26 🔧 HOTFIX 2 - Width & Responsiveness
+
+### Fixed
+- **Width too wide:** Initial width 600→450px, min 400→350px
+- **Window constraints:** max 1600→1400px, min height 200→150px
+- **Width calculation:** Allow narrower windows (350px minimum)
+- **Added debug logging:** Track data fetching for troubleshooting
+- **UI responsiveness:** Ensure buttons visible at smaller widths
+
+### Changed
+- Initial window: 600x300 → 450x250
+- Min width: 400px → 350px
+- Max width: 1600px → 1400px
+- Min height: 200px → 150px
+- Width constraint in auto-resize: 400px → 350px minimum
+
+---
+
 ## [2.96.1] - 2025-10-26 🔧 HOTFIX - Accurate Window Sizing
 
 ### Fixed
