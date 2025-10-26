@@ -153,7 +153,7 @@ const SETTINGS = {
                 const savedSettings = JSON.parse(saved);
                 if (savedSettings.version < CONFIG_VERSION) {
                     // Perform migration if version is outdated
-                    console.log('Migrating settings to version', CONFIG_VERSION);
+                    // Migrating settings...
                     // Add migration logic here if needed
                 }
                 // Merge top-level settings
@@ -165,7 +165,7 @@ const SETTINGS = {
                         this[key] = savedSettings[key];
                     }
                 });
-                console.log('✅ Loaded settings:', { refreshInterval: this.refreshInterval, columns: this.columns });
+                // Settings loaded
             }
         } catch (e) {
             console.error('Failed to load settings:', e);
@@ -176,7 +176,7 @@ const SETTINGS = {
         try {
             const { load, save, ...settings } = this;
             localStorage.setItem('bpsr-settings', JSON.stringify(settings));
-            console.log('💾 Saved settings:', { refreshInterval: settings.refreshInterval, columns: settings.columns });
+            // Settings saved
         } catch (e) {
             console.error('Failed to save settings:', e);
         }
@@ -196,9 +196,9 @@ const PLAYER_DB = {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 this.data = new Map(Object.entries(parsed));
-                console.log(`✅ Loaded ${this.data.size} players from database:`, Object.fromEntries(this.data));
+                // Loaded ${this.data.size} players from database
             } else {
-                console.log('⚠️ No player database found in localStorage');
+                // No player database found
             }
         } catch (e) {
             console.error('Failed to load player database:', e);
@@ -207,13 +207,13 @@ const PLAYER_DB = {
     
     save() {
         if (!SETTINGS.rememberNames) {
-            console.log('⚠️ Not saving player DB - rememberNames is disabled');
+            // Not saving player DB - disabled
             return;
         }
         try {
             const obj = Object.fromEntries(this.data);
             localStorage.setItem('bpsr-player-db', JSON.stringify(obj));
-            console.log(`💾 Saved ${this.data.size} players to database`);
+            // Saved ${this.data.size} players
         } catch (e) {
             console.error('❌ Failed to save player database:', e);
         }
@@ -226,7 +226,7 @@ const PLAYER_DB = {
         if (existing !== name) {
             this.data.set(key, name);
             this.save();
-            console.log(`✅ Added/Updated player in DB: ${name} (${uid})`);
+            // Added/Updated player in DB
         }
     },
     
@@ -365,7 +365,7 @@ async function fetchPlayerData() {
         return Array.from(STATE.players.values());
     }
     
-    console.log('📡 Fetching player data from API...');
+    // Fetching player data... (reduced logging for performance)
     
     try {
         const res = await fetch(CONFIG.apiData);
@@ -379,7 +379,7 @@ async function fetchPlayerData() {
         // Check if backend detected zone change
         if (payload.zoneChanged && !STATE.zoneChanged) {
             STATE.zoneChanged = true;
-            console.log('Zone change detected by backend');
+            // Zone change detected
         }
         
         // Detect combat start (new data appearing)
@@ -388,7 +388,7 @@ async function fetchPlayerData() {
         
         // Smart clear: If zone changed and now entering combat, clear old data
         if (hasActivePlayers && !STATE.inCombat && STATE.zoneChanged && SETTINGS.autoClearOnZoneChange) {
-            console.log('Zone changed and entering combat - clearing old data');
+            // Clearing old data for new zone
             STATE.players.clear();
             STATE.startTime = null;
             STATE.zoneChanged = false;
@@ -403,13 +403,13 @@ async function fetchPlayerData() {
         if (!STATE.startTime && hasActivePlayers) {
             STATE.startTime = Date.now();
             startDurationCounter();
-            console.log('⏱️ Combat timer started from 0');
+            // Combat timer started
         }
         
         // Stop timer when combat ends (no active players)
         if (wasInCombat && !hasActivePlayers && STATE.startTime) {
             stopDurationCounter();
-            console.log('⏱️ Combat timer stopped');
+            // Combat timer stopped
         }
         
         // Merge player data (preserve accumulated stats)
@@ -421,7 +421,7 @@ async function fetchPlayerData() {
                 // CRITICAL: Detect and set local player UID
                 if (player.isLocalPlayer && STATE.localPlayerUid !== uid) {
                     STATE.localPlayerUid = uid;
-                    console.log(`✅ Local player detected: ${player.name || uid} (UID: ${uid})`);
+                    // Local player detected
                 }
                 
                 if (existing) {
@@ -714,7 +714,7 @@ function renderPlayers() {
         console.error('❌ player-list element not found!');
         return;
     }
-    console.log(`📊 STATE.players.size = ${STATE.players.size}`);
+    // Players: ${STATE.players.size} (reduced logging)
     
     if (sorted.length === 0) {
         // Check if server is responsive
@@ -809,14 +809,14 @@ function renderPlayers() {
     document.querySelectorAll('.player-row').forEach(row => {
         row.style.cursor = 'pointer';
         row.addEventListener('click', (e) => {
-            console.log('✅ Player row clicked:', row.dataset.uid);
+            // Player row clicked (reduced logging)
             // Don't toggle if clicking on a button or link
             if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('button')) {
-                console.log('⚠️ Clicked on button/link, ignoring');
+                // Clicked on button, ignoring
                 return;
             }
             const uid = parseInt(row.dataset.uid);
-            console.log('🔄 Calling togglePlayerDetails for UID:', uid);
+            // Toggle player details
             togglePlayerDetails(uid, e);
         });
     });
@@ -1090,7 +1090,7 @@ function copyToClipboard() {
     
     try {
         document.execCommand('copy');
-        console.log('✅ Copied to clipboard!');
+        // Copied to clipboard
         // Show a temporary notification instead of alert
         showNotification('Copied to clipboard!');
     } catch (err) {
@@ -1203,7 +1203,7 @@ async function copyPlayerToClipboard(uid, includeSkills = false) {
     
     try {
         document.execCommand('copy');
-        console.log('✅ Copied player data to clipboard!');
+        // Copied player data
         showNotification(`Copied ${name}'s stats${includeSkills ? ' with skills' : ''}!`);
     } catch (err) {
         console.error('Failed to copy:', err);
@@ -1419,12 +1419,12 @@ function stopAutoRefresh() {
 // ============================================================================
 
 function setupEventListeners() {
-    console.log('🔧 Setting up event listeners...');
+    // Setting up event listeners...
     
     // Filter tabs
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', () => {
-            console.log('📑 Tab clicked:', tab.dataset.filter);
+            // Tab changed (reduced logging)
             STATE.currentFilter = tab.dataset.filter;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
@@ -1434,12 +1434,12 @@ function setupEventListeners() {
     
     // Header buttons - with explicit event handling
     const settingsBtn = document.getElementById('btn-settings');
-    console.log('🔍 Settings button found:', settingsBtn ? 'YES' : 'NO');
+    // Settings button found
     if (settingsBtn) {
         settingsBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('⚙️ Settings button clicked!');
+            // Settings modal opening...
             
             // Load current settings
             document.getElementById('setting-highlight').checked = SETTINGS.highlightLocal;
@@ -1755,10 +1755,16 @@ function setupEventListeners() {
     
     // Save settings
     document.getElementById('save-settings').addEventListener('click', () => {
-        SETTINGS.highlightLocal = document.getElementById('setting-highlight-local').checked;
-        SETTINGS.showGS = document.getElementById('setting-show-gs').checked;
-        const refreshVal = document.getElementById('setting-refresh-interval').value;
-        SETTINGS.refreshInterval = parseFloat(refreshVal) || 0.5;
+        // General settings
+        SETTINGS.highlightLocal = document.getElementById('setting-highlight').checked;
+        SETTINGS.rememberNames = document.getElementById('setting-remember-names').checked;
+        SETTINGS.autoClearOnZoneChange = document.getElementById('setting-auto-clear-zone').checked;
+        SETTINGS.keepDataAfterDungeon = document.getElementById('setting-keep-after-dungeon').checked;
+        const refreshVal = document.getElementById('setting-refresh').value;
+        SETTINGS.refreshInterval = parseFloat(refreshVal) || 1.5;
+        
+        // Overlay settings (from "Overlay" tab)
+        SETTINGS.showGS = document.getElementById('setting-show-gs')?.checked ?? true;
         
         // PHASE 3: Opacity control
         const opacityVal = document.getElementById('setting-overlay-opacity')?.value;
@@ -1957,7 +1963,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v2.95.15 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v2.99.1 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -1974,7 +1980,6 @@ async function initialize() {
         if (btn) {
             btn.title = 'Exit Overlay Mode (Full View)';
         }
-        console.log('✅ Overlay mode restored from settings');
     }
     
     // Sync pause state from backend - CRITICAL: Ensure data flows
@@ -2028,7 +2033,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR Meter v2.96.4 - Ready!');
+    console.log('✅ Infamous BPSR Meter v2.99.1 - Ready!');
 }
 
 // ============================================================================

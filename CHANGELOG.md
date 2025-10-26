@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.99.2] - 2025-10-26 🧹 CLEANUP - Logging + Settings
+
+### 📊 Performance: Logging Cleanup
+**Problem:** Console spammed with logs, hurting performance
+- Every 1.5s: "📡 Fetching player data from API..."
+- Every render: "📊 STATE.players.size = 15"
+- Every click: "✅ Player row clicked"
+- Many more!
+
+**Fixed:**
+- Removed 20+ excessive console.log statements
+- Keep only: Init, Ready, Errors, Warnings
+- Performance logs every 10s (was every action)
+
+**Result:** Cleaner console, better performance!
+
+### ⚙️ Settings Modal Fixed
+**Problem:** Settings not saving - ID mismatch
+- HTML: `setting-highlight` → JS looked for: `setting-highlight-local`
+- HTML: `setting-refresh` → JS looked for: `setting-refresh-interval`
+
+**Fixed:**
+- Corrected all element IDs
+- Settings now save properly
+- Added all general settings (remember names, auto-clear, etc.)
+
+**Test Settings:**
+1. Click gear icon
+2. Change settings
+3. Click "Save Settings"
+4. Should see "Settings saved successfully" toast ✅
+
+---
+
 ## [2.99.1] - 2025-10-26 🐛 HOTFIX - Click-Through Trap + Borders
 
 ### 🚨 Critical Fixes
