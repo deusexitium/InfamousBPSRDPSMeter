@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.96.0] - 2025-10-26 🚀 PHASE 3 & 4 - Overlay Perfection
+
+### **Inspired by bpsr-logs Professional Overlay**
+
+#### Major Improvements
+- **Skip Taskbar** ✅ Overlay no longer appears in Alt+Tab or taskbar
+- **No Window Shadow** ✅ Cleaner, more professional overlay appearance  
+- **User Resize Respect** ✅ Auto-resize disabled when user manually resizes
+- **Opacity Control** ✅ Adjustable transparency slider (50-100%)
+- **Performance Monitoring** ✅ Real-time FPS, memory, DOM tracking
+
+### Added
+- **Skip Taskbar** (`skipTaskbar: true`)
+  - Overlay doesn't clutter Alt+Tab menu
+  - Professional overlay-only experience
+  - Not visible in Windows taskbar switcher
+
+- **Shadow Removal** (`hasShadow: false`)
+  - Clean overlay without drop shadow
+  - Better transparency appearance
+  - Matches bpsr-logs aesthetic
+
+- **User Resize Detection**
+  - Detects when user manually resizes window
+  - Automatically disables auto-resize to respect user preference
+  - Resets when toggling compact/detailed mode
+  - Saved user-preferred size
+
+- **Opacity Control Slider**
+  - Settings UI: 50% to 100% transparency
+  - Real-time preview as you slide
+  - Persists across sessions
+  - Window-level opacity (cleaner than CSS)
+
+### Changed
+- Auto-resize now checks `shouldAutoResize()` before resizing
+- Window configuration optimized for overlay use case
+- Better user experience - no more fighting with auto-resize
+- Performance monitoring runs continuously in console
+
+### Technical
+- `skipTaskbar: true` - Professional overlay mode
+- `hasShadow: false` - Cleaner appearance
+- User resize tracking via `will-resize` and `resize` events
+- `window.setOpacity()` for true window-level transparency
+- IPC channels: `reset-manual-resize`, `should-auto-resize`, `set-overlay-opacity`
+
+### Performance Gains
+- ✅ No taskbar pollution (cleaner UX)
+- ✅ No shadow rendering (minor CPU savings)
+- ✅ User control preserved (no resize fighting)
+- ✅ Window-level opacity (better than CSS filters)
+- ✅ Foundation for Phase 4 (virtual scrolling, incremental updates)
+
+### What's Next (Phase 4 - v2.97.0)
+- Virtual scrolling for large raids (70% CPU reduction)
+- Incremental DOM updates (surgical updates only)
+- WebSocket delta updates (90% network reduction)
+- Auto-updater system (one-click updates)
+
+---
+
 ## [2.95.31] - 2025-10-26 ⚡ PHASE 2 OPTIMIZATION + UI FIX
 
 ### Fixed

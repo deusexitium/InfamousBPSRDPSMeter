@@ -133,6 +133,7 @@ const SETTINGS = {
     rememberNames: true,
     autoClearOnZoneChange: true, // Clear data when entering combat after zone change
     keepDataAfterDungeon: true, // Don't clear immediately on zone exit
+    overlayOpacity: 0.95, // PHASE 3: Overlay transparency (0.0-1.0)
     
     // Column visibility for overlay mode
     columns: {
@@ -818,11 +819,18 @@ let resizeDebounceTimer = null;
 let isResizing = false;
 let lastResizeTime = 0;
 
-function autoResizeWindow() {
+async function autoResizeWindow() {
     if (!window.electronAPI?.resizeWindow) return;
 
     const container = document.querySelector('.meter-container');
     if (!container) return;
+
+    // PHASE 3: Check if user has manually resized - don't fight them!
+    const shouldResize = await window.electronAPI.shouldAutoResize();
+    if (!shouldResize) {
+        console.log('⏸️ Auto-resize disabled - user has manually resized');
+        return;
+    }
 
     // Prevent resize spam - minimum 150ms between resizes
     const now = Date.now();
@@ -836,7 +844,7 @@ function autoResizeWindow() {
     }
 
     // Debounce resize to prevent rapid calls during user interaction
-    resizeDebounceTimer = setTimeout(() => {
+    resizeDebounceTimer = setTimeout(async () => {
         // MEASURE actual content dimensions
         const actualHeight = container.scrollHeight;
         const actualWidth = container.scrollWidth;
@@ -1454,13 +1462,20 @@ function setupEventListeners() {
     });
     
     // View mode toggle
-    document.getElementById('btn-view-mode')?.addEventListener('click', () => {
+    const compactBtn = document.getElementById('btn-compact');
+    compactBtn.addEventListener('click', () => {
         STATE.viewMode = STATE.viewMode === 'compact' ? 'detailed' : 'compact';
-        const btn = document.getElementById('btn-view-mode');
+        const btn = document.getElementById('btn-compact');
         if (btn) {
             btn.title = STATE.viewMode === 'compact' ? 'Switch to Detailed View' : 'Switch to Compact View';
             btn.querySelector('i').className = STATE.viewMode === 'compact' ? 'fa-solid fa-list' : 'fa-solid fa-table-columns';
         }
+        
+        // PHASE 3: Reset manual resize when toggling modes
+        if (window.electronAPI?.resetManualResize) {
+            window.electronAPI.resetManualResize();
+        }
+        
         renderPlayers();
         showNotification(`${STATE.viewMode.charAt(0).toUpperCase() + STATE.viewMode.slice(1)} view enabled`);
     });
@@ -1650,14 +1665,21 @@ function setupEventListeners() {
     });
     
     // Save settings
-    document.getElementById('save-settings')?.addEventListener('click', () => {
-        SETTINGS.highlightLocal = document.getElementById('setting-highlight').checked;
-        SETTINGS.refreshInterval = parseFloat(document.getElementById('setting-refresh').value) || 0.5;
-        SETTINGS.rememberNames = document.getElementById('setting-remember-names').checked;
-        SETTINGS.autoClearOnZoneChange = document.getElementById('setting-auto-clear-zone').checked;
-        SETTINGS.keepDataAfterDungeon = document.getElementById('setting-keep-after-dungeon').checked;
+    document.getElementById('save-settings').addEventListener('click', () => {
+        SETTINGS.highlightLocal = document.getElementById('setting-highlight-local').checked;
+        SETTINGS.showGS = document.getElementById('setting-show-gs').checked;
+        const refreshVal = document.getElementById('setting-refresh-interval').value;
+        SETTINGS.refreshInterval = parseFloat(refreshVal) || 0.5;
         
-        // Column visibility settings
+        // PHASE 3: Opacity control
+        const opacityVal = document.getElementById('setting-overlay-opacity')?.value;
+        if (opacityVal) {
+            SETTINGS.overlayOpacity = parseFloat(opacityVal) || 0.95;
+            if (window.electronAPI?.setOverlayOpacity) {
+                window.electronAPI.setOverlayOpacity(SETTINGS.overlayOpacity);
+            }
+        }
+        
         SETTINGS.columns.dps = document.getElementById('setting-col-dps').checked;
         SETTINGS.columns.maxDps = document.getElementById('setting-col-max-dps').checked;
         SETTINGS.columns.avgDps = document.getElementById('setting-col-avg-dps').checked;
@@ -1668,7 +1690,7 @@ function setupEventListeners() {
         
         SETTINGS.save();
         
-        // Restart refresh
+        // Apply new refresh interval
         stopAutoRefresh();
         startAutoRefresh();
         
@@ -1683,6 +1705,11 @@ function setupEventListeners() {
     });
     
     // REMOVED: Old event delegation handler - now using per-row click handlers in renderPlayers()
+    
+    // PHASE 3: Initialize opacity from settings
+    if (SETTINGS.overlayOpacity && window.electronAPI?.setOverlayOpacity) {
+        window.electronAPI.setOverlayOpacity(SETTINGS.overlayOpacity);
+    }
 }
 
 // ============================================================================

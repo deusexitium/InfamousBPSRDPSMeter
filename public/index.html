@@ -202,11 +202,28 @@
 
                 <!-- Overlay Tab -->
                 <div class="settings-panel" data-panel="overlay">
+                    <h3 style="margin:0 0 15px 0; color:#f3f4f6;">Overlay Settings</h3>
                     <div class="settings-grid">
-                        <label><input type="checkbox" id="setting-clickthrough"> Click-through Mode</label>
+                        <label><input type="checkbox" id="setting-highlight-local" checked> Highlight My Player</label>
+                        <label><input type="checkbox" id="setting-show-gs" checked> Show Gear Score</label>
                     </div>
-                    <div class="settings-inline">
-                        <label>Opacity: <input type="range" id="setting-opacity" min="50" max="100" value="100" step="5" style="width:120px"> <span id="opacity-value">100%</span></label>
+                    
+                    <!-- PHASE 3: Opacity Control -->
+                    <div class="settings-section" style="margin-top:20px;">
+                        <h4 style="margin:0 0 10px 0;color:#9ca3af;font-size:13px;font-weight:600;">TRANSPARENCY</h4>
+                        <div class="settings-slider">
+                            <label style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+                                <span style="color:#d1d5db;min-width:100px;">Overlay Opacity:</span>
+                                <input type="range" id="setting-overlay-opacity" min="0.5" max="1.0" step="0.05" value="0.95" 
+                                       style="flex:1;height:6px;border-radius:3px;outline:none;background:linear-gradient(to right, rgba(59,130,246,0.3) 0%, rgba(59,130,246,0.7) 100%);"
+                                       oninput="document.getElementById('opacity-value').textContent = Math.round(this.value * 100) + '%'">
+                                <span id="opacity-value" style="color:#60a5fa;min-width:40px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;">95%</span>
+                            </label>
+                            <p style="margin:0;font-size:11px;color:#6b7280;line-height:1.4;">
+                                <i class="fa-solid fa-circle-info" style="color:#3b82f6;"></i>
+                                Adjust overlay transparency. Lower = more see-through. User manual resize will be respected!
+                            </p>
+                        </div>
                     </div>
                 </div>
 

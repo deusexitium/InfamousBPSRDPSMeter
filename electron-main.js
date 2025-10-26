@@ -97,6 +97,8 @@ logToFile('==== ELECTRON START ====');
             alwaysOnTop: true,
             resizable: true,
             show: false, // Don't show until ready
+            skipTaskbar: true,  // PHASE 3: Don't show in taskbar/Alt+Tab
+            hasShadow: false,   // PHASE 3: Clean overlay without shadow
             // No backgroundColor - allows full transparency
             webPreferences: {
                 preload: path.join(__dirname, 'preload.js'),
@@ -106,6 +108,35 @@ logToFile('==== ELECTRON START ====');
                 sandbox: true,
             },
             icon: path.join(__dirname, 'icon.ico'),
+        });
+        
+        // PHASE 3: Track user manual resize to prevent auto-resize conflicts
+        let userHasManuallyResized = false;
+        let userPreferredSize = null;
+        
+        mainWindow.on('will-resize', (event, newBounds) => {
+            // User is manually resizing - disable auto-resize
+            userHasManuallyResized = true;
+            logToFile('👤 User manually resized window');
+        });
+        
+        mainWindow.on('resize', () => {
+            if (userHasManuallyResized) {
+                userPreferredSize = mainWindow.getSize();
+                logToFile(`💾 Saved user preferred size: ${userPreferredSize[0]}x${userPreferredSize[1]}`);
+            }
+        });
+        
+        // Reset manual resize flag when toggling compact mode
+        ipcMain.on('reset-manual-resize', () => {
+            userHasManuallyResized = false;
+            userPreferredSize = null;
+            logToFile('🔄 Reset manual resize flag');
+        });
+        
+        // Check if auto-resize should be disabled
+        ipcMain.handle('should-auto-resize', () => {
+            return !userHasManuallyResized;
         });
         
         // Add Content Security Policy
@@ -307,7 +338,18 @@ logToFile('==== ELECTRON START ====');
     // Handle event to resize the window
     ipcMain.on('resize-window', (event, width, height) => {
         if (mainWindow && !mainWindow.isDestroyed()) {
-            mainWindow.setSize(width, height);
+            // Only auto-resize if user hasn't manually resized
+            if (!userHasManuallyResized) {
+                mainWindow.setSize(width, height);
+            }
+        }
+    });
+    
+    // PHASE 3: Set overlay opacity
+    ipcMain.on('set-overlay-opacity', (event, opacity) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.setOpacity(opacity);
+            logToFile(`🎨 Set overlay opacity: ${opacity}`);
         }
     });
 

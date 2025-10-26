@@ -16,6 +16,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     setWindowPosition: (x, y) => ipcRenderer.send('set-window-position', x, y),
     getUserDataPath: () => ipcRenderer.invoke('get-user-data-path'),
     openFolder: (folderPath) => ipcRenderer.send('open-folder', folderPath),
+    // PHASE 3: New overlay control APIs
+    resetManualResize: () => ipcRenderer.send('reset-manual-resize'),
+    shouldAutoResize: () => ipcRenderer.invoke('should-auto-resize'),
+    setOverlayOpacity: (opacity) => ipcRenderer.send('set-overlay-opacity', opacity),
 });
 
 window.addEventListener('DOMContentLoaded', () => {
