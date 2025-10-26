@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.96.4] - 2025-10-26 🔧 HOTFIX 4 - Restore Taskbar Visibility
+
+### Fixed
+- **CRITICAL:** App not showing in taskbar
+  - Changed `skipTaskbar: true` → `skipTaskbar: false`
+  - User needs to see app in taskbar (Alt+Tab)
+  - Was removed in Phase 3 (bpsr-logs inspiration) but users expect it
+
+### Note
+- User reverted to v2.96.3 sizing (900x350, min 800x250)
+- Core functionality preserved from previous working version
+- **skipTaskbar was the ONLY change needed**
+
+---
+
 ## [2.96.3] - 2025-10-26 🔧 HOTFIX 3 - Fix Too Narrow Width
 
 ### Fixed

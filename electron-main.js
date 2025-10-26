@@ -99,8 +99,8 @@ logToFile('==== ELECTRON START ====');
             alwaysOnTop: true,
             resizable: true,
             show: false, // Don't show until ready
-            skipTaskbar: true,  // PHASE 3: Don't show in taskbar/Alt+Tab
-            hasShadow: false,   // PHASE 3: Clean overlay without shadow
+            skipTaskbar: false,  // FIXED: Show in taskbar (user needs to see it)
+            hasShadow: false,   // Clean overlay without shadow
             // No backgroundColor - allows full transparency
             webPreferences: {
                 preload: path.join(__dirname, 'preload.js'),
