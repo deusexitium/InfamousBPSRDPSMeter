@@ -30,6 +30,8 @@ body {
     overflow: hidden; /* Prevent scrollbars causing extra space */
     -webkit-font-smoothing: antialiased;
     box-sizing: border-box; /* Fix layout issues */
+    height: auto !important; /* Don't force viewport height */
+    min-height: auto !important; /* Let content determine height */
     /* Removed pointer-events: none - causes click issues */
 }
 
@@ -439,23 +441,28 @@ body {
     font-size: 12px;
 }
 
-/* Modals */
+/* Modals - MUST be independent of parent window */
 .modal {
     display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
     background: rgba(0, 0, 0, 0.85);
-    z-index: 1000;
+    z-index: 999999 !important;
     align-items: center;
     justify-content: center;
     pointer-events: auto;
+    transform: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .modal.active {
-    display: flex;
+    display: flex !important;
 }
 
 .modal-content {
@@ -469,6 +476,7 @@ body {
     display: flex;
     flex-direction: column;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    margin: auto;
 }
 
 .modal-header {
@@ -1442,6 +1450,8 @@ input[type="range"]::-moz-range-thumb {
 body.compact-mode .meter-container {
     min-width: 400px;
     max-width: 420px;
+    min-height: auto !important; /* Don't force min height in compact mode */
+    height: auto !important; /* Let content determine height */
     background: rgba(26, 29, 41, 0.85) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);

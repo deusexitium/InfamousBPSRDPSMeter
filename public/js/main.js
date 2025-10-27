@@ -1012,25 +1012,25 @@ function autoResizeWindow() {
     resizeDebounceTimer = setTimeout(() => {
         // Use single RAF instead of nested
         resizeRequestId = requestAnimationFrame(() => {
-            // Force browser to calculate actual layout
-            const rect = container.getBoundingClientRect();
-            const actualHeight = Math.ceil(rect.height);
-            const actualWidth = Math.ceil(rect.width);
+            // Force browser to calculate actual layout by using scrollHeight instead of clientHeight
+            // This gets the actual content height, not the viewport height
+            const actualHeight = container.scrollHeight;
+            const actualWidth = container.scrollWidth;
             
             // Different constraints for compact vs full mode
             const isCompact = document.body.classList.contains('compact-mode');
             let targetHeight, targetWidth, finalHeight, finalWidth;
             
             if (isCompact) {
-                // Compact mode: tight fit, minimal padding
-                targetHeight = actualHeight + 5;
-                targetWidth = actualWidth + 5;
-                finalHeight = Math.max(200, Math.min(targetHeight, 600));
-                finalWidth = Math.max(400, Math.min(targetWidth, 450));
+                // Compact mode: use scrollHeight for actual content height, tight fit
+                targetHeight = actualHeight + 10; // Minimal padding
+                targetWidth = actualWidth + 10;
+                finalHeight = Math.max(200, Math.min(targetHeight, 800)); // Increased max from 600 to 800
+                finalWidth = Math.max(420, Math.min(targetWidth, 450)); // Consistent min width
             } else {
                 // Full mode: generous padding
-                targetHeight = actualHeight + 10;
-                targetWidth = actualWidth + 10;
+                targetHeight = actualHeight + 20;
+                targetWidth = actualWidth + 20;
                 finalHeight = Math.max(250, Math.min(targetHeight, 1200));
                 finalWidth = Math.max(800, Math.min(targetWidth, 1600));
             }
