@@ -900,12 +900,12 @@ function renderPlayers() {
     const shouldLimitDisplay = isCompactBody && !isExpandedList;
     
     // Compact mode logic: 
-    // - If local is in top 5: Show top 5 only
-    // - If local is rank 6+: Show top 5 + local (6 total)
-    let displayLimit = shouldLimitDisplay ? 5 : otherPlayers.length;
+    // - If local is in top 5: Show top 5 only (local included in rankings)
+    // - If local is rank 6+: Show top 5 + local at top (6 total)
+    let displayLimit = shouldLimitDisplay ? 5 : sorted.length;
     
-    // Render local player at top ONLY if they're rank 6 or worse
-    const shouldShowLocalSeparately = localPlayer && localPlayerRank > 5;
+    // Render local player at top ONLY if they're rank 6 or worse AND in compact mode
+    const shouldShowLocalSeparately = shouldLimitDisplay && localPlayer && localPlayerRank > 5;
     if (shouldShowLocalSeparately) {
         html += renderPlayerRow(localPlayer, localPlayerRank, maxDmg, true, teamTotalDamage);
         html += '<div class="separator">Rankings</div>';
