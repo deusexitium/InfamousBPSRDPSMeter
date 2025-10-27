@@ -893,6 +893,9 @@ body {
     flex: 1; /* Take available space for dragging */
     min-width: 0; /* Allow shrinking */
     cursor: move;
+    /* Ensure drag priority over other events */
+    z-index: 1;
+    position: relative;
 }
 
 .title-left .logo {
