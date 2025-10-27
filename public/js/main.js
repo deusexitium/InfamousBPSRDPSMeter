@@ -2177,7 +2177,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.19 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.20 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2247,7 +2247,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.19 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.20 - Ready!');
 }
 
 // ============================================================================
@@ -2964,22 +2964,41 @@ async function autoSaveSession(sessionName) {
     try {
         const duration = STATE.startTime ? Math.floor((Date.now() - STATE.startTime) / 1000) : 0;
         
-        const playerArray = Array.from(STATE.players.values()).map(p => ({
-            uid: p.uid,
-            name: p.name || PLAYER_DB.get(p.uid) || 'Unknown',
-            profession: p.profession || 'unknown',
-            total_damage: p.total_damage || { total: 0 },
-            total_healing: p.total_healing || { total: 0 },
-            total_dps: p.total_dps || 0,
-            total_hps: p.total_hps || 0,
-            max_dps: p.max_dps || 0,
-            taken_damage: p.taken_damage || 0,
-            critRate: p.critRate || 0,
-            luckyRate: p.luckyRate || 0,
-            maxDamage: p.maxDamage || 0,
-            g_score: p.g_score || p.gs || 0,
-            isLocalPlayer: p.isLocalPlayer || p.uid === STATE.localPlayerUid
-        }));
+        // Fetch skill data for all players
+        const playerArray = await Promise.all(
+            Array.from(STATE.players.values()).map(async (p) => {
+                let skills = {};
+                try {
+                    const skillRes = await fetch(`${CONFIG.apiSkill}/${p.uid}`);
+                    if (skillRes.ok) {
+                        const skillData = await skillRes.json();
+                        if (skillData && skillData.code === 0) {
+                            skills = skillData.data?.skills || skillData.skills || {};
+                        }
+                    }
+                } catch (error) {
+                    console.warn(`Failed to fetch skills for UID ${p.uid}:`, error);
+                }
+                
+                return {
+                    uid: p.uid,
+                    name: p.name || PLAYER_DB.get(p.uid) || 'Unknown',
+                    profession: p.profession || 'unknown',
+                    total_damage: p.total_damage || { total: 0 },
+                    total_healing: p.total_healing || { total: 0 },
+                    total_dps: p.total_dps || 0,
+                    total_hps: p.total_hps || 0,
+                    max_dps: p.max_dps || 0,
+                    taken_damage: p.taken_damage || 0,
+                    critRate: p.critRate || 0,
+                    luckyRate: p.luckyRate || 0,
+                    maxDamage: p.maxDamage || 0,
+                    g_score: p.g_score || p.gs || 0,
+                    isLocalPlayer: p.isLocalPlayer || p.uid === STATE.localPlayerUid,
+                    skills: skills // Include skills in save
+                };
+            })
+        );
         
         const localPlayer = Array.from(STATE.players.values()).find(p => p.uid === STATE.localPlayerUid);
         const characterName = localPlayer?.name || PLAYER_DB.get(STATE.localPlayerUid) || 'Unknown';
