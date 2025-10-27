@@ -462,9 +462,9 @@ body {
     background: var(--bg-dark);
     border-radius: 8px;
     width: 95%;
-    max-width: 850px; /* Fit within 900px container */
-    max-height: 85vh;
-    overflow-y: auto; /* Allow scrolling */
+    max-width: 1000px; /* Larger modal - it's a popup */
+    max-height: none; /* Remove height limit */
+    overflow-y: visible; /* NO scrollbars */
     display: flex;
     flex-direction: column;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);

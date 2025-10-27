@@ -1672,8 +1672,9 @@ function setupEventListeners() {
             btn.title = compactMode ? 'Exit Overlay Mode (Full View)' : 'Toggle Overlay Mode (In-Game)';
         }
         
-        // Save preference
-        SETTINGS.save('compactMode', compactMode);
+        // Save preference to SETTINGS
+        SETTINGS.compactMode = compactMode;
+        SETTINGS.save();
         
         // Force immediate re-render to update DOM
         renderPlayers();
@@ -2468,7 +2469,9 @@ let isPaused = false;
 async function togglePause() {
     isPaused = !isPaused;
     const btn = document.getElementById('btn-pause');
-    const icon = btn.querySelector('i');
+    const compactBtn = document.getElementById('btn-compact-pause');
+    const icon = btn?.querySelector('i');
+    const compactIcon = compactBtn?.querySelector('i');
     
     try {
         // Tell backend to pause/resume data collection
@@ -2662,8 +2665,13 @@ const opacityValue = document.getElementById('opacity-value');
 
 if (opacitySlider && opacityValue) {
     opacitySlider.addEventListener('input', (e) => {
-        opacityValue.textContent = e.target.value + '%';
-        document.querySelector('.meter-container').style.opacity = e.target.value / 100;
+        const opacity = parseInt(e.target.value);
+        opacityValue.textContent = opacity + '%';
+        document.querySelector('.meter-container').style.opacity = opacity / 100;
+        
+        // Save opacity preference
+        SETTINGS.windowOpacity = opacity;
+        SETTINGS.save();
     });
 }
 
