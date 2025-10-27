@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.99.6] - 2025-10-26 🐛 CRITICAL - Fixed ReferenceError on Startup
+
+### 🚨 CRITICAL: Fixed `activeNonIdlePlayers is not defined` Error
+**Problem:** App crashed on startup with ReferenceError:
+```
+ReferenceError: activeNonIdlePlayers is not defined
+  at updateStatusBar (http://localhost:8989/js/main.js?v=2.99.4:668:29)
+  at renderPlayers (http://localhost:8989/js/main.js?v=2.99.4:688:5)
+```
+
+**Root Cause:** Variable scope issue in renderPlayers()
+```javascript
+// BROKEN ORDER:
+function renderPlayers() {
+    updateStatusBar();  // Called HERE - but activeNonIdlePlayers not defined yet!
+    
+    // ... lots of code ...
+    
+    const activeNonIdlePlayers = sorted.filter(p => !p.isIdle);  // Defined HERE!
+}
+
+function updateStatusBar() {
+    const localPlayer = activeNonIdlePlayers.find(...);  // CRASH! Variable not in scope!
+}
+```
+
+**Fixed:** Pass activeNonIdlePlayers as parameter
+```javascript
+// FIXED:
+function renderPlayers() {
+    // ... filter and sort players first ...
+    
+    const activeNonIdlePlayers = sorted.filter(p => !p.isIdle);
+    
+    // NOW pass it to updateStatusBar
+    updateStatusBar(activeNonIdlePlayers);  // ✅ Works!
+}
+
+function updateStatusBar(activeNonIdlePlayers = []) {  // Parameter with default
+    const localPlayer = activeNonIdlePlayers.find(...);  // ✅ No crash!
+}
+```
+
+**Result:** App initializes without errors! 🎯
+
+---
+
 ## [2.99.5] - 2025-10-26 🐛 CRITICAL CRASH FIX - Window Close Bug
 
 ### 🚨 CRITICAL: Fixed Crash on Window Close
