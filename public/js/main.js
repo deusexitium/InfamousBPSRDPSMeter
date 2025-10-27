@@ -2177,7 +2177,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.23 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.24 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2247,7 +2247,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.23 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.24 - Ready!');
 }
 
 // ============================================================================
@@ -2967,12 +2967,51 @@ window.deleteSession = async function(sessionId) {
     }
 };
 
+// Generate a meaningful session name based on battle data
+function generateSessionName(playerCount, duration) {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    
+    // Classify by player count
+    let groupType = '';
+    if (playerCount === 1) {
+        groupType = 'Solo';
+    } else if (playerCount <= 4) {
+        groupType = `${playerCount}P Party`;
+    } else if (playerCount <= 8) {
+        groupType = `${playerCount}P Raid`;
+    } else {
+        groupType = `${playerCount}P Battle`;
+    }
+    
+    // Classify by duration
+    let durationStr = '';
+    const minutes = Math.floor(duration / 60);
+    const seconds = duration % 60;
+    if (minutes === 0) {
+        durationStr = `${seconds}s`;
+    } else if (minutes < 5) {
+        durationStr = `${minutes}m${seconds}s`;
+    } else {
+        durationStr = `${minutes}min`;
+    }
+    
+    // Format: "8P Raid - 12min [14:30]"
+    return `${groupType} - ${durationStr} [${timeStr}]`;
+}
+
 // Auto-save session silently (for zone changes)
 async function autoSaveSession(sessionName) {
     if (STATE.players.size === 0) return;
     
     try {
         const duration = STATE.startTime ? Math.floor((Date.now() - STATE.startTime) / 1000) : 0;
+        const playerCount = STATE.players.size;
+        
+        // Generate meaningful name if default name is provided
+        if (!sessionName || sessionName.includes('Previous Battle')) {
+            sessionName = generateSessionName(playerCount, duration);
+        }
         
         // Fetch skill data for all players
         const playerArray = await Promise.all(
