@@ -657,8 +657,21 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
 }
 
 function renderPlayerDetails(player) {
+    const prof = getProfession(player.profession, player);
+    const gs = player.g_score || player.gs || 0;
+    
     return `
         <div class="player-details">
+            <div class="details-row">
+                <div class="detail-stat">
+                    <span class="detail-label">Class:</span>
+                    <span class="detail-value">${prof.name} (${prof.role.toUpperCase()})</span>
+                </div>
+                <div class="detail-stat">
+                    <span class="detail-label">Gear Score:</span>
+                    <span class="detail-value">${gs > 0 ? formatNumber(gs) : 'N/A'}</span>
+                </div>
+            </div>
             <div class="details-row">
                 <div class="detail-stat">
                     <span class="detail-label">Crit Rate:</span>
@@ -2224,7 +2237,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v3.1.2 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v3.1.3 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2294,7 +2307,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR Meter v3.1.2 - Ready!');
+    console.log('✅ Infamous BPSR Meter v3.1.3 - Ready!');
 }
 
 // ============================================================================
