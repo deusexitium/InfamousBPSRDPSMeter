@@ -861,28 +861,34 @@ function renderPlayers() {
         `;
     }
     
-    // Render local player at top if exists
-    if (localPlayer) {
-        html += renderPlayerRow(localPlayer, localPlayerRank, maxDmg, true, teamTotalDamage);
-        if (otherPlayers.length > 0) {
-            html += '<div class="separator">Rankings</div>';
-        }
-    }
-    
-    // Display limit for compact mode - ALWAYS top 5 + local unless expanded
+    // Display limit for compact mode
     const isExpandedList = document.getElementById('player-list')?.classList.contains('expanded');
     const isCompactBody = document.body.classList.contains('compact-mode');
     const shouldLimitDisplay = isCompactBody && !isExpandedList;
     
-    // In compact mode: ALWAYS default to top 5 (+ local player already shown at top)
-    // "Show More" button expands to show all players
+    // Compact mode logic: 
+    // - If local is in top 5: Show top 5 only
+    // - If local is rank 6+: Show top 5 + local (6 total)
     let displayLimit = shouldLimitDisplay ? 5 : otherPlayers.length;
     
-    // Render other players
-    otherPlayers.forEach((player, idx) => {
-        // Get actual rank from full sorted list
-        const actualRank = sorted.findIndex(p => p.uid === player.uid) + 1;
-        const rowHtml = renderPlayerRow(player, actualRank, maxDmg, false, teamTotalDamage);
+    // Render local player at top ONLY if they're rank 6 or worse
+    const shouldShowLocalSeparately = localPlayer && localPlayerRank > 5;
+    if (shouldShowLocalSeparately) {
+        html += renderPlayerRow(localPlayer, localPlayerRank, maxDmg, true, teamTotalDamage);
+        html += '<div class="separator">Rankings</div>';
+    }
+    
+    // Render all players (local will be included if in top 5)
+    sorted.forEach((player, idx) => {
+        const rank = idx + 1;
+        const isLocal = player.isLocalPlayer || player.uid === STATE.localPlayerUid;
+        
+        // Skip if we already showed local separately (rank 6+)
+        if (isLocal && shouldShowLocalSeparately) {
+            return;
+        }
+        
+        const rowHtml = renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage);
         
         // Add compact-hidden class if beyond display limit
         if (shouldLimitDisplay && idx >= displayLimit) {
@@ -894,14 +900,18 @@ function renderPlayers() {
     
     // Update Show More button visibility and text
     const expandBtn = document.getElementById('btn-expand-list');
-    if (expandBtn && isCompactBody) {
-        const hasHiddenPlayers = otherPlayers.length > displayLimit;
-        expandBtn.style.display = hasHiddenPlayers ? 'flex' : 'none';
-        
-        const text = expandBtn.querySelector('span');
-        const icon = expandBtn.querySelector('i');
-        if (text) text.textContent = isExpandedList ? 'Show Less' : 'Show More';
-        if (icon) icon.className = isExpandedList ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
+    if (expandBtn) {
+        if (isCompactBody) {
+            const hasHiddenPlayers = sorted.length > displayLimit;
+            expandBtn.style.display = hasHiddenPlayers ? 'flex' : 'none';
+            
+            const text = expandBtn.querySelector('span');
+            const icon = expandBtn.querySelector('i');
+            if (text) text.textContent = isExpandedList ? 'Show Less' : 'Show More';
+            if (icon) icon.className = isExpandedList ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
+        } else {
+            expandBtn.style.display = 'none';
+        }
     }
     
     list.innerHTML = html;
