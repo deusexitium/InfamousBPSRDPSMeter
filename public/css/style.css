@@ -473,6 +473,7 @@ body {
     max-width: 1000px;
     max-height: 90vh;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
@@ -1010,9 +1011,9 @@ body {
 
 /* Settings Modal - Tabbed Interface */
 .modal-large {
-    max-width: 480px;
-    width: 85%;
-    max-height: 70vh;
+    max-width: 580px;
+    width: 90%;
+    max-height: 85vh;
 }
 
 .settings-tabs {
@@ -1050,8 +1051,9 @@ body {
 .settings-panel {
     display: none;
     padding: 12px;
-    max-height: none; /* Remove height limit to prevent scrollbars */
-    overflow-y: visible; /* No scrollbars */
+    max-height: calc(85vh - 150px); /* Account for tabs and buttons */
+    overflow-y: auto; /* Allow scrolling within panel */
+    overflow-x: hidden;
 }
 
 /* Ultra-compact 2-column grid */

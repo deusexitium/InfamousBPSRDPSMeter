@@ -394,17 +394,22 @@ async function fetchPlayerData() {
             payload.data.some(p => (p.total_damage?.total || 0) > 0 || (p.total_healing?.total || 0) > 0);
         
         // CRITICAL FIX: Handle zone change BEFORE updating combat state
-        // Check if backend detected zone change AND we have existing data AND new combat is starting
-        if (payload.zoneChanged && SETTINGS.autoClearOnZoneChange) {
-            // If we have previous combat data and new combat is starting in new zone
-            if (STATE.players.size > 0 && STATE.startTime && hasActivePlayers) {
+        // Two modes:
+        // 1. Keep After Dungeon OFF: Clear immediately on any zone change
+        // 2. Keep After Dungeon ON: Only clear when new combat starts in new zone
+        if (payload.zoneChanged && SETTINGS.autoClearOnZoneChange && STATE.players.size > 0 && STATE.startTime) {
+            const shouldClearNow = !SETTINGS.keepDataAfterDungeon || hasActivePlayers;
+            
+            if (shouldClearNow) {
                 const duration = Math.floor((Date.now() - STATE.startTime) / 1000);
                 if (duration > 10) { // Only save if fight lasted more than 10 seconds
-                    console.log('🔄 Zone changed - Auto-saving previous battle before starting new one...');
+                    const mode = SETTINGS.keepDataAfterDungeon ? 'keep mode' : 'immediate clear mode';
+                    console.log(`🔄 Zone changed (${mode}) - Auto-saving previous battle...`);
                     await autoSaveSession('Previous Battle (Auto-saved)');
                 }
                 
                 // Clear old data to start fresh
+                console.log('✨ Clearing data for new zone');
                 STATE.players.clear();
                 STATE.startTime = null;
             }
