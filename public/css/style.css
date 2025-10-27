@@ -461,6 +461,19 @@ body {
     padding: 0 !important;
 }
 
+/* CRITICAL: Prevent compact mode from affecting modals */
+body.compact-mode .modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+}
+
 .modal.active {
     display: flex !important;
 }
