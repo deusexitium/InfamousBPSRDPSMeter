@@ -461,10 +461,11 @@ body {
 .modal-content {
     background: var(--bg-dark);
     border-radius: 8px;
-    width: 95%;
-    max-width: 1000px; /* Larger modal - it's a popup */
-    max-height: none; /* Remove height limit */
-    overflow-y: visible; /* NO scrollbars */
+    width: auto;
+    min-width: 600px;
+    max-width: 1000px;
+    max-height: 90vh;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);

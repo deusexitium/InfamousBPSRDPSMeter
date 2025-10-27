@@ -871,7 +871,8 @@ function renderPlayers() {
     
     // Display limit for compact mode - ALWAYS top 5 + local unless expanded
     const isExpandedList = document.getElementById('player-list')?.classList.contains('expanded');
-    const shouldLimitDisplay = isCompact && !isExpandedList;
+    const isCompactBody = document.body.classList.contains('compact-mode');
+    const shouldLimitDisplay = isCompactBody && !isExpandedList;
     
     // In compact mode: ALWAYS default to top 5 (+ local player already shown at top)
     // "Show More" button expands to show all players
@@ -893,7 +894,7 @@ function renderPlayers() {
     
     // Update Show More button visibility and text
     const expandBtn = document.getElementById('btn-expand-list');
-    if (expandBtn && isCompact) {
+    if (expandBtn && isCompactBody) {
         const hasHiddenPlayers = otherPlayers.length > displayLimit;
         expandBtn.style.display = hasHiddenPlayers ? 'flex' : 'none';
         
