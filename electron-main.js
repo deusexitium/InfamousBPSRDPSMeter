@@ -1,5 +1,6 @@
 
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const { exec, fork } = require('child_process');
 const net = require('net'); // Required for checkPort
@@ -25,6 +26,44 @@ let serverProcess;
 let server_port = 8989; // Initial port
 let isLocked = false; // Initial lock state: unlocked
 logToFile('==== ELECTRON START ====');
+
+// Configure auto-updater
+autoUpdater.autoDownload = false; // Don't auto-download, ask user first
+autoUpdater.autoInstallOnAppQuit = true;
+
+// Auto-updater event handlers
+autoUpdater.on('checking-for-update', () => {
+    logToFile('Checking for updates...');
+});
+
+autoUpdater.on('update-available', (info) => {
+    logToFile(`Update available: v${info.version}`);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('update-available', info);
+    }
+});
+
+autoUpdater.on('update-not-available', (info) => {
+    logToFile('App is up to date');
+});
+
+autoUpdater.on('error', (err) => {
+    logToFile('Error in auto-updater: ' + err);
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+    logToFile(`Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}%`);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('download-progress', progressObj);
+    }
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    logToFile('Update downloaded, will install on quit');
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('update-downloaded', info);
+    }
+});
 
     // Function to check if a port is in use
     const checkPort = (port) => {
@@ -432,6 +471,29 @@ logToFile('==== ELECTRON START ====');
     // Send initial lock state to renderer once window is ready
     mainWindow.webContents.on('did-finish-load', () => {
         mainWindow.webContents.send('lock-state-changed', isLocked);
+        
+        // Check for updates 5 seconds after app loads (give time for UI to be ready)
+        setTimeout(() => {
+            autoUpdater.checkForUpdates().catch(err => {
+                logToFile('Failed to check for updates: ' + err);
+            });
+        }, 5000);
+    });
+
+    // IPC handlers for update actions
+    ipcMain.on('download-update', () => {
+        logToFile('User requested update download');
+        autoUpdater.downloadUpdate();
+    });
+
+    ipcMain.on('install-update', () => {
+        logToFile('User requested update install');
+        autoUpdater.quitAndInstall(false, true);
+    });
+
+    ipcMain.on('check-for-updates', () => {
+        logToFile('User manually checking for updates');
+        autoUpdater.checkForUpdates();
     });
 }
 

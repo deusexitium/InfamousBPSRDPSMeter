@@ -1,6 +1,6 @@
 {
   "name": "infamous-bpsr-dps-meter",
-  "version": "3.1.26",
+  "version": "3.1.27",
   "description": "Infamous BPSR DPS Meter - The Ultimate Blue Protocol DPS Tracker",
   "main": "electron-main.js",
   "bin": {
@@ -29,6 +29,7 @@
   "dependencies": {
     "cap": "^0.2.1",
     "cors": "^2.8.5",
+    "electron-updater": "^6.6.2",
     "express": "^5.1.0",
     "google-protobuf": "^4.0.0",
     "long": "^5.3.2",
@@ -156,6 +157,12 @@
       "displayLanguageSelector": false,
       "menuCategory": true,
       "allowElevation": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "ssalihsrz",
+      "repo": "InfamousBPSRDPSMeter",
+      "releaseType": "release"
     },
     "directories": {
       "output": "dist_electron"
