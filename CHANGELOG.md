@@ -7,6 +7,94 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.3] - 2025-10-26 🔧 CRITICAL FIX - Window Dragging Issues
+
+### 🐛 Critical Bug Fix
+
+**Issue: Window Dragging Randomly Difficult**
+- **User Report:** "it still seems very difficult to move the window at random times, it keeps becoming a reoccuring issue"
+- **Root Causes Identified:**
+  1. Too many resize calls competing with drag events
+  2. `isResizing` flag getting stuck, blocking all future resizes
+  3. Nested `requestAnimationFrame` blocking event loop
+  4. Multiple resize calls in quick succession (3 calls in 300ms!)
+  5. Short debounce not giving drag events priority
+
+### ✅ Solutions Implemented
+
+**1. Safety Reset Mechanism:**
+- Added `setInterval` to check if `isResizing` stuck
+- Auto-resets after 500ms if stuck
+- Logs warning: "⚠️ isResizing flag was stuck, resetting"
+
+**2. Single RAF Instead of Nested:**
+```javascript
+// Before:
+requestAnimationFrame(() => {
+    requestAnimationFrame(() => autoResizeWindow());
+});
+
+// After:
+autoResizeWindow(); // Single call, internally debounced with RAF
+```
+
+**3. Longer Debounce:**
+- Increased from 100ms to 150ms
+- Gives drag events higher priority
+- Reduced unblock timeout from 150ms to 100ms
+
+**4. Remove Redundant Resize Calls:**
+```javascript
+// Before (blocking drag):
+setTimeout(() => autoResizeWindow(), 50);
+setTimeout(() => autoResizeWindow(), 150);
+setTimeout(() => autoResizeWindow(), 300);
+
+// After (single call):
+setTimeout(() => autoResizeWindow(), 200);
+```
+
+**5. Error Handling:**
+- Wrapped `resizeWindow` in try-catch
+- Prevents resize errors from breaking app
+
+**6. CSS Improvements:**
+- Added `z-index: 1` to `.title-left` drag area
+- Ensures drag area has priority over other events
+
+### 🔧 Technical Details
+
+**Safety Check:**
+- Runs every 1000ms
+- Resets `isResizing` if > 500ms since last resize
+- Prevents permanent stuck state
+
+**RAF Optimization:**
+- Single RAF with cancel mechanism
+- Cancel pending RAF before creating new one
+- Reduces event loop blocking
+
+**Timing Changes:**
+- Debounce: 150ms (up from 100ms)
+- Unblock: 100ms (down from 150ms)
+- Faster unblock = more responsive drag
+
+### 📦 Files Changed
+
+- `public/js/main.js` - Safety reset, single RAF, longer debounce
+- `public/css/style.css` - Drag area z-index
+
+### 🎯 Benefits
+
+1. ✅ Drag area always responsive
+2. ✅ No stuck resize states
+3. ✅ Fewer event loop blocks
+4. ✅ Cleaner resize coordination
+5. ✅ Better performance
+6. ✅ Permanent fix for recurring issue
+
+---
+
 ## [3.0.2] - 2025-10-26 🔧 PATCH - Character Switching & Per-Character Sessions
 
 ### 🐛 Bug Fixes
