@@ -2177,7 +2177,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.21 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.22 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2247,7 +2247,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.21 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.22 - Ready!');
 }
 
 // ============================================================================
@@ -3160,13 +3160,18 @@ async function saveCurrentSession() {
 // Load selected session
 async function loadSelectedSession(sessionId) {
     if (!sessionId) {
-        // Switching back to live mode - CRITICAL: Clear session data and resume
+        // Switching back to live mode - CRITICAL: Clear ALL session data
         STATE.players.clear();
+        STATE.startTime = null;
+        STATE.inCombat = false;
+        expandedPlayerIds = []; // Clear expanded players from session view
+        skillsCache.clear(); // Clear skill cache from session
+        
         showToast('📡 Resuming live data...', 'info', 2000);
         
         // Force immediate refresh to get live data
         await fetchPlayerData();
-        renderPlayers(); // renderPlayers() calls updateStatusBar() internally
+        renderPlayers();
         
         // Resume auto-refresh
         if (!isPaused) {
