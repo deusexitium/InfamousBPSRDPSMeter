@@ -2177,7 +2177,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.20 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.21 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2247,7 +2247,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.20 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.21 - Ready!');
 }
 
 // ============================================================================
@@ -2373,9 +2373,19 @@ function togglePlayerDetails(uid, event) {
         }
         
         renderPlayers(); // Show expanded state with "Loading..."
-        loadAndShowPlayerDetails(uid).catch(err => {
-            console.error(`❌ Failed to load skills for ${uid}:`, err);
-        }); // Then load the skills (which will trigger resize)
+        
+        // Check if player has saved skills data (from loaded session)
+        const player = STATE.players.get(uid);
+        if (player && player.skills && Object.keys(player.skills).length > 0) {
+            // Use saved skills data
+            console.log(`✅ Using saved skills data for UID ${uid}`);
+            displaySkillsFromSavedData(uid, player.skills);
+        } else {
+            // Fetch live skills data
+            loadAndShowPlayerDetails(uid).catch(err => {
+                console.error(`❌ Failed to load skills for ${uid}:`, err);
+            });
+        }
     }
 }
 
