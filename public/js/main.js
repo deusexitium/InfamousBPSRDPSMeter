@@ -2177,7 +2177,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.25 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.26 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2247,7 +2247,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.25 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.26 - Ready!');
 }
 
 // ============================================================================
@@ -2823,30 +2823,20 @@ function updateSessionDropdown() {
         );
     }
 
-    // Sort all sessions by timestamp (most recent first)
+    // Sort all sessions by timestamp (MOST RECENT FIRST - mixed manual and auto)
     const sortedSessions = [...filteredSessions].sort((a, b) => b.timestamp - a.timestamp);
     
-    // Separate manual and auto-saved
-    const manualSaved = sortedSessions.filter(s => !s.autoSaved);
-    const autoSaved = sortedSessions.filter(s => s.autoSaved);
-
-    // Add manual sessions first (more important), sorted by most recent
-    manualSaved.forEach(session => {
+    // Add ALL sessions sorted by most recent (no separation)
+    sortedSessions.forEach(session => {
         const option = document.createElement('option');
         option.value = session.id;
-        const date = new Date(session.timestamp).toLocaleString();
+        const date = new Date(session.timestamp).toLocaleDateString('en-US', { 
+            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+        });
         const charInfo = session.characterName ? ` [${session.characterName}]` : '';
-        option.textContent = `📝 ${session.name}${charInfo} (${session.playerCount}p, ${formatNumber(session.totalDps)} DPS)`;
-        dropdown.appendChild(option);
-    });
-
-    // Add auto-saved sessions, sorted by most recent
-    autoSaved.forEach(session => {
-        const option = document.createElement('option');
-        option.value = session.id;
-        const date = new Date(session.timestamp).toLocaleString();
-        const charInfo = session.characterName ? ` [${session.characterName}]` : '';
-        option.textContent = `🤖 ${session.name}${charInfo} (${session.playerCount}p, ${formatNumber(session.totalDps)} DPS)`;
+        const icon = session.autoSaved ? '🤖' : '📝';
+        const duration = formatDuration(session.duration || 0);
+        option.textContent = `${icon} ${session.name} - ${duration} (${date})`;
         dropdown.appendChild(option);
     });
     
@@ -2877,8 +2867,8 @@ function updateSessionCount() {
         manageBtn.id = 'btn-manage-sessions';
         manageBtn.className = 'btn-secondary';
         manageBtn.style.cssText = 'font-size: 10px; padding: 4px 8px; margin-top: 4px;';
-        manageBtn.innerHTML = '<i class="fa-solid fa-trash"></i> Manage Sessions';
-        manageBtn.onclick = () => showManageSessionsModal();
+        manageBtn.innerHTML = '<i class="fa-solid fa-cog"></i> Manage Sessions';
+        manageBtn.onclick = () => openSessionManager();
         container.appendChild(manageBtn);
     }
 }

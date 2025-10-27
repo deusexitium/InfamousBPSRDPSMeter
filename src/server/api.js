@@ -776,6 +776,167 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
         }
     });
 
+    // Get ALL sessions (no limit) for session manager
+    app.get('/api/sessions/all', async (req, res) => {
+        try {
+            await fsPromises.mkdir(SESSIONS_PATH, { recursive: true });
+            const files = await fsPromises.readdir(SESSIONS_PATH);
+            const sessionFiles = files.filter(f => f.endsWith('.json'));
+
+            const sessions = await Promise.all(
+                sessionFiles.map(async (file) => {
+                    try {
+                        const filePath = path.join(SESSIONS_PATH, file);
+                        const data = await fsPromises.readFile(filePath, 'utf8');
+                        const session = JSON.parse(data);
+                        return {
+                            id: path.basename(file, '.json'),
+                            ...session
+                        };
+                    } catch (error) {
+                        logger.error(`Failed to read session ${file}:`, error);
+                        return null;
+                    }
+                })
+            );
+
+            const validSessions = sessions.filter(s => s !== null).sort((a, b) => b.timestamp - a.timestamp);
+            res.json({ code: 0, sessions: validSessions });
+        } catch (error) {
+            logger.error(`Failed to fetch all sessions: ${error.message}`);
+            res.json({ code: 1, msg: error.message, sessions: [] });
+        }
+    });
+
+    // Retrofit old session names to new intelligent format
+    app.post('/api/sessions/retrofit-names', async (req, res) => {
+        try {
+            await fsPromises.mkdir(SESSIONS_PATH, { recursive: true });
+            const files = await fsPromises.readdir(SESSIONS_PATH);
+            const sessionFiles = files.filter(f => f.endsWith('.json'));
+            let updated = 0;
+
+            for (const file of sessionFiles) {
+                try {
+                    const filePath = path.join(SESSIONS_PATH, file);
+                    const data = await fsPromises.readFile(filePath, 'utf8');
+                    const session = JSON.parse(data);
+
+                    // Check if name needs updating
+                    if (session.name && (session.name.includes('Previous Battle') || session.name.includes('Auto-saved'))) {
+                        const playerCount = session.players?.length || session.playerCount || 0;
+                        const duration = session.duration || 0;
+
+                        let groupType = '';
+                        if (playerCount === 1) groupType = 'Solo';
+                        else if (playerCount <= 4) groupType = `${playerCount}P Party`;
+                        else if (playerCount <= 8) groupType = `${playerCount}P Raid`;
+                        else groupType = `${playerCount}P Battle`;
+
+                        const minutes = Math.floor(duration / 60);
+                        const seconds = duration % 60;
+                        const durationStr = minutes === 0 ? `${seconds}s` : (minutes < 5 ? `${minutes}m${seconds}s` : `${minutes}min`);
+
+                        const timestamp = new Date(session.timestamp);
+                        const timeStr = timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+                        session.name = `${groupType} - ${durationStr} [${timeStr}]`;
+                        await fsPromises.writeFile(filePath, JSON.stringify(session, null, 2));
+                        updated++;
+                    }
+                } catch (error) {
+                    logger.error(`Failed to retrofit session ${file}:`, error);
+                }
+            }
+
+            logger.info(`Retrofitted ${updated} session names`);
+            res.json({ code: 0, updated, msg: `Updated ${updated} sessions` });
+        } catch (error) {
+            logger.error(`Failed to retrofit sessions: ${error.message}`);
+            res.json({ code: 1, msg: error.message, updated: 0 });
+        }
+    });
+
+    // Bulk delete sessions
+    app.post('/api/sessions/bulk-delete', async (req, res) => {
+        try {
+            const { sessionIds } = req.body;
+            if (!Array.isArray(sessionIds) || sessionIds.length === 0) {
+                return res.json({ code: 1, msg: 'No session IDs provided' });
+            }
+
+            let deleted = 0;
+            for (const id of sessionIds) {
+                try {
+                    const filePath = path.join(SESSIONS_PATH, `${id}.json`);
+                    await fsPromises.unlink(filePath);
+                    deleted++;
+                } catch (error) {
+                    logger.error(`Failed to delete session ${id}:`, error);
+                }
+            }
+
+            logger.info(`Bulk deleted ${deleted} sessions`);
+            res.json({ code: 0, deleted, msg: `Deleted ${deleted} sessions` });
+        } catch (error) {
+            logger.error(`Failed to bulk delete: ${error.message}`);
+            res.json({ code: 1, msg: error.message, deleted: 0 });
+        }
+    });
+
+    // Delete all auto-saved sessions
+    app.post('/api/sessions/delete-auto-saved', async (req, res) => {
+        try {
+            await fsPromises.mkdir(SESSIONS_PATH, { recursive: true });
+            const files = await fsPromises.readdir(SESSIONS_PATH);
+            const sessionFiles = files.filter(f => f.endsWith('.json'));
+            let deleted = 0;
+
+            for (const file of sessionFiles) {
+                try {
+                    const filePath = path.join(SESSIONS_PATH, file);
+                    const data = await fsPromises.readFile(filePath, 'utf8');
+                    const session = JSON.parse(data);
+                    if (session.autoSaved) {
+                        await fsPromises.unlink(filePath);
+                        deleted++;
+                    }
+                } catch (error) {
+                    logger.error(`Failed to check/delete session ${file}:`, error);
+                }
+            }
+
+            logger.info(`Deleted ${deleted} auto-saved sessions`);
+            res.json({ code: 0, deleted, msg: `Deleted ${deleted} auto-saved sessions` });
+        } catch (error) {
+            logger.error(`Failed to delete auto-saved sessions: ${error.message}`);
+            res.json({ code: 1, msg: error.message, deleted: 0 });
+        }
+    });
+
+    // Rename a session
+    app.post('/api/sessions/:id/rename', async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { name } = req.body;
+            if (!name || !name.trim()) {
+                return res.json({ code: 1, msg: 'Invalid name' });
+            }
+
+            const filePath = path.join(SESSIONS_PATH, `${id}.json`);
+            const data = await fsPromises.readFile(filePath, 'utf8');
+            const session = JSON.parse(data);
+            session.name = name.trim();
+            await fsPromises.writeFile(filePath, JSON.stringify(session, null, 2));
+
+            logger.info(`Renamed session ${id} to: ${name}`);
+            res.json({ code: 0, msg: 'Session renamed successfully' });
+        } catch (error) {
+            logger.error(`Failed to rename session: ${error.message}`);
+            res.json({ code: 1, msg: error.message });
+        }
+    });
+
     // VPN Detection Endpoints
     app.get('/api/vpn/status', async (req, res) => {
         try {
