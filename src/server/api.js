@@ -588,34 +588,42 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
 
     app.post('/api/sessions/save', async (req, res) => {
         try {
-            const { name, characterUid, characterName } = req.body;
-            const timestamp = Date.now();
+            const { name, characterUid, characterName, players: frontendPlayers, timestamp: frontendTimestamp, duration, localPlayerUid } = req.body;
+            const timestamp = frontendTimestamp || Date.now();
 
-            logger.info(`📝 Session save requested: "${name}" for character: ${characterName} (UID: ${characterUid})`);
+            logger.info(`📝 Session save requested: "${name}" for character: ${characterName || 'Unknown'}`);
 
-            // Get current session data
-            const userData = userDataManager.getAllUsersData();
-            const players = await Promise.all(Object.entries(userData).map(async ([uid, summary]) => {
-                const playerData = {
-                    uid: Number(uid),
-                    ...summary
-                };
-                
-                // Include skill data for saved sessions
-                try {
-                    const skillData = userDataManager.getUserSkillData ? userDataManager.getUserSkillData(uid) : null;
-                    if (skillData && skillData.skills) {
-                        playerData.skills = skillData.skills;
-                        playerData.skillsSummary = skillData.skillsSummary || {};
+            // CRITICAL FIX: Use player data from frontend (includes skills) instead of live data
+            let players = [];
+            
+            if (frontendPlayers && Array.isArray(frontendPlayers) && frontendPlayers.length > 0) {
+                // Use data sent from frontend (includes skill breakdown)
+                players = frontendPlayers;
+                logger.info(`📊 Using frontend session data: ${players.length} players (with skills)`);
+            } else {
+                // Fallback: Get current live data from userDataManager
+                const userData = userDataManager.getAllUsersData();
+                players = await Promise.all(Object.entries(userData).map(async ([uid, summary]) => {
+                    const playerData = {
+                        uid: Number(uid),
+                        ...summary
+                    };
+                    
+                    // Include skill data for saved sessions
+                    try {
+                        const skillData = userDataManager.getUserSkillData ? userDataManager.getUserSkillData(uid) : null;
+                        if (skillData && skillData.skills) {
+                            playerData.skills = skillData.skills;
+                            playerData.skillsSummary = skillData.skillsSummary || {};
+                        }
+                    } catch (error) {
+                        logger.warn(`⚠️ Could not fetch skills for UID ${uid}: ${error.message}`);
                     }
-                } catch (error) {
-                    logger.warn(`⚠️ Could not fetch skills for UID ${uid}: ${error.message}`);
-                }
-                
-                return playerData;
-            }));
-
-            logger.info(`📊 Session data: ${players.length} players (with skill data)`);
+                    
+                    return playerData;
+                }));
+                logger.info(`📊 Using live data: ${players.length} players`);
+            }
 
             // Don't save empty or meaningless sessions
             const totalDamage = players.reduce((sum, p) => sum + ((p.total_damage?.total || 0)), 0);
@@ -636,9 +644,9 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
                 players: players,
                 totalDps: players.reduce((sum, p) => sum + (p.total_dps || 0), 0),
                 playerCount: players.length,
-                duration: userDataManager.getDuration ? userDataManager.getDuration() : 0,
-                autoSaved: false, // Manual save
-                characterUid: characterUid || null, // Character UID for filtering
+                duration: duration || (userDataManager.getDuration ? userDataManager.getDuration() : 0),
+                autoSaved: name?.includes('Auto-saved') || false, // Detect auto-saves
+                characterUid: characterUid || localPlayerUid || null, // Character UID for filtering
                 characterName: characterName || 'Unknown' // Character name for display
             };
 

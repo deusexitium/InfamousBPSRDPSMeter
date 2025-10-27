@@ -193,3 +193,20 @@ sampleproto/
 # Development python scripts
 convert_skills*.py
 translate_skills*.py
+upload*.sh
+upload*.py
+
+# Build artifacts that should NEVER be committed
+*.blockmap
+*.yaml
+latest*.yml
+builder-*.yml
+builder-debug*.yml
+
+# Session data files
+RELEASE_NOTES*.md
+
+# Temporary build scripts
+build-*.sh
+upload-*.sh
+*.backup
