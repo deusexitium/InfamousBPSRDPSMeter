@@ -869,26 +869,13 @@ function renderPlayers() {
         }
     }
     
-    // Smart display limit for compact mode
+    // Display limit for compact mode - ALWAYS top 5 + local unless expanded
     const isExpandedList = document.getElementById('player-list')?.classList.contains('expanded');
     const shouldLimitDisplay = isCompact && !isExpandedList;
     
-    // Determine display limit based on party size
-    let displayLimit = otherPlayers.length; // Default: show all
-    if (shouldLimitDisplay) {
-        const totalPlayers = sorted.length;
-        // If 5 or fewer, show all (dungeon party)
-        // If 6-20, show all (raid party)
-        // If more than 20, limit to top 5 + local
-        if (totalPlayers <= 5) {
-            displayLimit = otherPlayers.length; // Show all (dungeon)
-        } else if (totalPlayers <= 20) {
-            displayLimit = otherPlayers.length; // Show all (raid)
-        } else {
-            // Large group: limit to top 5 (+ local player already shown)
-            displayLimit = 5;
-        }
-    }
+    // In compact mode: ALWAYS default to top 5 (+ local player already shown at top)
+    // "Show More" button expands to show all players
+    let displayLimit = shouldLimitDisplay ? 5 : otherPlayers.length;
     
     // Render other players
     otherPlayers.forEach((player, idx) => {
@@ -2169,7 +2156,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v3.0.8 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v3.0.9 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2239,7 +2226,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR Meter v3.0.8 - Ready!');
+    console.log('✅ Infamous BPSR Meter v3.0.9 - Ready!');
 }
 
 // ============================================================================
