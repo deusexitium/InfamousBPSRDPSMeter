@@ -7,6 +7,148 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.4] - 2025-10-26 🚨 CRITICAL REGRESSION FIX - Data Not Loading on Startup
+
+###  🚨 Critical Regression Fix
+
+**Issue: App Not Capturing Data on Startup**
+- **User Report:** "app used to automatically capture data as soon as i opened it, it no longer works like that.. seems like i have to start a new combat.. this is a significant regression"
+- **Regression Introduced:** v3.0.2 (character switching feature)
+- **Impact:** SEVERE - Core functionality broken
+
+### 🔍 Root Cause Analysis
+
+**What Went Wrong:**
+Character switch detection (added in v3.0.2) was running INSIDE the `forEach` loop that processes players from backend. This caused race conditions and timing issues:
+
+```javascript
+// BROKEN CODE (v3.0.2-3.0.3):
+payload.data.forEach(player => {
+    // Character switch check MID-LOOP
+    if (player.isLocalPlayer && ...) {
+        STATE.players.clear(); // CLEARS WHILE STILL LOOPING!
+    }
+    // Continue processing... but data already cleared!
+});
+```
+
+**The Problem:**
+1. App opens with ongoing combat
+2. Backend has captured data from before app started
+3. First `fetchPlayerData()` gets player array
+4. `forEach` starts processing players
+5. Encounters local player in middle of array
+6. Character switch check runs
+7. If check triggers OR has timing issues, disrupts data flow
+8. `STATE.players.clear()` called WHILE loop still running
+9. Rest of players process into cleared state
+10. Result: Unpredictable data loading
+
+**Timeline:**
+- v3.0.0-3.0.1: ✅ Data loaded on startup (worked correctly)
+- v3.0.2: ❌ Character switch added, broke startup data loading
+- v3.0.3: ❌ Still broken (drag fix didn't address this)
+- v3.0.4: ✅ FIXED - Atomic character switch check
+
+### ✅ Solution Implemented
+
+**Move Character Switch Detection BEFORE forEach Loop:**
+
+```javascript
+// FIXED CODE (v3.0.4):
+// 1. Check for character switch FIRST (atomic operation)
+const newLocalPlayerUid = payload.data.find(p => p.isLocalPlayer)?.uid;
+if (newLocalPlayerUid && STATE.localPlayerUid !== null && 
+    STATE.localPlayerUid !== newLocalPlayerUid) {
+    STATE.players.clear(); // Safe - happens BEFORE processing
+}
+
+// 2. Update local player UID
+if (newLocalPlayerUid) {
+    STATE.localPlayerUid = newLocalPlayerUid;
+}
+
+// 3. THEN process all players (no mid-loop disruption)
+payload.data.forEach(player => {
+    // Clean processing, no unexpected clears
+});
+```
+
+### 🎯 Benefits
+
+1. **✅ Startup Data Loading Restored**
+   - App opens → Backend data loads immediately
+   - Ongoing combat data captured on first fetch
+   - No need to start new combat
+
+2. **✅ Character Switch Still Works**
+   - Detection happens atomically before processing
+   - Clean state transition
+   - No race conditions
+
+3. **✅ Cleaner Logic Flow**
+   - Character detection: BEFORE loop
+   - UID update: BEFORE loop
+   - Player processing: AFTER checks
+   - Predictable, testable behavior
+
+4. **✅ No Mid-Loop Side Effects**
+   - `STATE.players.clear()` never called during forEach
+   - All players process in stable state
+   - No timing-dependent bugs
+
+### 📦 Files Changed
+
+- `public/js/main.js` - Moved character switch detection outside forEach loop
+
+### 🧪 Testing Scenarios
+
+**✅ App Startup with Ongoing Combat:**
+- Backend already capturing data
+- App opens
+- **Expected:** Data loads immediately
+- **Result:** ✅ WORKS
+
+**✅ Character Switch:**
+- Playing with Character A
+- Switch to Character B
+- **Expected:** Data clears, Character B loads
+- **Result:** ✅ WORKS
+
+**✅ New Combat Start:**
+- App running, no combat
+- Enter new combat
+- **Expected:** Data starts capturing
+- **Result:** ✅ WORKS
+
+### ⚠️ Critical Lesson
+
+**Rule:** Never perform state-clearing operations inside iteration loops.
+
+**Pattern to Avoid:**
+```javascript
+array.forEach(item => {
+    if (condition) {
+        clearState(); // ❌ BAD - mid-loop side effect
+    }
+});
+```
+
+**Correct Pattern:**
+```javascript
+// Check and clear FIRST
+if (shouldClear) {
+    clearState(); // ✅ GOOD - before loop
+}
+
+// THEN process
+array.forEach(item => {
+    // Clean processing
+});
+```
+
+---
+
 ## [3.0.3] - 2025-10-26 🔧 CRITICAL FIX - Window Dragging Issues
 
 ### 🐛 Critical Bug Fix
