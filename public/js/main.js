@@ -713,12 +713,33 @@ function renderPlayers() {
         return;
     }
     
-    // Apply current filters
-    const filtered = activePlayers.filter(p => {
-        // ... filter logic
+    // Still add all players to database for name mapping
+    players.forEach(p => {
+        if (p.name && p.name !== 'unknown') {
+            PLAYER_DB.add(p.uid, p.name);
+        }
     });
     
+    let filtered = filterPlayers(activePlayers);
+    
+    // Apply solo mode filter
+    if (STATE.soloMode) {
+        filtered = filtered.filter(p => p.isLocalPlayer || p.uid === STATE.localPlayerUid);
+    }
+    
+    // IDLE DETECTION: Mark players with no updates for 30 seconds
+    const now = Date.now();
+    const IDLE_THRESHOLD = 30000; // 30 seconds
+    filtered.forEach(p => {
+        const lastUpdate = STATE.playerLastUpdate.get(p.uid) || now;
+        p.isIdle = (now - lastUpdate) > IDLE_THRESHOLD;
+    });
+    
+    console.log(`🔍 After filtering: ${filtered.length} filtered players`);
+    
     const sorted = sortPlayers(filtered);
+    
+    console.log(`🔍 After sorting: ${sorted.length} sorted players`);
     
     // TEAM TOTALS: Calculate for non-idle players only
     const activeNonIdlePlayers = sorted.filter(p => !p.isIdle);
@@ -769,28 +790,6 @@ function renderPlayers() {
             localPlayerRank = idx + 1;
         }
     });
-    
-    // Separate local player from others
-    const otherPlayers = sorted.filter(p => !(p.isLocalPlayer || p.uid === STATE.localPlayerUid));
-    
-    // Render local player first, then others
-    let html = '';
-    
-    // Add compact mode column headers
-    const isCompact = STATE.viewMode === 'compact';
-    if (isCompact) {
-        html += `
-            <div class="compact-headers">
-                <div class="compact-header-rank">#</div>
-                <div class="compact-header-name">PLAYER</div>
-                <div class="compact-header-stat">CUR</div>
-                <div class="compact-header-stat">MAX</div>
-                <div class="compact-header-stat">AVG</div>
-                <div class="compact-header-stat">TOTAL</div>
-                <div class="compact-header-stat">%</div>
-            </div>
-        `;
-    }
     
     // TEAM TOTALS ROW - Only show if in actual party (2+ players)
     // Use sorted.length to match displayed players
