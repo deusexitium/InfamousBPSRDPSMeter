@@ -398,8 +398,17 @@ async function fetchPlayerData() {
         const hasActivePlayers = payload.data && payload.data.length > 0 && 
             payload.data.some(p => (p.total_damage?.total || 0) > 0 || (p.total_healing?.total || 0) > 0);
         
-        // Smart clear: If zone changed and now entering combat, clear old data
+        // Smart clear: If zone changed and now entering combat, auto-save and clear old data
         if (hasActivePlayers && !STATE.inCombat && STATE.zoneChanged && SETTINGS.autoClearOnZoneChange) {
+            // Auto-save previous session before clearing
+            if (STATE.players.size > 0 && STATE.startTime) {
+                const duration = Math.floor((Date.now() - STATE.startTime) / 1000);
+                if (duration > 10) { // Only save if fight lasted more than 10 seconds
+                    console.log('🔄 Zone changed - Auto-saving previous battle before starting new one...');
+                    autoSaveSession('Previous Battle (Auto-saved)');
+                }
+            }
+            
             STATE.players.clear();
             STATE.startTime = null;
             STATE.zoneChanged = false;
