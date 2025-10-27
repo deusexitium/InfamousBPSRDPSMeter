@@ -107,20 +107,24 @@
             <div class="col-gs" data-sort="gs">GS <i class="fa-solid fa-sort"></i></div>
         </div>
 
+        <!-- Compact Mode Controls (only visible in compact mode) -->
+        <div class="compact-controls">
+            <button class="compact-btn" id="btn-compact-reset" title="Reset Data">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>Reset</span>
+            </button>
+            <button class="compact-btn" id="btn-expand-list" title="Show All Players">
+                <i class="fa-solid fa-chevron-down"></i>
+                <span>Show More</span>
+            </button>
+        </div>
+
         <!-- Player List -->
-        <div class="player-list" id="player-list">
+        <div id="player-list" class="player-list">
             <div class="loading">
                 <i class="fa-solid fa-spinner fa-spin"></i>
                 <span>Waiting for combat data...</span>
             </div>
-        </div>
-        
-        <!-- Expand/Collapse Button (visible in compact mode) -->
-        <div class="player-list-expand">
-            <button id="btn-expand-list">
-                <i class="fa-solid fa-chevron-down"></i>
-                <span>Show More</span>
-            </button>
         </div>
         
         <!-- Status Bar Footer -->

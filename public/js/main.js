@@ -1698,7 +1698,26 @@ function setupEventListeners() {
         });
     }
     
-    // Expand/Collapse player list in compact mode
+    // Compact mode reset button
+    document.getElementById('btn-compact-reset')?.addEventListener('click', async () => {
+        if (confirm('Reset all data and statistics?')) {
+            try {
+                const res = await fetch('/api/clear', { method: 'POST' });
+                const data = await res.json();
+                if (data.code === 0) {
+                    STATE.players.clear();
+                    STATE.startTime = null;
+                    renderPlayers();
+                    showToast('Data reset successfully', 'success');
+                }
+            } catch (error) {
+                console.error('Failed to reset data:', error);
+                showToast('Failed to reset data', 'error');
+            }
+        }
+    });
+    
+    // Expand/Collapse player list in compact mode (Show More/Less)
     document.getElementById('btn-expand-list')?.addEventListener('click', () => {
         const playerList = document.getElementById('player-list');
         const button = document.getElementById('btn-expand-list');
