@@ -1,6 +1,6 @@
 {
   "name": "infamous-bpsr-dps-meter",
-  "version": "3.1.15",
+  "version": "3.1.16",
   "description": "Infamous BPSR DPS Meter - The Ultimate Blue Protocol DPS Tracker",
   "main": "electron-main.js",
   "bin": {
@@ -141,7 +141,7 @@
       "requestedExecutionLevel": "requireAdministrator",
       "verifyUpdateCodeSignature": false,
       "publisherName": "Infamous BPSR DPS Meter",
-      "fileVersion": "3.1.15",
+      "fileVersion": "3.1.16",
       "legalTrademarks": "Open Source - AGPL-3.0"
     },
     "nsis": {
