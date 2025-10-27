@@ -341,14 +341,10 @@ function getProfession(profStr, player = null) {
         return result;
     }
     
-    // If unknown, try to detect from behavior
-    if (player && result && result.role === 'unknown') {
-        const behaviorRole = detectRoleFromBehavior(player);
-        return { name: 'Unknown', role: behaviorRole };
-    }
-    
-    // Absolute fallback
-    return { name: 'Unknown', role: 'dps' };
+    // If unknown profession, default to DPS (don't use behavior detection)
+    // Behavior detection was incorrectly classifying high-damage DPS as tanks
+    // Better to default to DPS than misclassify
+    return { name: base || 'Unknown', role: 'dps' };
 }
 
 // ============================================================================
