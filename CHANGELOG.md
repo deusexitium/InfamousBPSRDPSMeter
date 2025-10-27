@@ -32,6 +32,11 @@ After extensive bug fixes and improvements, v3.0.0 is the first production-ready
 - ✅ Filter logic working as intended
 - ✅ HTML rendering fixed
 - ✅ Window resizing stable
+- ✅ **Compact mode fixes:**
+  - Added Reset button (was missing, only in full mode)
+  - Added Show More/Less button (was broken, HTML didn't exist)
+  - Show More now correctly expands to show all players
+  - Show Less collapses back to 6 players default
 
 **🔧 Technical Changes:**
 - `backgroundColor: '#1a1d29'` added to Electron window config
