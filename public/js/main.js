@@ -690,17 +690,11 @@ function renderPlayers() {
         console.log('🔍 Sample player structure:', players[0]);
     }
     
-    // Filter out players with no meaningful data (in town, no combat)
-    const activePlayers = players.filter(p => {
-        const hasDamage = (p.total_damage?.total || 0) > 0;
-        const hasHealing = (p.total_healing?.total || 0) > 0;
-        const hasDPS = (p.total_dps || 0) > 0;
-        const hasHPS = (p.total_hps || 0) > 0;
-        
-        return hasDamage || hasHealing || hasDPS || hasHPS;
-    });
+    // FIXED: Don't filter too aggressively - show all players detected by backend
+    // The backend already filters out meaningless data
+    const activePlayers = players;
     
-    console.log(`🔍 After filtering: ${activePlayers.length} active players (with combat data)`);
+    console.log(`🔍 Total players to display: ${activePlayers.length}`);
     
     // If no players have data, show placeholder
     if (activePlayers.length === 0) {
@@ -1999,7 +1993,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v2.99.7 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v2.99.8 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2069,7 +2063,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR Meter v2.99.7 - Ready!');
+    console.log('✅ Infamous BPSR Meter v2.99.8 - Ready!');
 }
 
 // ============================================================================

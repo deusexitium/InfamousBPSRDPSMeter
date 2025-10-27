@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.99.7] - 2025-10-26 🔧 HOTFIX - Restored Missing Filter Logic
+
+### 🚨 CRITICAL: Restored Filter Logic That Was Accidentally Removed
+**Problem:** Previous fix (v2.99.6) accidentally removed the filter logic code:
+```javascript
+// BROKEN in v2.99.6:
+const filtered = activePlayers.filter(p => {
+    // ... filter logic  ← This was just a COMMENT, not real code!
+});
+```
+
+**What Got Removed:**
+- Player database mapping
+- filterPlayers() function call
+- Solo mode filtering
+- Idle detection (30 second timeout)
+
+**Fixed:** Restored complete filter pipeline:
+```javascript
+// FIXED in v2.99.7:
+// Add players to database for name mapping
+players.forEach(p => {
+    if (p.name && p.name !== 'unknown') {
+        PLAYER_DB.add(p.uid, p.name);
+    }
+});
+
+let filtered = filterPlayers(activePlayers);
+
+// Apply solo mode filter
+if (STATE.soloMode) {
+    filtered = filtered.filter(p => p.isLocalPlayer || p.uid === STATE.localPlayerUid);
+}
+
+// IDLE DETECTION: Mark players with no updates for 30 seconds
+const now = Date.now();
+const IDLE_THRESHOLD = 30000;
+filtered.forEach(p => {
+    const lastUpdate = STATE.playerLastUpdate.get(p.uid) || now;
+    p.isIdle = (now - lastUpdate) > IDLE_THRESHOLD;
+});
+
+const sorted = sortPlayers(filtered);
+```
+
+**Result:** All filtering functionality restored! 🎯
+
+---
+
 ## [2.99.6] - 2025-10-26 🐛 CRITICAL - Fixed ReferenceError on Startup
 
 ### 🚨 CRITICAL: Fixed `activeNonIdlePlayers is not defined` Error
