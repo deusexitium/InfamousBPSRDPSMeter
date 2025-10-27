@@ -1051,7 +1051,7 @@ body {
 .settings-panel {
     display: none;
     padding: 12px;
-    max-height: calc(85vh - 150px); /* Account for tabs and buttons */
+    max-height: calc(85vh - 120px); /* More space for content */
     overflow-y: auto; /* Allow scrolling within panel */
     overflow-x: hidden;
 }
