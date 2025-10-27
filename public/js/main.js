@@ -412,27 +412,28 @@ async function fetchPlayerData() {
             // Combat timer stopped
         }
         
+        // CRITICAL: Detect character switch BEFORE processing any players
+        const newLocalPlayerUid = payload.data.find(p => p.isLocalPlayer)?.uid;
+        if (newLocalPlayerUid && STATE.localPlayerUid !== null && STATE.localPlayerUid !== newLocalPlayerUid) {
+            // Character switch detected! Clear old data
+            console.log(`🔄 Character switch detected: ${STATE.localPlayerUid} → ${newLocalPlayerUid}`);
+            STATE.players.clear();
+            STATE.startTime = null;
+            STATE.inCombat = false;
+            STATE.zoneChanged = false;
+            showNotification('Character switched - data cleared', 'info');
+        }
+        
+        // Update local player UID if we have a local player
+        if (newLocalPlayerUid) {
+            STATE.localPlayerUid = newLocalPlayerUid;
+        }
+        
         // Merge player data (preserve accumulated stats)
         if (payload.data && Array.isArray(payload.data)) {
             payload.data.forEach(player => {
                 const uid = player.uid;
                 const existing = STATE.players.get(uid);
-                
-                // CRITICAL: Detect character switch
-                if (player.isLocalPlayer && STATE.localPlayerUid !== uid && STATE.localPlayerUid !== null) {
-                    // Character switch detected! Clear old data
-                    console.log(`🔄 Character switch detected: ${STATE.localPlayerUid} → ${uid}`);
-                    STATE.players.clear();
-                    STATE.startTime = null;
-                    STATE.inCombat = false;
-                    STATE.zoneChanged = false;
-                    showNotification('Character switched - data cleared', 'info');
-                }
-                
-                // Set local player UID (for first time or after clear)
-                if (player.isLocalPlayer) {
-                    STATE.localPlayerUid = uid;
-                }
                 
                 if (existing) {
                     // Update existing player, but preserve name and last non-zero DPS
