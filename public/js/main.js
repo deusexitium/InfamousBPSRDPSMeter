@@ -3101,7 +3101,7 @@ async function loadSelectedSession(sessionId) {
         showToast('📡 Resuming live data...', 'info', 2000);
         
         // Force immediate refresh to get live data
-        await refreshData();
+        await fetchPlayerData();
         renderPlayers(); // renderPlayers() calls updateStatusBar() internally
         
         // Resume auto-refresh
