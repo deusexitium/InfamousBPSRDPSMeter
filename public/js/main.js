@@ -371,18 +371,14 @@ function getHPColor(percent) {
     return '#ef4444';
 }
 
-// ============================================================================
 // DATA FETCHING & MERGING
 // ============================================================================
 
 async function fetchPlayerData() {
     // Don't fetch new data when paused - maintain frozen state
     if (isPaused) {
-        console.log('⏸️ Data fetch skipped - paused');
         return Array.from(STATE.players.values());
     }
-    
-    // Fetching player data... (reduced logging for performance)
     
     try {
         const res = await fetch(CONFIG.apiData);
@@ -396,7 +392,6 @@ async function fetchPlayerData() {
         // Check if backend detected zone change
         if (payload.zoneChanged && !STATE.zoneChanged) {
             STATE.zoneChanged = true;
-            // Zone change detected
         }
         
         // Detect combat start (new data appearing)
@@ -405,11 +400,9 @@ async function fetchPlayerData() {
         
         // Smart clear: If zone changed and now entering combat, clear old data
         if (hasActivePlayers && !STATE.inCombat && STATE.zoneChanged && SETTINGS.autoClearOnZoneChange) {
-            // Clearing old data for new zone
             STATE.players.clear();
             STATE.startTime = null;
             STATE.zoneChanged = false;
-            showNotification('New combat - data cleared');
         }
         
         // Update combat state and manage timer
@@ -420,25 +413,20 @@ async function fetchPlayerData() {
         if (!STATE.startTime && hasActivePlayers) {
             STATE.startTime = Date.now();
             startDurationCounter();
-            // Combat timer started
         }
         
         // Stop timer when combat ends (no active players)
         if (wasInCombat && !hasActivePlayers && STATE.startTime) {
             stopDurationCounter();
-            // Combat timer stopped
         }
         
         // CRITICAL: Detect character switch BEFORE processing any players
         const newLocalPlayerUid = payload.data.find(p => p.isLocalPlayer)?.uid;
         if (newLocalPlayerUid && STATE.localPlayerUid !== null && STATE.localPlayerUid !== newLocalPlayerUid) {
-            // Character switch detected! Clear old data
-            console.log(`🔄 Character switch detected: ${STATE.localPlayerUid} → ${newLocalPlayerUid}`);
             STATE.players.clear();
             STATE.startTime = null;
             STATE.inCombat = false;
             STATE.zoneChanged = false;
-            showNotification('Character switched - data cleared', 'info');
         }
         
         // Update local player UID if we have a local player
@@ -453,7 +441,6 @@ async function fetchPlayerData() {
                 const existing = STATE.players.get(uid);
                 
                 if (existing) {
-                    // Update existing player, but preserve name and last non-zero DPS
                     const preservedName = existing.name;
                     const lastDps = existing.current_dps || existing.realtime_dps || 0;
                     const lastMaxDps = existing.max_dps || existing.realtime_dps_max || 0;
@@ -464,7 +451,6 @@ async function fetchPlayerData() {
                         existing.name = preservedName;
                     }
                     
-                    // Hold last non-zero DPS value when combat ends
                     const newDps = player.current_dps || player.realtime_dps || 0;
                     if (newDps === 0 && lastDps > 0) {
                         existing.current_dps = lastDps;
@@ -475,17 +461,14 @@ async function fetchPlayerData() {
                         existing.realtime_dps_max = lastMaxDps;
                     }
                 } else {
-                    // Add new player
                     STATE.players.set(uid, player);
                 }
                 
-                // IDLE DETECTION: Track last update time if player has activity
                 const hasActivity = (player.total_damage?.total || 0) > 0 || (player.total_healing?.total || 0) > 0;
                 if (hasActivity) {
                     STATE.playerLastUpdate.set(uid, Date.now());
                 }
                 
-                // Add to player database - be more aggressive
                 const nameToSave = player.name || existing?.name;
                 if (nameToSave && nameToSave !== 'unknown' && nameToSave !== '') {
                     PLAYER_DB.add(uid, nameToSave);
@@ -495,7 +478,6 @@ async function fetchPlayerData() {
             STATE.lastUpdate = Date.now();
         }
         
-        // Track player count for combat detection
         STATE.lastPlayerCount = payload.data ? payload.data.length : 0;
         
         return Array.from(STATE.players.values());
@@ -532,7 +514,6 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
     const maxDmgVal = player.maxDamage || 0;
     const haste = player.haste || 0;
     
-    // CONTRIBUTION PERCENTAGE
     const contributionPercent = teamTotalDamage > 0 ? ((totalDmg / teamTotalDamage) * 100).toFixed(1) : 0;
     
     const rankClass = rank === 1 ? 'top1' : rank === 2 ? 'top2' : rank === 3 ? 'top3' : '';
@@ -540,13 +521,10 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
     const isCompact = STATE.viewMode === 'compact';
     const isIdle = player.isIdle || false;
     
-    // Compact view - single line with clear labels (respects SETTINGS.columnsCompact)
     if (document.body.classList.contains('compact-mode')) {
-        // Show different stats based on role
         const isHealer = prof.role === 'heal';
         const isTank = prof.role === 'tank';
         
-        // Get column visibility settings
         const showDps = SETTINGS.columnsCompact?.dps !== false;
         const showMaxDps = SETTINGS.columnsCompact?.maxDps !== false;
         const showAvgDps = SETTINGS.columnsCompact?.avgDps !== false;
@@ -621,7 +599,6 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
         `;
     }
     
-    // Detailed view - FIXED: Direct grid children for perfect alignment
     return `
         <div class="player-row-wrapper">
             <div class="player-row ${isLocal ? 'local' : ''} ${isExpanded ? 'expanded' : ''} ${isIdle ? 'idle' : ''}" 
@@ -704,13 +681,11 @@ function updateStatusBar(activeNonIdlePlayers = []) {
         return hasDamage || hasHealing;
     });
     
-    // Update player count
     const playerCountEl = document.getElementById('status-players');
     if (playerCountEl) {
         playerCountEl.textContent = `${activePlayers.length} Player${activePlayers.length !== 1 ? 's' : ''}`;
     }
     
-    // Update network status
     const networkEl = document.getElementById('status-network');
     if (networkEl) {
         const timeSinceUpdate = Date.now() - STATE.lastUpdate;
@@ -723,7 +698,6 @@ function updateStatusBar(activeNonIdlePlayers = []) {
         }
     }
     
-    // Update footer DPS - Show LOCAL PLAYER DPS, not team DPS
     const dpsEl = document.getElementById('status-dps');
     if (dpsEl) {
         const localPlayer = activeNonIdlePlayers.find(p => p.isLocalPlayer || p.uid === STATE.localPlayerUid);
@@ -732,7 +706,6 @@ function updateStatusBar(activeNonIdlePlayers = []) {
     }
 }
 
-// Track which players have changed for incremental updates
 const dirtyPlayers = new Set();
 let lastPlayerState = new Map();
 
@@ -745,7 +718,6 @@ function renderPlayers() {
     
     const players = Array.from(STATE.players.values());
     
-    // If no players have data, show placeholder
     if (players.length === 0) {
         const list = document.getElementById('player-list');
         if (list) {
@@ -757,12 +729,10 @@ function renderPlayers() {
                 </div>
             `;
         }
-        // Update status bar with empty data
         updateStatusBar([]);
         return;
     }
     
-    // Still add all players to database for name mapping
     players.forEach(p => {
         if (p.name && p.name !== 'unknown') {
             PLAYER_DB.add(p.uid, p.name);
@@ -771,12 +741,10 @@ function renderPlayers() {
     
     let filtered = filterPlayers(activePlayers);
     
-    // Apply solo mode filter
     if (STATE.soloMode) {
         filtered = filtered.filter(p => p.isLocalPlayer || p.uid === STATE.localPlayerUid);
     }
     
-    // IDLE DETECTION: Mark players with no updates for 30 seconds
     const now = Date.now();
     const IDLE_THRESHOLD = 30000; // 30 seconds
     filtered.forEach(p => {
@@ -784,16 +752,10 @@ function renderPlayers() {
         p.isIdle = (now - lastUpdate) > IDLE_THRESHOLD;
     });
     
-    console.log(`🔍 After filtering: ${filtered.length} filtered players`);
-    
     const sorted = sortPlayers(filtered);
     
-    console.log(`🔍 After sorting: ${sorted.length} sorted players`);
-    
-    // TEAM TOTALS: Calculate for non-idle players only
     const activeNonIdlePlayers = sorted.filter(p => !p.isIdle);
     
-    // Update status bar with active players
     updateStatusBar(activeNonIdlePlayers);
     const teamTotalDamage = activeNonIdlePlayers.reduce((sum, p) => sum + (p.total_damage?.total || 0), 0);
     const teamTotalHealing = activeNonIdlePlayers.reduce((sum, p) => sum + (p.total_healing?.total || 0), 0);
@@ -805,10 +767,8 @@ function renderPlayers() {
         console.error('❌ player-list element not found!');
         return;
     }
-    // Players: ${STATE.players.size} (reduced logging)
     
     if (sorted.length === 0) {
-        // Check if server is responsive
         const connectionStatus = STATE.lastUpdate > 0 
             ? `Connected • Last update: ${Math.floor((Date.now() - STATE.lastUpdate) / 1000)}s ago`
             : 'Connecting to server...';
@@ -821,7 +781,6 @@ function renderPlayers() {
                 <div style="margin-top:5px;font-size:11px;color:#6b7280;">Server port: ${window.location.port || '8989'}</div>
             </div>
         `;
-        // CRITICAL: Resize IMMEDIATELY after DOM updates
         requestAnimationFrame(() => {
             requestAnimationFrame(() => autoResizeWindow());
         });
@@ -830,7 +789,6 @@ function renderPlayers() {
     
     const maxDmg = Math.max(...sorted.map(p => p.total_damage?.total || 0), 1);
     
-    // Find local player and their rank
     let localPlayer = null;
     let localPlayerRank = 0;
     sorted.forEach((p, idx) => {
@@ -840,13 +798,10 @@ function renderPlayers() {
         }
     });
     
-    // Separate local player from others
     const otherPlayers = sorted.filter(p => !(p.isLocalPlayer || p.uid === STATE.localPlayerUid));
     
-    // Render local player first, then others
     let html = '';
     
-    // Add compact mode column headers
     const isCompact = STATE.viewMode === 'compact';
     if (isCompact) {
         html += `
@@ -861,8 +816,6 @@ function renderPlayers() {
         `;
     }
     
-    // TEAM TOTALS ROW - Only show if in actual party (2+ players)
-    // Use sorted.length to match displayed players
     if (sorted.length >= 2) {
         html += `
             <div class="team-totals-row">
@@ -878,36 +831,28 @@ function renderPlayers() {
         `;
     }
     
-    // Display limit for compact mode
     const isExpandedList = document.getElementById('player-list')?.classList.contains('expanded');
     const isCompactBody = document.body.classList.contains('compact-mode');
     const shouldLimitDisplay = isCompactBody && !isExpandedList;
     
-    // Compact mode logic: 
-    // - If local is in top 5: Show top 5 only (local included in rankings)
-    // - If local is rank 6+: Show top 5 + local at top (6 total)
     let displayLimit = shouldLimitDisplay ? 5 : sorted.length;
     
-    // Render local player at top ONLY if they're rank 6 or worse AND in compact mode
     const shouldShowLocalSeparately = shouldLimitDisplay && localPlayer && localPlayerRank > 5;
     if (shouldShowLocalSeparately) {
         html += renderPlayerRow(localPlayer, localPlayerRank, maxDmg, true, teamTotalDamage);
         html += '<div class="separator">Rankings</div>';
     }
     
-    // Render all players (local will be included if in top 5)
     sorted.forEach((player, idx) => {
         const rank = idx + 1;
         const isLocal = player.isLocalPlayer || player.uid === STATE.localPlayerUid;
         
-        // Skip if we already showed local separately (rank 6+)
         if (isLocal && shouldShowLocalSeparately) {
             return;
         }
         
         const rowHtml = renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage);
         
-        // Add compact-hidden class if beyond display limit
         if (shouldLimitDisplay && idx >= displayLimit) {
             html += rowHtml.replace('<div class="player-row', '<div class="player-row compact-hidden');
         } else {
@@ -915,7 +860,6 @@ function renderPlayers() {
         }
     });
     
-    // Update Show More button visibility and text
     const expandBtn = document.getElementById('btn-expand-list');
     if (expandBtn) {
         if (isCompactBody) {
@@ -933,134 +877,33 @@ function renderPlayers() {
     
     list.innerHTML = html;
     
-    // CRITICAL: Add click handlers to all player rows
     document.querySelectorAll('.player-row').forEach(row => {
         row.style.cursor = 'pointer';
         row.addEventListener('click', (e) => {
-            // Player row clicked (reduced logging)
-            // Don't toggle if clicking on a button or link
             if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('button')) {
-                // Clicked on button, ignoring
                 return;
             }
             const uid = parseInt(row.dataset.uid);
-            // Toggle player details
             togglePlayerDetails(uid, e);
         });
     });
     
-    // Restore skills from cache for expanded players (don't refetch - that happens only on expand)
     expandedPlayerIds.forEach(uid => {
         if (skillsCache.has(uid)) {
             renderSkillsFromCache(uid);
         }
     });
     
-    // Auto-resize after render completes (single call, debounced)
     autoResizeWindow();
 }
 
-// Debounce timer for resize operations
-let resizeDebounceTimer = null;
-let isResizing = false;
-let lastResizeTime = 0;
-let resizeRequestId = null;
-
-// Safety: Reset isResizing flag if stuck
-setInterval(() => {
-    const timeSinceLastResize = Date.now() - lastResizeTime;
-    if (isResizing && timeSinceLastResize > 500) {
-        console.warn('⚠️ isResizing flag was stuck, resetting');
-        isResizing = false;
-    }
-}, 1000);
-
-function autoResizeWindow() {
-    if (!window.electronAPI?.resizeWindow) return;
-    if (isResizing) return; // Skip if already resizing
-
-    const container = document.querySelector('.meter-container');
-    if (!container) return;
-
-    // Clear any pending resize
-    if (resizeDebounceTimer) {
-        clearTimeout(resizeDebounceTimer);
-    }
-
-    // Cancel any pending RAF
-    if (resizeRequestId) {
-        cancelAnimationFrame(resizeRequestId);
-    }
-
-    // Debounce with longer delay to prevent resize fighting
-    resizeDebounceTimer = setTimeout(() => {
-        // Use single RAF instead of nested
-        resizeRequestId = requestAnimationFrame(() => {
-            // Force browser to calculate actual layout by using scrollHeight instead of clientHeight
-            // This gets the actual content height, not the viewport height
-            const actualHeight = container.scrollHeight;
-            const actualWidth = container.scrollWidth;
-            
-            // Different constraints for compact vs full mode
-            const isCompact = document.body.classList.contains('compact-mode');
-            let targetHeight, targetWidth, finalHeight, finalWidth;
-            
-            if (isCompact) {
-                // Compact mode: use scrollHeight for actual content height, tight fit
-                targetHeight = actualHeight + 10; // Minimal padding
-                targetWidth = actualWidth + 10;
-                finalHeight = Math.max(200, Math.min(targetHeight, 800)); // Increased max from 600 to 800
-                finalWidth = Math.max(420, Math.min(targetWidth, 450)); // Consistent min width
-            } else {
-                // Full mode: generous padding
-                targetHeight = actualHeight + 20;
-                targetWidth = actualWidth + 20;
-                finalHeight = Math.max(250, Math.min(targetHeight, 1200));
-                finalWidth = Math.max(800, Math.min(targetWidth, 1600));
-            }
-
-            // Only resize if difference is significant (not every pixel)
-            const currentHeight = window.innerHeight;
-            const currentWidth = window.innerWidth;
-            const heightDiff = Math.abs(finalHeight - currentHeight);
-            const widthDiff = Math.abs(finalWidth - currentWidth);
-            
-            if (heightDiff > 10 || widthDiff > 10) {
-                isResizing = true;
-                lastResizeTime = Date.now();
-                
-                try {
-                    window.electronAPI.resizeWindow(finalWidth, finalHeight);
-                } catch (error) {
-                    console.error('Resize error:', error);
-                }
-                
-                // Shorter timeout to unblock faster
-                setTimeout(() => {
-                    isResizing = false;
-                }, 100);
-            }
-            
-            resizeRequestId = null;
-        });
-    }, 150); // Longer debounce to give drag events priority
-}
-
 function filterPlayers(players) {
-    console.log(`🔍 FILTER: currentFilter="${STATE.currentFilter}", total players=${players.length}`);
     if (STATE.currentFilter === 'all') return players;
     
-    const filtered = players.filter(p => {
+    return players.filter(p => {
         const prof = getProfession(p.profession, p);
-        const matches = prof.role === STATE.currentFilter;
-        if (!matches) {
-            console.log(`  ❌ Filtering out ${p.name}: role="${prof.role}" doesn't match filter="${STATE.currentFilter}"`);
-        }
-        return matches;
+        return prof.role === STATE.currentFilter;
     });
-    
-    console.log(`🔍 FILTER RESULT: ${filtered.length} players match filter "${STATE.currentFilter}"`);
-    return filtered;
 }
 
 function sortPlayers(players) {
@@ -2221,7 +2064,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.6 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.7 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2291,7 +2134,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.6 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.7 - Ready!');
 }
 
 // ============================================================================
@@ -2417,7 +2260,6 @@ function togglePlayerDetails(uid, event) {
         }
         
         renderPlayers(); // Show expanded state with "Loading..."
-        console.log(`🔍 Loading skills for UID: ${uid}`);
         loadAndShowPlayerDetails(uid).catch(err => {
             console.error(`❌ Failed to load skills for ${uid}:`, err);
         }); // Then load the skills (which will trigger resize)
