@@ -584,10 +584,10 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
 
     app.post('/api/sessions/save', async (req, res) => {
         try {
-            const { name } = req.body;
+            const { name, characterUid, characterName } = req.body;
             const timestamp = Date.now();
 
-            logger.info(`📝 Session save requested: "${name}"`);
+            logger.info(`📝 Session save requested: "${name}" for character: ${characterName} (UID: ${characterUid})`);
 
             // Get current session data
             const userData = userDataManager.getAllUsersData();
@@ -618,7 +618,9 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
                 totalDps: players.reduce((sum, p) => sum + (p.total_dps || 0), 0),
                 playerCount: players.length,
                 duration: userDataManager.getDuration ? userDataManager.getDuration() : 0,
-                autoSaved: false // Manual save
+                autoSaved: false, // Manual save
+                characterUid: characterUid || null, // Character UID for filtering
+                characterName: characterName || 'Unknown' // Character name for display
             };
 
             // Ensure sessions directory exists

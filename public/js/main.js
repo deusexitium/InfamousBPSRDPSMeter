@@ -418,10 +418,20 @@ async function fetchPlayerData() {
                 const uid = player.uid;
                 const existing = STATE.players.get(uid);
                 
-                // CRITICAL: Detect and set local player UID
-                if (player.isLocalPlayer && STATE.localPlayerUid !== uid) {
+                // CRITICAL: Detect character switch
+                if (player.isLocalPlayer && STATE.localPlayerUid !== uid && STATE.localPlayerUid !== null) {
+                    // Character switch detected! Clear old data
+                    console.log(`🔄 Character switch detected: ${STATE.localPlayerUid} → ${uid}`);
+                    STATE.players.clear();
+                    STATE.startTime = null;
+                    STATE.inCombat = false;
+                    STATE.zoneChanged = false;
+                    showNotification('Character switched - data cleared', 'info');
+                }
+                
+                // Set local player UID (for first time or after clear)
+                if (player.isLocalPlayer) {
                     STATE.localPlayerUid = uid;
-                    // Local player detected
                 }
                 
                 if (existing) {
@@ -2608,8 +2618,16 @@ function updateSessionDropdown() {
     // Clear existing options except the first one
     dropdown.innerHTML = '<option value="">Current Session</option>';
 
+    // Filter sessions by current character (if we know the character)
+    let filteredSessions = savedSessions;
+    if (STATE.localPlayerUid) {
+        filteredSessions = savedSessions.filter(s => 
+            !s.characterUid || s.characterUid === STATE.localPlayerUid
+        );
+    }
+
     // Sort all sessions by timestamp (most recent first)
-    const sortedSessions = [...savedSessions].sort((a, b) => b.timestamp - a.timestamp);
+    const sortedSessions = [...filteredSessions].sort((a, b) => b.timestamp - a.timestamp);
     
     // Separate manual and auto-saved
     const manualSaved = sortedSessions.filter(s => !s.autoSaved);
@@ -2620,7 +2638,8 @@ function updateSessionDropdown() {
         const option = document.createElement('option');
         option.value = session.id;
         const date = new Date(session.timestamp).toLocaleString();
-        option.textContent = `📝 ${session.name} (${session.playerCount}p, ${formatNumber(session.totalDps)} DPS) - ${date}`;
+        const charInfo = session.characterName ? ` [${session.characterName}]` : '';
+        option.textContent = `📝 ${session.name}${charInfo} (${session.playerCount}p, ${formatNumber(session.totalDps)} DPS)`;
         dropdown.appendChild(option);
     });
 
@@ -2629,7 +2648,8 @@ function updateSessionDropdown() {
         const option = document.createElement('option');
         option.value = session.id;
         const date = new Date(session.timestamp).toLocaleString();
-        option.textContent = `🤖 ${session.name} (${session.playerCount}p, ${formatNumber(session.totalDps)} DPS)`;
+        const charInfo = session.characterName ? ` [${session.characterName}]` : '';
+        option.textContent = `🤖 ${session.name}${charInfo} (${session.playerCount}p, ${formatNumber(session.totalDps)} DPS)`;
         dropdown.appendChild(option);
     });
     
@@ -2811,10 +2831,18 @@ async function saveCurrentSession() {
         
         try {
             console.log('📤 Sending save request...');
+            // Include character UID and name in session
+            const localPlayer = Array.from(STATE.players.values()).find(p => p.uid === STATE.localPlayerUid);
+            const characterName = localPlayer?.name || PLAYER_DB.get(STATE.localPlayerUid) || 'Unknown';
+            
             const response = await fetch('/api/sessions/save', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: sessionName })
+                body: JSON.stringify({ 
+                    name: sessionName,
+                    characterUid: STATE.localPlayerUid,
+                    characterName: characterName
+                })
             });
 
             console.log('📥 Response status:', response.status, response.statusText);
