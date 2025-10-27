@@ -22,6 +22,7 @@
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
 - Get: `Infamous BPSR DPS Meter-Setup-3.1.27.exe` (~90MB)
+- 🆕 **Auto-Update:** v3.1.27+ includes automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**
 - Download from: https://npcap.com/
