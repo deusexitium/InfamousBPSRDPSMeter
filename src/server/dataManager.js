@@ -192,22 +192,31 @@ class StatisticData {
 
     updateRealtimeStats() {
         const now = Date.now();
-
-        // VERIFIED ACCURATE: Rolling 1-second window for current DPS calculation
-        // This implementation matches dmlgzs/StarResonanceDamageCounter approach
-        // Remove entries older than 1 second
-        while (this.realtimeWindow.length > 0 && now - this.realtimeWindow[0].time > 1000) {
+        
+        // Calculate delta damage since last update
+        const currentTotal = this.stats.total;
+        const lastTotal = this.lastRealtimeTotal || 0;
+        const deltaDamage = currentTotal - lastTotal;
+        this.lastRealtimeTotal = currentTotal;
+        
+        // Add delta damage entry with current timestamp
+        if (deltaDamage > 0) {
+            this.realtimeWindow.push({ time: now, value: deltaDamage });
+        }
+        
+        // Remove entries older than 1 second (1000ms)
+        while (this.realtimeWindow.length > 0 && (now - this.realtimeWindow[0].time) > 1000) {
             this.realtimeWindow.shift();
         }
 
-        // Sum all damage in the 1-second window - this IS the DPS
-        // DPS = Damage Per Second, so summing 1 second of damage = current DPS
+        // Sum all delta damage in the 1-second window = current DPS
+        // DPS = Damage Per Second, so summing all deltas in last 1 second = current DPS
         this.realtimeStats.value = 0;
         for (const entry of this.realtimeWindow) {
             this.realtimeStats.value += entry.value;
         }
         
-        // Track maximum DPS spike
+        // Track maximum DPS spike ever reached
         if (this.realtimeStats.value > this.realtimeStats.max) {
             this.realtimeStats.max = this.realtimeStats.value;
         }
