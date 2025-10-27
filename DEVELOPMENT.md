@@ -354,6 +354,12 @@ document.getElementById('btn-clear').addEventListener('click', handleClear);
 - **Lesson:** Incremental fixes safer than large refactors
 - **Lesson:** Always declare variables before use
 
+### **v3.0.0 → v3.0.1:** Proper version control
+- **Mistake:** Made bug fixes after tagging v3.0.0, kept same version
+- **Lesson:** ALWAYS increment version after tagging
+- **Pattern:** Bug fixes = patch version (3.0.0 → 3.0.1)
+- **Why:** Version control tracking, GitHub releases, user clarity
+
 ---
 
 ## 📚 RESOURCES
