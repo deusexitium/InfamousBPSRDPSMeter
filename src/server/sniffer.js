@@ -241,6 +241,10 @@ class Sniffer {
                                         this.clearTcpCache();
                                         this.tcp_next_seq = tcpPacket.info.seqno + buf.length;
                                         this.userDataManager.refreshEnemyCache();
+                                        
+                                        // Mark server change for frontend notification
+                                        this.userDataManager.markServerChanged();
+                                        
                                         if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
                                             this.userDataManager.clearAll(this.globalSettings);
                                             console.log('Server changed, statistics cleared!');
@@ -271,6 +275,10 @@ class Sniffer {
                                 this.clearTcpCache();
                                 this.tcp_next_seq = tcpPacket.info.seqno + buf.length;
                                 this.userDataManager.refreshEnemyCache();
+                                
+                                // Mark server change for frontend notification
+                                this.userDataManager.markServerChanged();
+                                
                                 if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
                                     this.userDataManager.clearAll(this.globalSettings);
                                     console.log('Server changed, statistics cleared!');

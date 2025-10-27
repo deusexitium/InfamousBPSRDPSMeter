@@ -27,6 +27,9 @@ class Lock {
     }
 }
 
+// Server change tracking - set by sniffer when server changes
+let serverChangeDetected = false;
+
 function getSubProfessionBySkillId(skillId) {
     switch (skillId) {
         case 1241:
@@ -1058,6 +1061,22 @@ class UserDataManager {
     /** Reset zone change flag */
     resetZoneChangeFlag() {
         this.zoneChangeDetected = false;
+    }
+    
+    /** Mark that server changed (called by sniffer) */
+    markServerChanged() {
+        serverChangeDetected = true;
+        this.logger.info('🌐 Server change marked for frontend notification');
+    }
+    
+    /** Check if server changed and reset flag */
+    checkAndResetServerChange() {
+        const changed = serverChangeDetected;
+        if (changed) {
+            serverChangeDetected = false;
+            this.logger.info('✅ Server change flag sent to frontend and reset');
+        }
+        return changed;
     }
 
     /** Detect zone/boss from enemy data */

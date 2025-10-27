@@ -46,7 +46,11 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
         }));
 
         const playerCount = payload.length;
-        const zoneChanged = userDataManager.detectZoneChange(playerCount);
+        
+        // Check both: actual server change OR player count-based zone detection
+        const serverChanged = userDataManager.checkAndResetServerChange();
+        const zoneChangedByCount = userDataManager.detectZoneChange(playerCount);
+        const zoneChanged = serverChanged || zoneChangedByCount;
 
         const data = {
             code: 0,
