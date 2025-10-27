@@ -389,29 +389,25 @@ async function fetchPlayerData() {
         
         const payload = await res.json();
         
-        // Check if backend detected zone change
-        if (payload.zoneChanged && !STATE.zoneChanged) {
-            STATE.zoneChanged = true;
-        }
-        
         // Detect combat start (new data appearing)
         const hasActivePlayers = payload.data && payload.data.length > 0 && 
             payload.data.some(p => (p.total_damage?.total || 0) > 0 || (p.total_healing?.total || 0) > 0);
         
-        // Smart clear: If zone changed and now entering combat, auto-save and clear old data
-        if (hasActivePlayers && !STATE.inCombat && STATE.zoneChanged && SETTINGS.autoClearOnZoneChange) {
-            // Auto-save previous session before clearing (AWAIT to ensure save completes first!)
-            if (STATE.players.size > 0 && STATE.startTime) {
+        // CRITICAL FIX: Handle zone change BEFORE updating combat state
+        // Check if backend detected zone change AND we have existing data AND new combat is starting
+        if (payload.zoneChanged && SETTINGS.autoClearOnZoneChange) {
+            // If we have previous combat data and new combat is starting in new zone
+            if (STATE.players.size > 0 && STATE.startTime && hasActivePlayers) {
                 const duration = Math.floor((Date.now() - STATE.startTime) / 1000);
                 if (duration > 10) { // Only save if fight lasted more than 10 seconds
                     console.log('🔄 Zone changed - Auto-saving previous battle before starting new one...');
                     await autoSaveSession('Previous Battle (Auto-saved)');
                 }
+                
+                // Clear old data to start fresh
+                STATE.players.clear();
+                STATE.startTime = null;
             }
-            
-            STATE.players.clear();
-            STATE.startTime = null;
-            STATE.zoneChanged = false;
         }
         
         // Update combat state and manage timer
@@ -844,21 +840,30 @@ function renderPlayers() {
     }
     
     const isExpandedList = document.getElementById('player-list')?.classList.contains('expanded');
-    const isCompactBody = document.body.classList.contains('compact-mode');
-    const shouldLimitDisplay = isCompactBody && !isExpandedList;
+    // Display limits: full mode shows all, compact shows top 5 (or top 5 + local if local is lower)
+    const shouldLimitDisplay = document.body.classList.contains('compact-mode');
     
     let displayLimit = shouldLimitDisplay ? 5 : sorted.length;
     
-    const shouldShowLocalSeparately = shouldLimitDisplay && localPlayer && localPlayerRank > 5;
+    // NEW LOGIC: Always show local player on top if they're NOT rank 1
+    // In compact mode: show local + top 5 if local is rank 6+
+    // In full mode: show local on top if they're rank 2+
+    const shouldShowLocalSeparately = localPlayer && localPlayerRank > 1;
     if (shouldShowLocalSeparately) {
         html += renderPlayerRow(localPlayer, localPlayerRank, maxDmg, true, teamTotalDamage);
         html += '<div class="separator">Rankings</div>';
+        
+        // In compact mode, if local is rank 6+, still limit to top 5 in rankings
+        if (shouldLimitDisplay && localPlayerRank > 5) {
+            // Keep displayLimit at 5 to show top 5 below local
+        }
     }
     
     sorted.forEach((player, idx) => {
         const rank = idx + 1;
         const isLocal = player.isLocalPlayer || player.uid === STATE.localPlayerUid;
         
+        // Skip local player if already shown separately on top
         if (isLocal && shouldShowLocalSeparately) {
             return;
         }
