@@ -848,12 +848,52 @@ function renderPlayers() {
         }
     }
     
+    // Smart display limit for compact mode
+    const isExpandedList = document.getElementById('player-list')?.classList.contains('expanded');
+    const shouldLimitDisplay = isCompact && !isExpandedList;
+    
+    // Determine display limit based on party size
+    let displayLimit = otherPlayers.length; // Default: show all
+    if (shouldLimitDisplay) {
+        const totalPlayers = sorted.length;
+        // If 5 or fewer, show all (dungeon party)
+        // If 6-20, show all (raid party)
+        // If more than 20, limit to top 5 + local
+        if (totalPlayers <= 5) {
+            displayLimit = otherPlayers.length; // Show all (dungeon)
+        } else if (totalPlayers <= 20) {
+            displayLimit = otherPlayers.length; // Show all (raid)
+        } else {
+            // Large group: limit to top 5 (+ local player already shown)
+            displayLimit = 5;
+        }
+    }
+    
     // Render other players
     otherPlayers.forEach((player, idx) => {
         // Get actual rank from full sorted list
         const actualRank = sorted.findIndex(p => p.uid === player.uid) + 1;
-        html += renderPlayerRow(player, actualRank, maxDmg, false, teamTotalDamage);
+        const rowHtml = renderPlayerRow(player, actualRank, maxDmg, false, teamTotalDamage);
+        
+        // Add compact-hidden class if beyond display limit
+        if (shouldLimitDisplay && idx >= displayLimit) {
+            html += rowHtml.replace('<div class="player-row', '<div class="player-row compact-hidden');
+        } else {
+            html += rowHtml;
+        }
     });
+    
+    // Update Show More button visibility and text
+    const expandBtn = document.getElementById('btn-expand-list');
+    if (expandBtn && isCompact) {
+        const hasHiddenPlayers = otherPlayers.length > displayLimit;
+        expandBtn.style.display = hasHiddenPlayers ? 'flex' : 'none';
+        
+        const text = expandBtn.querySelector('span');
+        const icon = expandBtn.querySelector('i');
+        if (text) text.textContent = isExpandedList ? 'Show Less' : 'Show More';
+        if (icon) icon.className = isExpandedList ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
+    }
     
     list.innerHTML = html;
     
@@ -1420,7 +1460,9 @@ function startDurationCounter() {
         
         if (STATE.startTime) {
             const elapsed = Math.floor((Date.now() - STATE.startTime) / 1000);
-            document.getElementById('duration').textContent = formatDuration(elapsed);
+            const timeStr = formatDuration(elapsed);
+            document.getElementById('duration').textContent = timeStr;
+            document.getElementById('compact-duration').textContent = timeStr;
         }
     }, 1000);
 }
@@ -1567,6 +1609,7 @@ function setupEventListeners() {
                 STATE.startTime = null;
                 stopDurationCounter();
                 document.getElementById('duration').textContent = '00:00';
+                document.getElementById('compact-duration').textContent = '00:00';
                 
                 renderPlayers();
                 // CRITICAL: Resize window after clearing data
@@ -1753,22 +1796,29 @@ function setupEventListeners() {
     document.getElementById('btn-expand-list')?.addEventListener('click', () => {
         const playerList = document.getElementById('player-list');
         const button = document.getElementById('btn-expand-list');
-        const icon = button?.querySelector('i');
-        const text = button?.querySelector('span');
         
         if (playerList && button) {
-            const isExpanded = playerList.classList.toggle('expanded');
+            playerList.classList.toggle('expanded');
             
-            if (icon) {
-                icon.className = isExpanded ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
-            }
-            if (text) {
-                text.textContent = isExpanded ? 'Show Less' : 'Show More';
-            }
+            // Re-render to update display
+            renderPlayers();
             
             // Trigger resize after animation
             setTimeout(() => autoResizeWindow(), 250);
         }
+    });
+    
+    // Compact mode button handlers (mirror main buttons)
+    document.getElementById('btn-compact-pause')?.addEventListener('click', async () => {
+        await togglePause();
+    });
+    
+    document.getElementById('btn-compact-solo')?.addEventListener('click', () => {
+        document.getElementById('btn-solo-mode')?.click();
+    });
+    
+    document.getElementById('btn-compact-copy')?.addEventListener('click', () => {
+        copyToClipboard();
     });
     
     // Minimize button

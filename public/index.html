@@ -109,14 +109,23 @@
 
         <!-- Compact Mode Controls (only visible in compact mode) -->
         <div class="compact-controls">
-            <button class="compact-btn" id="btn-compact-reset" title="Reset Data">
+            <button class="compact-btn compact-btn-icon" id="btn-compact-pause" title="Pause">
+                <i class="fa-solid fa-pause"></i>
+            </button>
+            <button class="compact-btn compact-btn-icon" id="btn-compact-solo" title="Solo Mode">
+                <i class="fa-solid fa-user"></i>
+            </button>
+            <button class="compact-btn compact-btn-icon" id="btn-compact-copy" title="Copy to Clipboard">
+                <i class="fa-solid fa-copy"></i>
+            </button>
+            <button class="compact-btn compact-btn-icon" id="btn-compact-reset" title="Reset Data">
                 <i class="fa-solid fa-rotate-right"></i>
-                <span>Reset</span>
             </button>
             <button class="compact-btn" id="btn-expand-list" title="Show All Players">
                 <i class="fa-solid fa-chevron-down"></i>
                 <span>Show More</span>
             </button>
+            <span class="compact-duration" id="compact-duration">00:00</span>
         </div>
 
         <!-- Player List -->
