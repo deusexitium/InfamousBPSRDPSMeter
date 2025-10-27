@@ -591,12 +591,27 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
 
             // Get current session data
             const userData = userDataManager.getAllUsersData();
-            const players = Object.entries(userData).map(([uid, summary]) => ({
-                uid: Number(uid),
-                ...summary
+            const players = await Promise.all(Object.entries(userData).map(async ([uid, summary]) => {
+                const playerData = {
+                    uid: Number(uid),
+                    ...summary
+                };
+                
+                // Include skill data for saved sessions
+                try {
+                    const skillData = userDataManager.getUserSkillData ? userDataManager.getUserSkillData(uid) : null;
+                    if (skillData && skillData.skills) {
+                        playerData.skills = skillData.skills;
+                        playerData.skillsSummary = skillData.skillsSummary || {};
+                    }
+                } catch (error) {
+                    logger.warn(`⚠️ Could not fetch skills for UID ${uid}: ${error.message}`);
+                }
+                
+                return playerData;
             }));
 
-            logger.info(`📊 Session data: ${players.length} players`);
+            logger.info(`📊 Session data: ${players.length} players (with skill data)`);
 
             // Don't save empty or meaningless sessions
             const totalDamage = players.reduce((sum, p) => sum + ((p.total_damage?.total || 0)), 0);

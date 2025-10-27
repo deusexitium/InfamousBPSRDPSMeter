@@ -2564,6 +2564,42 @@ async function loadAndShowPlayerDetails(uid) {
     }
 }
 
+// Display skills from saved session data
+function displaySkillsFromSavedData(uid, skillsData) {
+    try {
+        const skillsContainer = document.getElementById(`skills-${uid}`);
+        if (!skillsContainer) return;
+        
+        // Convert skills object to array format
+        const skillArray = Object.entries(skillsData).map(([name, data]) => ({
+            name,
+            ...data
+        }));
+        
+        if (skillArray.length === 0) {
+            skillsContainer.innerHTML = '<div class="no-data" style="padding:20px;text-align:center;color:#9ca3af;">No skill data available</div>';
+            return;
+        }
+        
+        // Sort by damage and take top 10
+        const top10 = skillArray
+            .sort((a, b) => (b.total || 0) - (a.total || 0))
+            .slice(0, 10);
+        
+        // Render skills table
+        renderSkillsTable(uid, top10);
+        
+        // Resize window after skills are loaded
+        setTimeout(() => autoResizeWindow(), 100);
+    } catch (error) {
+        console.error('Error displaying saved skills:', error);
+        const skillsContainer = document.getElementById(`skills-${uid}`);
+        if (skillsContainer) {
+            skillsContainer.innerHTML = '<div class="no-data" style="padding:20px;text-align:center;color:#9ca3af;">Error loading skill data</div>';
+        }
+    }
+}
+
 // Pause functionality
 let isPaused = false;
 
