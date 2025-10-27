@@ -168,7 +168,7 @@ async function main() {
         console.log('WebSocket server started');
     });
 
-    console.log('✅ Infamous BPSR Meter v3.1.4 - Ready!');
+    console.log('✅ Infamous BPSR Meter v3.1.5 - Ready!');
     console.log('💡 TIP: Works with VPNs like ExitLag! The adapter with most traffic is auto-selected.');
     console.log('Detecting game server, please wait...');
 
