@@ -2073,7 +2073,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.7 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.8 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2143,7 +2143,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.7 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.8 - Ready!');
 }
 
 // ============================================================================
@@ -2853,68 +2853,141 @@ window.deleteSession = async function(sessionId) {
     }
 };
 
+// Auto-save session silently (for zone changes)
+async function autoSaveSession(sessionName) {
+    if (STATE.players.size === 0) return;
+    
+    try {
+        const duration = STATE.startTime ? Math.floor((Date.now() - STATE.startTime) / 1000) : 0;
+        
+        const playerArray = Array.from(STATE.players.values()).map(p => ({
+            uid: p.uid,
+            name: p.name || PLAYER_DB.get(p.uid) || 'Unknown',
+            profession: p.profession || 'unknown',
+            total_damage: p.total_damage || { total: 0 },
+            total_healing: p.total_healing || { total: 0 },
+            total_dps: p.total_dps || 0,
+            total_hps: p.total_hps || 0,
+            max_dps: p.max_dps || 0,
+            taken_damage: p.taken_damage || 0,
+            critRate: p.critRate || 0,
+            luckyRate: p.luckyRate || 0,
+            maxDamage: p.maxDamage || 0,
+            g_score: p.g_score || p.gs || 0,
+            isLocalPlayer: p.isLocalPlayer || p.uid === STATE.localPlayerUid
+        }));
+        
+        const localPlayer = Array.from(STATE.players.values()).find(p => p.uid === STATE.localPlayerUid);
+        const characterName = localPlayer?.name || PLAYER_DB.get(STATE.localPlayerUid) || 'Unknown';
+        
+        const response = await fetch('/api/sessions/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                name: sessionName,
+                timestamp: Date.now(),
+                duration: duration,
+                players: playerArray,
+                characterName: characterName,
+                localPlayerUid: STATE.localPlayerUid
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to auto-save session');
+        }
+        
+        await response.json();
+        console.log(`✅ Auto-saved session: ${sessionName}`);
+        showToast(`Previous battle auto-saved (${formatTime(duration)})`, 'success', 2000);
+        loadSessions(); // Refresh sessions list
+    } catch (error) {
+        console.error('Error auto-saving session:', error);
+    }
+}
+
 // Save current session
 async function saveCurrentSession() {
     if (STATE.players.size === 0) {
-        showToast('No data to save - wait for combat data first', 'warning');
+        showToast('No data to save', 'error');
         return;
     }
-
-    // Create compact inline modal for session name (prompt() doesn't work in Electron)
-    const modalHTML = `
+    
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+    `;
+    
+    const defaultName = `Session ${new Date().toLocaleString()}`;
+    
+    modal.innerHTML = `
         <div id="save-session-modal" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
              background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 16px 20px; 
              box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 9999; min-width: 320px; max-width: 400px;">
             <div style="margin-bottom: 12px; font-size: 13px; font-weight: 600; color: var(--text-primary);">Save Session</div>
-            <input type="text" id="session-name-input" value="Session ${new Date().toLocaleString()}" 
+            <input type="text" id="session-name-input" value="${defaultName}" 
                    style="width: 100%; padding: 6px 10px; background: var(--bg-darker); border: 1px solid var(--border); 
                    border-radius: 4px; color: var(--text-primary); font-size: 12px; margin-bottom: 12px; box-sizing: border-box;">
             <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                <button id="cancel-save-btn" style="padding: 5px 12px; background: var(--bg-darker); border: 1px solid var(--border); 
-                        border-radius: 4px; color: var(--text-secondary); font-size: 11px; cursor: pointer;">Cancel</button>
-                <button id="confirm-save-btn" style="padding: 5px 12px; background: var(--accent-gold); border: none; 
-                        border-radius: 4px; color: #000; font-size: 11px; font-weight: 600; cursor: pointer;">Save</button>
+                <button id="cancel-save" style="padding: 6px 14px; background: var(--bg-darker); border: 1px solid var(--border); 
+                        border-radius: 4px; color: var(--text-secondary); font-size: 12px; cursor: pointer;">Cancel</button>
+                <button id="confirm-save" style="padding: 6px 14px; background: var(--accent-gold); border: none; 
+                        border-radius: 4px; color: var(--bg-dark); font-size: 12px; font-weight: 600; cursor: pointer;">Save</button>
             </div>
         </div>
     `;
     
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.appendChild(modal);
     
     const input = document.getElementById('session-name-input');
-    const confirmBtn = document.getElementById('confirm-save-btn');
-    const cancelBtn = document.getElementById('cancel-save-btn');
-    const modal = document.getElementById('save-session-modal');
-    
-    // Focus and select input text
     input.focus();
     input.select();
     
-    // Cancel handler
-    cancelBtn.addEventListener('click', () => {
-        modal.remove();
+    const cleanup = () => {
+        document.body.removeChild(modal);
+    };
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) cleanup();
     });
     
-    // Handle Enter key
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            confirmBtn.click();
-        } else if (e.key === 'Escape') {
-            modal.remove();
-        }
-    });
+    document.getElementById('cancel-save').addEventListener('click', cleanup);
     
-    confirmBtn.addEventListener('click', async () => {
+    const saveAction = async () => {
         const sessionName = input.value.trim();
         if (!sessionName) {
-            showToast('Please enter a session name', 'warning');
+            showToast('Session name cannot be empty', 'error');
             return;
         }
         
-        modal.remove();
+        cleanup();
         
         try {
-            console.log('📤 Sending save request...');
-            // Include character UID and name in session
+            const duration = STATE.startTime ? Math.floor((Date.now() - STATE.startTime) / 1000) : 0;
+            
+            const playerArray = Array.from(STATE.players.values()).map(p => ({
+                uid: p.uid,
+                name: p.name || PLAYER_DB.get(p.uid) || 'Unknown',
+                profession: p.profession || 'unknown',
+                total_damage: p.total_damage || { total: 0 },
+                total_healing: p.total_healing || { total: 0 },
+                total_dps: p.total_dps || 0,
+                total_hps: p.total_hps || 0,
+                max_dps: p.max_dps || 0,
+                taken_damage: p.taken_damage || 0,
+                critRate: p.critRate || 0,
+                luckyRate: p.luckyRate || 0,
+                maxDamage: p.maxDamage || 0,
+                g_score: p.g_score || p.gs || 0,
+                isLocalPlayer: p.isLocalPlayer || p.uid === STATE.localPlayerUid
+            }));
+            
             const localPlayer = Array.from(STATE.players.values()).find(p => p.uid === STATE.localPlayerUid);
             const characterName = localPlayer?.name || PLAYER_DB.get(STATE.localPlayerUid) || 'Unknown';
             
@@ -2923,26 +2996,31 @@ async function saveCurrentSession() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     name: sessionName,
-                    characterUid: STATE.localPlayerUid,
-                    characterName: characterName
+                    timestamp: Date.now(),
+                    duration: duration,
+                    players: playerArray,
+                    characterName: characterName,
+                    localPlayerUid: STATE.localPlayerUid
                 })
             });
-
-            console.log('📥 Response status:', response.status, response.statusText);
-            const data = await response.json();
-            console.log('📊 Response data:', data);
             
-            if (data.code === 0) {
-                showToast(`Session "${data.session.name}" saved!`, 'success');
-                await loadSessions(); // Refresh dropdown
-            } else {
-                console.error('❌ Save failed - Server returned:', data);
-                showToast(`Failed to save session: ${data.msg}`, 'error');
+            if (!response.ok) {
+                throw new Error('Failed to save session');
             }
+            
+            const result = await response.json();
+            showToast(`Session saved: ${sessionName}`, 'success');
+            loadSessions(); // Refresh sessions list
         } catch (error) {
-            console.error('❌ Save failed - Exception:', error);
-            showToast(`Failed to save session: ${error.message}`, 'error');
+            console.error('Error saving session:', error);
+            showToast('Failed to save session', 'error');
         }
+    };
+    
+    document.getElementById('confirm-save').addEventListener('click', saveAction);
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') saveAction();
+        if (e.key === 'Escape') cleanup();
     });
 }
 
