@@ -879,7 +879,7 @@ function renderPlayers() {
     
     const expandBtn = document.getElementById('btn-expand-list');
     if (expandBtn) {
-        if (isCompactBody) {
+        if (shouldLimitDisplay) {
             const hasHiddenPlayers = sorted.length > displayLimit;
             expandBtn.style.display = hasHiddenPlayers ? 'flex' : 'none';
             
