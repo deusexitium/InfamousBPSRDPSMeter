@@ -134,9 +134,22 @@ const SETTINGS = {
     autoClearOnZoneChange: true, // Clear data when entering combat after zone change
     keepDataAfterDungeon: true, // Don't clear immediately on zone exit
     overlayOpacity: 0.95, // PHASE 3: Overlay transparency (0.0-1.0)
+    compactMode: false, // Persist compact vs full mode
+    windowOpacity: 100, // Window opacity percentage (0-100)
     
-    // Column visibility for overlay mode
-    columns: {
+    // Column visibility for COMPACT mode
+    columnsCompact: {
+        dps: true,
+        maxDps: true,
+        avgDps: false,
+        totalDmg: true,
+        hps: true,
+        dmgTaken: false,
+        gs: false,
+    },
+    
+    // Column visibility for FULL mode
+    columnsFull: {
         dps: true,
         maxDps: true,
         avgDps: true,
@@ -158,9 +171,16 @@ const SETTINGS = {
                 }
                 // Merge top-level settings
                 Object.keys(savedSettings).forEach(key => {
-                    if (key === 'columns' && typeof savedSettings.columns === 'object') {
-                        // Deep merge columns object
-                        Object.assign(this.columns, savedSettings.columns);
+                    if (key === 'columnsCompact' && typeof savedSettings.columnsCompact === 'object') {
+                        // Deep merge columnsCompact object
+                        Object.assign(this.columnsCompact, savedSettings.columnsCompact);
+                    } else if (key === 'columnsFull' && typeof savedSettings.columnsFull === 'object') {
+                        // Deep merge columnsFull object
+                        Object.assign(this.columnsFull, savedSettings.columnsFull);
+                    } else if (key === 'columns' && typeof savedSettings.columns === 'object') {
+                        // Backward compatibility: migrate old 'columns' to both compact and full
+                        Object.assign(this.columnsCompact, savedSettings.columns);
+                        Object.assign(this.columnsFull, savedSettings.columns);
                     } else if (key !== 'load' && key !== 'save') {
                         this[key] = savedSettings[key];
                     }
@@ -1574,14 +1594,23 @@ function setupEventListeners() {
                 opacityValue.textContent = Math.round(currentOpacity * 100) + '%';
             }
         
-        // Load column visibility settings
-        document.getElementById('setting-col-dps').checked = SETTINGS.columns.dps;
-        document.getElementById('setting-col-max-dps').checked = SETTINGS.columns.maxDps;
-        document.getElementById('setting-col-avg-dps').checked = SETTINGS.columns.avgDps;
-        document.getElementById('setting-col-total-dmg').checked = SETTINGS.columns.totalDmg;
-        document.getElementById('setting-col-hps').checked = SETTINGS.columns.hps;
-        document.getElementById('setting-col-dmg-taken').checked = SETTINGS.columns.dmgTaken;
-        document.getElementById('setting-col-gs').checked = SETTINGS.columns.gs;
+        // Load column visibility settings for COMPACT mode
+        document.getElementById('setting-col-compact-dps').checked = SETTINGS.columnsCompact.dps;
+        document.getElementById('setting-col-compact-max-dps').checked = SETTINGS.columnsCompact.maxDps;
+        document.getElementById('setting-col-compact-avg-dps').checked = SETTINGS.columnsCompact.avgDps;
+        document.getElementById('setting-col-compact-total-dmg').checked = SETTINGS.columnsCompact.totalDmg;
+        document.getElementById('setting-col-compact-hps').checked = SETTINGS.columnsCompact.hps;
+        document.getElementById('setting-col-compact-dmg-taken').checked = SETTINGS.columnsCompact.dmgTaken;
+        document.getElementById('setting-col-compact-gs').checked = SETTINGS.columnsCompact.gs;
+        
+        // Load column visibility settings for FULL mode
+        document.getElementById('setting-col-full-dps').checked = SETTINGS.columnsFull.dps;
+        document.getElementById('setting-col-full-max-dps').checked = SETTINGS.columnsFull.maxDps;
+        document.getElementById('setting-col-full-avg-dps').checked = SETTINGS.columnsFull.avgDps;
+        document.getElementById('setting-col-full-total-dmg').checked = SETTINGS.columnsFull.totalDmg;
+        document.getElementById('setting-col-full-hps').checked = SETTINGS.columnsFull.hps;
+        document.getElementById('setting-col-full-dmg-taken').checked = SETTINGS.columnsFull.dmgTaken;
+        document.getElementById('setting-col-full-gs').checked = SETTINGS.columnsFull.gs;
         
             const modal = document.getElementById('modal-settings');
             console.log('📋 Opening settings modal:', modal ? 'Found' : 'NOT FOUND');
@@ -1935,13 +1964,23 @@ function setupEventListeners() {
             }
         }
         
-        SETTINGS.columns.dps = document.getElementById('setting-col-dps').checked;
-        SETTINGS.columns.maxDps = document.getElementById('setting-col-max-dps').checked;
-        SETTINGS.columns.avgDps = document.getElementById('setting-col-avg-dps').checked;
-        SETTINGS.columns.totalDmg = document.getElementById('setting-col-total-dmg').checked;
-        SETTINGS.columns.hps = document.getElementById('setting-col-hps').checked;
-        SETTINGS.columns.dmgTaken = document.getElementById('setting-col-dmg-taken').checked;
-        SETTINGS.columns.gs = document.getElementById('setting-col-gs').checked;
+        // Save column visibility for COMPACT mode
+        SETTINGS.columnsCompact.dps = document.getElementById('setting-col-compact-dps').checked;
+        SETTINGS.columnsCompact.maxDps = document.getElementById('setting-col-compact-max-dps').checked;
+        SETTINGS.columnsCompact.avgDps = document.getElementById('setting-col-compact-avg-dps').checked;
+        SETTINGS.columnsCompact.totalDmg = document.getElementById('setting-col-compact-total-dmg').checked;
+        SETTINGS.columnsCompact.hps = document.getElementById('setting-col-compact-hps').checked;
+        SETTINGS.columnsCompact.dmgTaken = document.getElementById('setting-col-compact-dmg-taken').checked;
+        SETTINGS.columnsCompact.gs = document.getElementById('setting-col-compact-gs').checked;
+        
+        // Save column visibility for FULL mode
+        SETTINGS.columnsFull.dps = document.getElementById('setting-col-full-dps').checked;
+        SETTINGS.columnsFull.maxDps = document.getElementById('setting-col-full-max-dps').checked;
+        SETTINGS.columnsFull.avgDps = document.getElementById('setting-col-full-avg-dps').checked;
+        SETTINGS.columnsFull.totalDmg = document.getElementById('setting-col-full-total-dmg').checked;
+        SETTINGS.columnsFull.hps = document.getElementById('setting-col-full-hps').checked;
+        SETTINGS.columnsFull.dmgTaken = document.getElementById('setting-col-full-dmg-taken').checked;
+        SETTINGS.columnsFull.gs = document.getElementById('setting-col-full-gs').checked;
         
         SETTINGS.save();
         

@@ -209,21 +209,40 @@
                 <!-- Display Tab -->
                 <div class="settings-panel" data-panel="display">
                     <h3 style="margin:0 0 8px 0; color:#f3f4f6; font-size:14px;">Column Visibility</h3>
-                    <p style="font-size:11px; color:#9ca3af; margin:0 0 12px 0;">
-                        Choose which columns to display in both Compact and Full modes. 
-                        Customize your detail level.
+                    <p style="font-size:11px; color:#9ca3af; margin:0 0 16px 0;">
+                        Customize which columns appear in each mode independently.
                     </p>
-                    <div class="settings-grid">
-                        <label><input type="checkbox" id="setting-col-dps" checked> Current DPS</label>
-                        <label><input type="checkbox" id="setting-col-max-dps" checked> Max DPS</label>
-                        <label><input type="checkbox" id="setting-col-avg-dps" checked> Avg DPS</label>
-                        <label><input type="checkbox" id="setting-col-total-dmg" checked> Total DMG</label>
-                        <label><input type="checkbox" id="setting-col-hps" checked> HPS / Max</label>
-                        <label><input type="checkbox" id="setting-col-dmg-taken" checked> DMG Taken</label>
-                        <label><input type="checkbox" id="setting-col-gs" checked> Gear Score</label>
+                    
+                    <!-- Compact Mode Columns -->
+                    <h4 style="margin:0 0 8px 0; color:#fbbf24; font-size:13px; font-weight:600;">
+                        <i class="fa-solid fa-compress"></i> Compact Mode (Overlay)
+                    </h4>
+                    <div class="settings-grid" style="margin-bottom:20px;">
+                        <label><input type="checkbox" id="setting-col-compact-dps" checked> Current DPS</label>
+                        <label><input type="checkbox" id="setting-col-compact-max-dps" checked> Max DPS</label>
+                        <label><input type="checkbox" id="setting-col-compact-avg-dps"> Avg DPS</label>
+                        <label><input type="checkbox" id="setting-col-compact-total-dmg" checked> Total DMG</label>
+                        <label><input type="checkbox" id="setting-col-compact-hps" checked> HPS / Max</label>
+                        <label><input type="checkbox" id="setting-col-compact-dmg-taken"> DMG Taken</label>
+                        <label><input type="checkbox" id="setting-col-compact-gs"> Gear Score</label>
                     </div>
+                    
+                    <!-- Full Mode Columns -->
+                    <h4 style="margin:0 0 8px 0; color:#60a5fa; font-size:13px; font-weight:600;">
+                        <i class="fa-solid fa-expand"></i> Full Mode (Detailed View)
+                    </h4>
+                    <div class="settings-grid">
+                        <label><input type="checkbox" id="setting-col-full-dps" checked> Current DPS</label>
+                        <label><input type="checkbox" id="setting-col-full-max-dps" checked> Max DPS</label>
+                        <label><input type="checkbox" id="setting-col-full-avg-dps" checked> Avg DPS</label>
+                        <label><input type="checkbox" id="setting-col-full-total-dmg" checked> Total DMG</label>
+                        <label><input type="checkbox" id="setting-col-full-hps" checked> HPS / Max</label>
+                        <label><input type="checkbox" id="setting-col-full-dmg-taken" checked> DMG Taken</label>
+                        <label><input type="checkbox" id="setting-col-full-gs" checked> Gear Score</label>
+                    </div>
+                    
                     <p style="font-size:10px; color:#6b7280; margin:12px 0 0 0; font-style: italic;">
-                        💡 Tip: Uncheck columns you don't need to simplify the display
+                        💡 Tip: Use fewer columns in Compact for cleaner overlay, more in Full for detailed analysis
                     </p>
                 </div>
 
