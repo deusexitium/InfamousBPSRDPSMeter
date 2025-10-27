@@ -1644,9 +1644,17 @@ function setupEventListeners() {
     document.getElementById('btn-solo-mode')?.addEventListener('click', () => {
         STATE.soloMode = !STATE.soloMode;
         const btn = document.getElementById('btn-solo-mode');
+        const compactBtn = document.getElementById('btn-compact-solo');
+        const activeStyle = STATE.soloMode ? 'rgba(251, 191, 36, 0.2)' : '';
+        const borderStyle = STATE.soloMode ? 'var(--accent-gold)' : '';
+        
         if (btn) {
-            btn.style.background = STATE.soloMode ? 'rgba(251, 191, 36, 0.2)' : '';
-            btn.style.borderColor = STATE.soloMode ? 'var(--accent-gold)' : '';
+            btn.style.background = activeStyle;
+            btn.style.borderColor = borderStyle;
+        }
+        if (compactBtn) {
+            compactBtn.style.background = activeStyle;
+            compactBtn.style.borderColor = borderStyle;
         }
         renderPlayers();
         // CRITICAL: Resize window after solo mode toggle
@@ -2114,7 +2122,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v3.0.4 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v3.0.5 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2184,7 +2192,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR Meter v3.0.4 - Ready!');
+    console.log('✅ Infamous BPSR Meter v3.0.5 - Ready!');
 }
 
 // ============================================================================
@@ -2472,13 +2480,17 @@ async function togglePause() {
         
         if (isPaused) {
             stopAutoRefresh();
-            icon.className = 'fa-solid fa-play';
-            btn.title = 'Resume';
+            if (icon) icon.className = 'fa-solid fa-play';
+            if (compactIcon) compactIcon.className = 'fa-solid fa-play';
+            if (btn) btn.title = 'Resume';
+            if (compactBtn) compactBtn.title = 'Resume';
             showToast('⏸️ Paused - All data frozen', 'info', 5000);
         } else {
             startAutoRefresh();
-            icon.className = 'fa-solid fa-pause';
-            btn.title = 'Pause';
+            if (icon) icon.className = 'fa-solid fa-pause';
+            if (compactIcon) compactIcon.className = 'fa-solid fa-pause';
+            if (btn) btn.title = 'Pause';
+            if (compactBtn) compactBtn.title = 'Pause';
             showToast('▶️ Resumed - Data collection active', 'success', 3000);
         }
     } catch (error) {
