@@ -1572,9 +1572,17 @@ function setupEventListeners() {
     const settingsBtn = document.getElementById('btn-settings');
     // Settings button found
     if (settingsBtn) {
-        settingsBtn.addEventListener('click', (e) => {
+        settingsBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
+            
+            // If in compact mode, temporarily expand window for settings
+            const isCompact = document.body.classList.contains('compact-mode');
+            if (isCompact && window.electronAPI?.setWindowSize) {
+                STATE.tempExpandedForSettings = true;
+                await window.electronAPI.setWindowSize(1000, 700);
+            }
+            
             // Settings modal opening...
             
             // Load current settings
@@ -1891,8 +1899,16 @@ function setupEventListeners() {
     
     // Modal close buttons
     document.querySelectorAll('.modal-close').forEach(btn => {
-        btn.addEventListener('click', () => {
-            btn.closest('.modal').classList.remove('active');
+        btn.addEventListener('click', async () => {
+            const modal = btn.closest('.modal');
+            modal.classList.remove('active');
+            
+            // If we temporarily expanded for settings, restore compact size
+            if (modal.id === 'modal-settings' && STATE.tempExpandedForSettings) {
+                STATE.tempExpandedForSettings = false;
+                // Small delay to let modal close animation finish
+                setTimeout(() => autoResizeWindow(), 100);
+            }
         });
     });
     
@@ -2587,6 +2603,12 @@ function updateOpacitySlider(value) {
 // Settings Modal Close Handler
 document.getElementById('settings-close')?.addEventListener('click', () => {
     document.getElementById('modal-settings')?.classList.remove('active');
+    
+    // If we temporarily expanded for settings, restore compact size
+    if (STATE.tempExpandedForSettings) {
+        STATE.tempExpandedForSettings = false;
+        setTimeout(() => autoResizeWindow(), 100);
+    }
 });
 
 // Settings Tab Switching

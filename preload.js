@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     setWindowPosition: (x, y) => ipcRenderer.send('set-window-position', x, y),
     getUserDataPath: () => ipcRenderer.invoke('get-user-data-path'),
     openFolder: (folderPath) => ipcRenderer.send('open-folder', folderPath),
+    setWindowSize: (width, height) => ipcRenderer.invoke('set-window-size', width, height),
     // PHASE 3: Overlay control APIs
     setClickThrough: (enabled) => ipcRenderer.send('set-click-through', enabled),
     setOpacity: (opacity) => ipcRenderer.send('set-opacity', opacity),

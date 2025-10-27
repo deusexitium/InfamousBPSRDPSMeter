@@ -404,6 +404,15 @@ logToFile('==== ELECTRON START ====');
         return app.getPath('userData');
     });
 
+    // Set window size (for settings modal in compact mode)
+    ipcMain.handle('set-window-size', (event, width, height) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.setSize(width, height, true);
+            return { success: true };
+        }
+        return { success: false };
+    });
+
     // Open folder in file explorer
     ipcMain.on('open-folder', (event, folderPath) => {
         shell.openPath(folderPath);
