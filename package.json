@@ -156,9 +156,6 @@
       "perMachine": true,
       "installerIcon": "icon.ico",
       "uninstallerIcon": "icon.ico",
-      "installerHeader": "icon.png",
-      "installerSidebar": "icon.png",
-      "uninstallerSidebar": "icon.png",
       "displayLanguageSelector": false,
       "menuCategory": true,
       "allowElevation": true
