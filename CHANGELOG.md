@@ -7,6 +7,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.2] - 2025-10-26 🔧 PATCH - Character Switching & Per-Character Sessions
+
+### 🐛 Bug Fixes
+
+**Issue 1: Character Switching Detection**
+- **Problem:** When switching characters, old data persists and new character detected incorrectly
+- **User Report:** "switched characters, it still showed my tank, but it detected it as DPS"
+- **Root Cause:** Local player UID changes but data wasn't cleared
+- **Fixed:** Auto-detect character switch and clear combat data
+  - Detects when `STATE.localPlayerUid` changes
+  - Clears all player data, timer, combat state
+  - Shows notification: "Character switched - data cleared"
+  - Continues to track new character's DPS from 0
+
+**Issue 2: Session Management Per Character**
+- **Problem:** All characters share same session history
+- **User Request:** "saved sessions should be saved based on character, different characters should have different saved sessions"
+- **Fixed:** Character-specific session management
+  - Sessions tagged with `characterUid` and `characterName`
+  - Session dropdown filtered by current character
+  - Each character has separate session history
+  - Character name shown in session list: `[CharacterName]`
+
+### ✨ Features Added
+
+**Character Switch Detection:**
+- Automatic data clearing on character switch
+- Preserves session continuity for same character
+- Clean slate for new character combat data
+- Notification alerts user of character switch
+
+**Per-Character Sessions:**
+- Sessions tagged with character UID and name
+- Filter dropdown by current character
+- Backwards compatible (old sessions still show)
+- Better organization for multi-character players
+
+### 🔧 Technical Changes
+
+**Frontend (main.js):**
+```javascript
+// Character switch detection
+if (player.isLocalPlayer && STATE.localPlayerUid !== uid && STATE.localPlayerUid !== null) {
+    console.log(`🔄 Character switch detected: ${STATE.localPlayerUid} → ${uid}`);
+    STATE.players.clear();
+    STATE.startTime = null;
+    showNotification('Character switched - data cleared');
+}
+
+// Session filtering
+filteredSessions = savedSessions.filter(s => 
+    !s.characterUid || s.characterUid === STATE.localPlayerUid
+);
+```
+
+**Backend (api.js):**
+```javascript
+const sessionData = {
+    // ... existing fields
+    characterUid: characterUid || null,
+    characterName: characterName || 'Unknown'
+};
+```
+
+### 📦 Files Changed
+
+- `public/js/main.js` - Character switch detection + session filtering
+- `src/server/api.js` - Store character data in sessions
+
+### 🎯 Benefits
+
+1. ✅ Clean data when switching characters
+2. ✅ No mixed DPS from different characters
+3. ✅ Separate session history per character
+4. ✅ Better organization for multi-character gameplay
+5. ✅ Character names visible in session list
+
+---
+
 ## [3.0.1] - 2025-10-26 🔧 PATCH - Compact Mode Fixes
 
 ### 🐛 Bug Fixes - Compact Mode
