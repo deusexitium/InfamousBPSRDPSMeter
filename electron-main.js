@@ -94,6 +94,7 @@ logToFile('==== ELECTRON START ====');
             frame: false,
             transparent: false,
             resizable: true,  // ENABLE manual resize
+            backgroundColor: '#1a1d29',  // Match app background color
             webPreferences: {
                 preload: path.join(__dirname, 'preload.js'),
                 nodeIntegration: false,

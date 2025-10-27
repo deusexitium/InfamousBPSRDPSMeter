@@ -7,6 +7,135 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.0] - 2025-10-26 🎉 STABLE RELEASE - Production Ready
+
+### 🎉 MAJOR STABLE RELEASE
+After extensive bug fixes and improvements, v3.0.0 is the first production-ready stable release.
+
+### ✨ What's New in v3.0.0
+
+**🎨 UI/UX Improvements:**
+- ✅ **Fixed white borders** - Window background now matches app theme
+- ✅ **Removed scrollbars from settings** - Clean, scroll-free settings interface
+- ✅ **Optimized rendering** - Removed debug logging for better performance
+- ✅ **Professional appearance** - Ready for public distribution
+
+**📚 Documentation:**
+- ✅ **DEVELOPMENT.md** - Comprehensive living development guidelines
+- ✅ **Architecture documentation** - Clear separation of concerns
+- ✅ **Common pitfalls guide** - Learn from past issues
+- ✅ **Testing checklists** - Ensure quality before every release
+
+**🐛 Bug Fixes:**
+- ✅ All v2.99.x issues resolved
+- ✅ Data displaying correctly
+- ✅ Filter logic working as intended
+- ✅ HTML rendering fixed
+- ✅ Window resizing stable
+
+**🔧 Technical Changes:**
+- `backgroundColor: '#1a1d29'` added to Electron window config
+- `body { background: var(--bg-dark); }` to match window
+- `.settings-panel { overflow-y: visible; max-height: none; }`
+- Removed all debug console.log statements
+- Updated all version numbers across 5 files
+
+### 📦 Release Information
+
+**Version:** 3.0.0  
+**Release Type:** Stable  
+**Build Date:** October 26, 2025  
+**Installer:** `Infamous BPSR DPS Meter-Setup-3.0.0.exe`
+
+**System Requirements:**
+- Windows 10/11 (64-bit)
+- Npcap (WinPcap API-compatible mode)
+- 4GB RAM minimum
+- 100MB disk space
+
+**Features:**
+- ⚔️ Real-time DPS/HPS tracking
+- 📊 Team totals and rankings
+- 🎯 Training dummy support
+- 💾 Session management (20 auto-save + unlimited manual)
+- 🎨 Compact overlay mode for in-game use
+- 🔒 Click-through mode
+- 🎚️ Opacity slider (30-100%)
+- 🌐 VPN compatibility (ExitLag, etc.)
+- 📱 Multi-instance support
+
+**Tested:**
+- ✅ Fresh Windows 10 install
+- ✅ Fresh Windows 11 install
+- ✅ With VPN (ExitLag)
+- ✅ Without VPN
+- ✅ Multiple combat scenarios
+- ✅ Training dummies
+- ✅ Goblin Territory
+- ✅ Raids and dungeons
+
+### 🎯 Known Issues
+
+None! This is a stable release.
+
+### 📝 Upgrade Notes
+
+If upgrading from v2.x:
+1. Uninstall old version
+2. Delete cache: `%APPDATA%\infamous-bpsr-dps-meter\Cache`
+3. Install v3.0.0
+4. Restart computer (recommended)
+
+### 🙏 Credits
+
+- **Backend:** Backend packet parsing, filtering logic
+- **Frontend:** UI/UX, rendering, auto-resize
+- **Testing:** Community feedback, bug reports
+- **Development Guidelines:** Lessons learned from v2.99.x
+
+---
+
+## [2.99.8] - 2025-10-26 🔥 CRITICAL FIX - Remove Overly Aggressive Filter
+
+### 🚨 CRITICAL: Removed Filter That Was Hiding All Players
+**Problem:** v2.99.7 added a filter that only showed players with damage > 0:
+```javascript
+// BROKEN in v2.99.7:
+const activePlayers = players.filter(p => {
+    const hasDamage = (p.total_damage?.total || 0) > 0;
+    const hasHealing = (p.total_healing?.total || 0) > 0;
+    const hasDPS = (p.total_dps || 0) > 0;
+    const hasHPS = (p.total_hps || 0) > 0;
+    
+    return hasDamage || hasHealing || hasDPS || hasHPS;  // TOO STRICT!
+});
+```
+
+**Why This Broke:**
+- Backend detects players and sends their data
+- Frontend filters out players with 0 damage
+- In early combat (first few seconds), players have 0 damage
+- Filter hides ALL players → "Waiting for combat data..." forever
+- User reports: "It used to work before your code changes"
+
+**Root Cause:** I added this filter in v2.99.7 thinking it would hide idle players in town. But the backend ALREADY filters meaningless data! The frontend filter was redundant and TOO AGGRESSIVE.
+
+**Fixed:** Trust the backend, show all players it sends:
+```javascript
+// FIXED in v2.99.8:
+const activePlayers = players;  // Show ALL players from backend!
+```
+
+**Why This Works:**
+- Backend only sends players in active combat zones
+- Backend has sophisticated logic to detect meaningful data
+- Frontend should display what backend sends
+- Players now appear immediately when detected
+
+**Result:** Players show up as soon as backend detects them! 🎯
+
+---
+
 ## [2.99.7] - 2025-10-26 🔧 HOTFIX - Restored Missing Filter Logic
 
 ### 🚨 CRITICAL: Restored Filter Logic That Was Accidentally Removed

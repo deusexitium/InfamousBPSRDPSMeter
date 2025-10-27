@@ -791,6 +791,27 @@ function renderPlayers() {
         }
     });
     
+    // Separate local player from others
+    const otherPlayers = sorted.filter(p => !(p.isLocalPlayer || p.uid === STATE.localPlayerUid));
+    
+    // Render local player first, then others
+    let html = '';
+    
+    // Add compact mode column headers
+    const isCompact = STATE.viewMode === 'compact';
+    if (isCompact) {
+        html += `
+            <div class="compact-headers">
+                <div class="compact-header-rank">#</div>
+                <div class="compact-header-name">PLAYER</div>
+                <div class="compact-header-dps">DPS</div>
+                <div class="compact-header-stat">MAX</div>
+                <div class="compact-header-stat">TOTAL</div>
+                <div class="compact-header-stat">%</div>
+            </div>
+        `;
+    }
+    
     // TEAM TOTALS ROW - Only show if in actual party (2+ players)
     // Use sorted.length to match displayed players
     if (sorted.length >= 2) {
@@ -1992,7 +2013,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v2.99.8 - Initializing...');
+    console.log('🚀 Infamous BPSR Meter v3.0.0 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2062,7 +2083,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR Meter v2.99.8 - Ready!');
+    console.log('✅ Infamous BPSR Meter v3.0.0 - Ready!');
 }
 
 // ============================================================================

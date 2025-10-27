@@ -25,7 +25,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Inter', -apple-system, sans-serif;
-    background: transparent;
+    background: var(--bg-dark); /* Match window background to prevent white borders */
     color: var(--text-primary);
     overflow: hidden; /* Prevent scrollbars causing extra space */
     -webkit-font-smoothing: antialiased;
@@ -1038,14 +1038,8 @@ body {
 .settings-panel {
     display: none;
     padding: 12px;
-    max-height: 50vh;
-    overflow-y: auto;
-}
-
-/* About tab should NOT have inner scroll */
-.settings-panel[data-panel="about"] {
-    overflow-y: visible;
-    max-height: none;
+    max-height: none; /* Remove height limit to prevent scrollbars */
+    overflow-y: visible; /* No scrollbars */
 }
 
 /* Ultra-compact 2-column grid */
