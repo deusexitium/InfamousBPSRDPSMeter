@@ -2233,7 +2233,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR Meter v3.1.5 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.6 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2303,7 +2303,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR Meter v3.1.5 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.6 - Ready!');
 }
 
 // ============================================================================
