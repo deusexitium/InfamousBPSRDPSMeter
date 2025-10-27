@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.1] - 2025-10-26 🔧 PATCH - Compact Mode Fixes
+
+### 🐛 Bug Fixes - Compact Mode
+
+**Issue 1: Missing Reset Button**
+- **Problem:** Compact mode had no way to reset/clear data
+- **Root Cause:** Reset button was in `.meter-header` which is hidden in compact mode
+- **Fixed:** Added dedicated compact controls bar with Reset button
+
+**Issue 2: Show More/Less Not Working**
+- **Problem:** Button to show all players didn't exist/work
+- **Root Cause:** JavaScript handler existed but HTML button was never created
+- **Fixed:** Added Show More/Less button to compact controls
+
+### ✨ New Features - Compact Mode
+
+**Compact Controls Bar:**
+- 🔄 **Reset Button** - Clears all data and statistics
+- 📊 **Show More** - Expands to show all players (default shows 6)
+- 📉 **Show Less** - Collapses back to 6 players
+- Auto-resize after expand/collapse
+
+**Technical Details:**
+- New `.compact-controls` section in HTML
+- Only visible in compact mode
+- Centered layout with clean button design
+- Gold hover effects
+- Proper event handlers for both buttons
+
+### 📦 Files Changed
+
+- `public/index.html` - Added compact controls bar
+- `public/css/style.css` - Added compact controls styling
+- `public/js/main.js` - Added reset and expand/collapse handlers
+- `CHANGELOG.md` - Updated documentation
+
+### 🎯 Version Notes
+
+This is a patch release that fixes missing functionality in compact mode that was reported after v3.0.0 release.
+Follows semantic versioning: v3.0.0 → v3.0.1 (patch for bug fixes).
+
+---
+
 ## [3.0.0] - 2025-10-26 🎉 STABLE RELEASE - Production Ready
 
 ### 🎉 MAJOR STABLE RELEASE
