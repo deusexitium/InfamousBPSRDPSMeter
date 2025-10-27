@@ -745,20 +745,8 @@ function renderPlayers() {
     
     const players = Array.from(STATE.players.values());
     
-    // CRITICAL DEBUG: Log player data structure
-    if (players.length > 0) {
-        console.log(`🔍 renderPlayers: ${players.length} total players in STATE`);
-        console.log('🔍 Sample player structure:', players[0]);
-    }
-    
-    // FIXED: Don't filter too aggressively - show all players detected by backend
-    // The backend already filters out meaningless data
-    const activePlayers = players;
-    
-    console.log(`🔍 Total players to display: ${activePlayers.length}`);
-    
     // If no players have data, show placeholder
-    if (activePlayers.length === 0) {
+    if (players.length === 0) {
         const list = document.getElementById('player-list');
         if (list) {
             list.innerHTML = `
