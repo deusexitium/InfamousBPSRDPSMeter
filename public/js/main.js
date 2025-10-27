@@ -136,6 +136,7 @@ const SETTINGS = {
     overlayOpacity: 0.95, // PHASE 3: Overlay transparency (0.0-1.0)
     compactMode: false, // Persist compact vs full mode
     windowOpacity: 100, // Window opacity percentage (0-100)
+    defaultSort: 'totalDmg', // Default column for ranking (totalDmg, dps, maxDps, avgDps, hps)
     
     // Column visibility for COMPACT mode
     columnsCompact: {
@@ -1584,6 +1585,7 @@ function setupEventListeners() {
             document.getElementById('setting-remember-names').checked = SETTINGS.rememberNames;
             document.getElementById('setting-auto-clear-zone').checked = SETTINGS.autoClearOnZoneChange;
             document.getElementById('setting-keep-after-dungeon').checked = SETTINGS.keepDataAfterDungeon;
+            document.getElementById('setting-default-sort').value = SETTINGS.defaultSort || 'totalDmg';
             
             // Load opacity slider value
             const opacitySlider = document.getElementById('setting-overlay-opacity');
@@ -1951,6 +1953,11 @@ function setupEventListeners() {
         SETTINGS.keepDataAfterDungeon = document.getElementById('setting-keep-after-dungeon').checked;
         const refreshVal = document.getElementById('setting-refresh').value;
         SETTINGS.refreshInterval = parseFloat(refreshVal) || 1.5;
+        
+        // Default ranking metric
+        const defaultSortVal = document.getElementById('setting-default-sort').value;
+        SETTINGS.defaultSort = defaultSortVal;
+        currentSort.column = defaultSortVal; // Apply immediately
         
         // Overlay settings (from "Overlay" tab)
         SETTINGS.showGS = document.getElementById('setting-show-gs')?.checked ?? true;
@@ -2628,8 +2635,8 @@ window.openDataFolder = openDataFolder;
 // Initialize tabs after DOM is ready
 setTimeout(initializeSettingsTabs, 100);
 
-// Sortable Column Headers
-let currentSort = { column: 'totalDmg', direction: 'desc' };
+// Sortable Column Headers - Use setting for default
+let currentSort = { column: SETTINGS.defaultSort || 'totalDmg', direction: 'desc' };
 
 document.querySelectorAll('.column-headers > div[data-sort]').forEach(header => {
     header.addEventListener('click', () => {
