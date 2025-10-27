@@ -748,6 +748,9 @@ function renderPlayers() {
         }
     });
     
+    // Don't filter too aggressively - show all players detected by backend
+    const activePlayers = players;
+    
     let filtered = filterPlayers(activePlayers);
     
     if (STATE.soloMode) {
