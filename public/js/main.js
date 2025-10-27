@@ -197,6 +197,17 @@ const SETTINGS = {
         try {
             const { load, save, ...settings } = this;
             localStorage.setItem('bpsr-settings', JSON.stringify(settings));
+            
+            // CRITICAL: Also send to backend so globalSettings stay in sync
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    autoClearOnZoneChange: settings.autoClearOnZoneChange,
+                    keepDataAfterDungeon: settings.keepDataAfterDungeon
+                })
+            }).catch(err => console.error('Failed to sync settings to backend:', err));
+            
             // Settings saved
         } catch (e) {
             console.error('Failed to save settings:', e);
