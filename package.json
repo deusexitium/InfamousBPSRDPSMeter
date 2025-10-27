@@ -139,7 +139,10 @@
         }
       ],
       "requestedExecutionLevel": "requireAdministrator",
-      "verifyUpdateCodeSignature": false
+      "verifyUpdateCodeSignature": false,
+      "publisherName": "Infamous BPSR DPS Meter",
+      "fileVersion": "3.1.15",
+      "legalTrademarks": "Open Source - AGPL-3.0"
     },
     "nsis": {
       "oneClick": false,
@@ -150,7 +153,15 @@
       "runAfterFinish": true,
       "artifactName": "${productName}-Setup-${version}.exe",
       "deleteAppDataOnUninstall": false,
-      "perMachine": true
+      "perMachine": true,
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico",
+      "installerHeader": "icon.png",
+      "installerSidebar": "icon.png",
+      "uninstallerSidebar": "icon.png",
+      "displayLanguageSelector": false,
+      "menuCategory": true,
+      "allowElevation": true
     },
     "directories": {
       "output": "dist_electron"
