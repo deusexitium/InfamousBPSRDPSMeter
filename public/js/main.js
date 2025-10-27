@@ -400,12 +400,12 @@ async function fetchPlayerData() {
         
         // Smart clear: If zone changed and now entering combat, auto-save and clear old data
         if (hasActivePlayers && !STATE.inCombat && STATE.zoneChanged && SETTINGS.autoClearOnZoneChange) {
-            // Auto-save previous session before clearing
+            // Auto-save previous session before clearing (AWAIT to ensure save completes first!)
             if (STATE.players.size > 0 && STATE.startTime) {
                 const duration = Math.floor((Date.now() - STATE.startTime) / 1000);
                 if (duration > 10) { // Only save if fight lasted more than 10 seconds
                     console.log('🔄 Zone changed - Auto-saving previous battle before starting new one...');
-                    autoSaveSession('Previous Battle (Auto-saved)');
+                    await autoSaveSession('Previous Battle (Auto-saved)');
                 }
             }
             
@@ -2073,7 +2073,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.8 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.9 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2143,7 +2143,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.8 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.9 - Ready!');
 }
 
 // ============================================================================
