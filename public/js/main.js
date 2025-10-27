@@ -1050,11 +1050,20 @@ function autoResizeWindow() {
 }
 
 function filterPlayers(players) {
+    console.log(`🔍 FILTER: currentFilter="${STATE.currentFilter}", total players=${players.length}`);
     if (STATE.currentFilter === 'all') return players;
-    return players.filter(p => {
+    
+    const filtered = players.filter(p => {
         const prof = getProfession(p.profession, p);
-        return prof.role === STATE.currentFilter;
+        const matches = prof.role === STATE.currentFilter;
+        if (!matches) {
+            console.log(`  ❌ Filtering out ${p.name}: role="${prof.role}" doesn't match filter="${STATE.currentFilter}"`);
+        }
+        return matches;
     });
+    
+    console.log(`🔍 FILTER RESULT: ${filtered.length} players match filter "${STATE.currentFilter}"`);
+    return filtered;
 }
 
 function sortPlayers(players) {
@@ -1580,8 +1589,9 @@ function setupEventListeners() {
     // Filter tabs
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', () => {
-            // Tab changed (reduced logging)
-            STATE.currentFilter = tab.dataset.filter;
+            const newFilter = tab.dataset.filter;
+            console.log(`🎯 TAB CLICKED: "${newFilter}" (was "${STATE.currentFilter}")`);
+            STATE.currentFilter = newFilter;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             renderPlayers();
