@@ -1802,21 +1802,32 @@ function setupEventListeners() {
     
     // Compact mode reset button
     document.getElementById('btn-compact-reset')?.addEventListener('click', async () => {
-        if (confirm('Reset all data and statistics?')) {
+        confirmAction('Reset all DPS data?', async () => {
             try {
-                const res = await fetch('/api/clear', { method: 'POST' });
-                const data = await res.json();
-                if (data.code === 0) {
-                    STATE.players.clear();
-                    STATE.startTime = null;
-                    renderPlayers();
-                    showToast('Data reset successfully', 'success');
-                }
-            } catch (error) {
-                console.error('Failed to reset data:', error);
+                await fetch(CONFIG.apiClear, { method: 'POST' });
+                
+                // Clear local state
+                STATE.players.clear();
+                
+                // Clear skills cache and expanded players
+                skillsCache.clear();
+                expandedPlayerIds = [];
+                
+                // Reset timer
+                STATE.startTime = null;
+                stopDurationCounter();
+                document.getElementById('duration').textContent = '00:00';
+                document.getElementById('compact-duration').textContent = '00:00';
+                
+                renderPlayers();
+                // CRITICAL: Resize window after clearing data
+                setTimeout(() => autoResizeWindow(), 100);
+                showToast('All data cleared successfully', 'success');
+            } catch (e) {
+                console.error('Reset failed:', e);
                 showToast('Failed to reset data', 'error');
             }
-        }
+        });
     });
     
     // Expand/Collapse player list in compact mode (Show More/Less)
