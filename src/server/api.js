@@ -17,7 +17,8 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
     const vpnDetector = new VPNDetector(logger);
     
     app.use(cors());
-    app.use(express.json());
+    app.use(express.json({ limit: '50mb' })); // Increased limit for large session saves with skill data
+    app.use(express.urlencoded({ limit: '50mb', extended: true })); // Also increase URL-encoded limit
     app.use(express.static(path.join(__dirname, '..', '..', 'public'))); // Ajustar la ruta
     app.use('/tables', express.static(path.join(__dirname, '..', '..', 'tables'))); // Serve tables directory
 
