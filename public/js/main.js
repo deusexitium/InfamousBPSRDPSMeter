@@ -146,7 +146,7 @@ const SETTINGS = {
         totalDmg: true,
         hps: true,
         dmgTaken: false,
-        gs: false,
+        gs: false
     },
     
     // Column visibility for FULL mode
@@ -541,6 +541,7 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
         const showTotalDmg = SETTINGS.columnsCompact?.totalDmg !== false;
         const showHps = SETTINGS.columnsCompact?.hps !== false;
         const showDmgTaken = SETTINGS.columnsCompact?.dmgTaken !== false;
+        const showGs = SETTINGS.columnsCompact?.gs !== false;
         
         return `
             <div class="player-row ${isLocal ? 'local' : ''} ${isIdle ? 'idle' : ''}" 
@@ -558,9 +559,9 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                     </div>
                 </div>
                 ${!isHealer ? `
-                    ${showAvgDps ? `
+                    ${showDps ? `
                     <div class="stat-col">
-                        <div class="stat-value">${formatNumber(avgDps)}</div>
+                        <div class="stat-value">${formatNumber(currentDps)}</div>
                         <div class="stat-label">DPS</div>
                     </div>
                     ` : ''}
@@ -568,6 +569,12 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                     <div class="stat-col">
                         <div class="stat-value">${formatNumber(maxDps)}</div>
                         <div class="stat-label">MAX DPS</div>
+                    </div>
+                    ` : ''}
+                    ${showAvgDps ? `
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(avgDps)}</div>
+                        <div class="stat-label">AVG DPS</div>
                     </div>
                     ` : ''}
                     ${showTotalDmg ? `
@@ -580,6 +587,12 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                     <div class="stat-col">
                         <div class="stat-value">${formatNumber(dmgTaken)}</div>
                         <div class="stat-label">DMG TAKEN</div>
+                    </div>
+                    ` : ''}
+                    ${showGs ? `
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(gs)}</div>
+                        <div class="stat-label">GS</div>
                     </div>
                     ` : ''}
                 ` : ''}
@@ -602,6 +615,12 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                     <div class="stat-col">
                         <div class="stat-value">${formatNumber(dmgTaken)}</div>
                         <div class="stat-label">DMG TAKEN</div>
+                    </div>
+                    ` : ''}
+                    ${showGs ? `
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(gs)}</div>
+                        <div class="stat-label">GS</div>
                     </div>
                     ` : ''}
                 ` : ''}
