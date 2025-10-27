@@ -684,6 +684,12 @@ function renderPlayers() {
     
     const players = Array.from(STATE.players.values());
     
+    // CRITICAL DEBUG: Log player data structure
+    if (players.length > 0) {
+        console.log(`🔍 renderPlayers: ${players.length} total players in STATE`);
+        console.log('🔍 Sample player structure:', players[0]);
+    }
+    
     // Filter out players with no meaningful data (in town, no combat)
     const activePlayers = players.filter(p => {
         const hasDamage = (p.total_damage?.total || 0) > 0;
@@ -693,6 +699,8 @@ function renderPlayers() {
         
         return hasDamage || hasHealing || hasDPS || hasHPS;
     });
+    
+    console.log(`🔍 After filtering: ${activePlayers.length} active players (with combat data)`);
     
     // If no players have data, show placeholder
     if (activePlayers.length === 0) {
