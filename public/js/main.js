@@ -909,6 +909,67 @@ function renderPlayers() {
     autoResizeWindow();
 }
 
+// AUTO-RESIZE VARIABLES
+let isResizing = false;
+let resizeDebounceTimer = null;
+let lastResizeTime = 0;
+
+function autoResizeWindow() {
+    if (!window.electronAPI?.resizeWindow) return;
+    if (isResizing) return; // Skip if already resizing
+
+    const container = document.querySelector('.meter-container');
+    if (!container) return;
+
+    // Clear any pending resize
+    if (resizeDebounceTimer) {
+        clearTimeout(resizeDebounceTimer);
+    }
+
+    // Debounce with longer delay to prevent resize fighting
+    resizeDebounceTimer = setTimeout(() => {
+        // Force browser to calculate actual layout
+        const rect = container.getBoundingClientRect();
+        const actualHeight = Math.ceil(rect.height);
+        const actualWidth = Math.ceil(rect.width);
+        
+        // Different constraints for compact vs full mode
+        const isCompact = document.body.classList.contains('compact-mode');
+        let targetHeight, targetWidth, finalHeight, finalWidth;
+        
+        if (isCompact) {
+            // Compact mode: tight fit, minimal padding
+            targetHeight = actualHeight + 5;
+            targetWidth = actualWidth + 5;
+            finalHeight = Math.max(200, Math.min(targetHeight, 600));
+            finalWidth = Math.max(400, Math.min(targetWidth, 450));
+        } else {
+            // Full mode: generous padding
+            targetHeight = actualHeight + 10;
+            targetWidth = actualWidth + 10;
+            finalHeight = Math.max(250, Math.min(targetHeight, 1200));
+            finalWidth = Math.max(800, Math.min(targetWidth, 1600));
+        }
+
+        // Only resize if difference is significant (not every pixel)
+        const currentHeight = window.innerHeight;
+        const currentWidth = window.innerWidth;
+        const heightDiff = Math.abs(finalHeight - currentHeight);
+        const widthDiff = Math.abs(finalWidth - currentWidth);
+        
+        if (heightDiff > 10 || widthDiff > 10) {
+            isResizing = true;
+            lastResizeTime = Date.now();
+            
+            window.electronAPI.resizeWindow(finalWidth, finalHeight);
+            
+            setTimeout(() => {
+                isResizing = false;
+            }, 150);
+        }
+    }, 100); // Slower debounce to prevent resize spam
+}
+
 function filterPlayers(players) {
     if (STATE.currentFilter === 'all') return players;
     
