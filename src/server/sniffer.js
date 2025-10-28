@@ -309,6 +309,26 @@ class Sniffer {
                                 console.log(`Packet length: ${buf.length} bytes`);
                                 console.log(`Buffer hex (first 200 bytes): ${buf.subarray(0, 200).toString('hex')}`);
                                 console.log(`Buffer ascii: ${buf.toString('ascii', 0, Math.min(200, buf.length)).replace(/[^\x20-\x7E]/g, '.')}`);
+                                
+                                // Try to decode login packet
+                                try {
+                                    // Login packet structure: skip header and decode
+                                    const data = buf.subarray(10); // Skip first 10 bytes (header)
+                                    if (data.length > 0) {
+                                        const stream = require('stream').Readable.from(data, { objectMode: false });
+                                        const len_buf = stream.read(4);
+                                        if (len_buf) {
+                                            const data1 = stream.read(len_buf.readUInt32BE() - 4);
+                                            if (data1 && data1.length > 11) {
+                                                const decoded = PacketProcessor.SyncToMeEntity.decode(data1.subarray(11));
+                                                console.log(`Decoded message keys: ${Object.keys(decoded).join(', ')}`);
+                                                console.log(`Full decoded message: ${JSON.stringify(decoded, null, 2)}`);
+                                            }
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.log(`Failed to decode login packet: ${e.message}`);
+                                }
                                 console.log('='.repeat(80));
                                 
                                 if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
