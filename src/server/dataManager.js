@@ -799,7 +799,7 @@ class UserDataManager {
      */
     addDamage(uid, skillId, element, damage, isCrit, isLucky, isCauseLucky, hpLessenValue = 0, targetUid) {
         // isPaused and globalSettings.onlyRecordEliteDummy will be handled in the sniffer or entry point
-        this.checkTimeoutClear();
+        this.checkCombatTimeout();
         const user = this.getUser(uid);
         user.addDamage(skillId, element, damage, isCrit, isLucky, isCauseLucky, hpLessenValue);
     }
@@ -816,7 +816,7 @@ class UserDataManager {
      */
     addHealing(uid, skillId, element, healing, isCrit, isLucky, isCauseLucky, targetUid) {
         // isPaused will be handled in the sniffer or entry point
-        this.checkTimeoutClear();
+        this.checkCombatTimeout();
         if (uid !== 0) {
             const user = this.getUser(uid);
             user.addHealing(skillId, element, healing, isCrit, isLucky, isCauseLucky);
