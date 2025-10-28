@@ -1462,10 +1462,10 @@ input[type="range"]::-moz-range-thumb {
    ============================================================================ */
 
 body.compact-mode .meter-container {
-    width: 100% !important;
-    min-width: 420px !important;
-    max-width: 100% !important;
-    height: 100% !important;
+    width: fit-content !important;
+    min-width: 700px !important;
+    max-width: fit-content !important;
+    height: fit-content !important;
     background: rgba(26, 29, 41, 0.95) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -1598,7 +1598,7 @@ body.compact-mode .tab.active {
 body.compact-mode .player-row {
     display: flex !important;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     padding: 3px 5px;
     margin: 1px 3px;
     font-size: 9px;
@@ -1606,6 +1606,18 @@ body.compact-mode .player-row {
     background: rgba(42, 45, 58, 0.5) !important;
     border-radius: 3px;
     border-left: 2px solid transparent;
+}
+
+/* Compact mode cell values - ensure all columns show */
+body.compact-mode .cell-value {
+    font-size: 10px;
+    min-width: 50px;
+    max-width: 70px;
+    text-align: right;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 body.compact-mode .player-row:hover {
