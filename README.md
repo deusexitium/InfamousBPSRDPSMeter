@@ -1,4 +1,4 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.50
+# ⚔️ Infamous BPSR DPS Meter v3.1.52
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
@@ -21,8 +21,8 @@
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `InfamousBPSRDPSMeter-Setup-3.1.50.exe` (~90MB)
-- 🆕 **Auto-Update:** v3.1.40+ includes automatic update notifications from GitHub!
+- Get: `InfamousBPSRDPSMeter-Setup-3.1.52.exe` (~90MB)
+- 🆕 **Auto-Update:** v3.1.52+ includes automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**
 - Download from: https://npcap.com/
@@ -78,7 +78,7 @@ pnpm dist
 ```
 
 #### Prerequisites:
-- **Node.js:** v22.15.0+ (Windows)
+- **Node.js:** v3.1.52+ (Windows)
 - **pnpm:** Latest version
 - **Windows 10/11:** Build must run on Windows
 - **Code signing:** Certificate installed for signing .exe
@@ -233,7 +233,7 @@ This section provides detailed information for troubleshooting or advanced setup
 
 1. **Download the installer:**
    - Go to: [Releases](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)
-   - Download: `Infamous BPSR DPS Meter-Setup-2.95.21.exe`
+   - Download: `Infamous BPSR DPS Meter-Setup-3.1.52.exe`
 
 2. **Run the EXE installer:**
    - Right-click the `.exe` file → **"Run as Administrator"**
@@ -400,7 +400,7 @@ node server.js
 #### Step 3: Commit Changes
 ```bash
 git add -A
-git commit -m "v2.95.13 - Description of changes"
+git commit -m "v3.1.52 - Description of changes"
 ```
 
 #### Step 4: Build Installer (Automated)
@@ -417,7 +417,7 @@ pnpm build-msi
 # 6. Reports location and size
 
 # Build takes ~6-13 minutes
-# Output: F:\dps\Infamous BPSR DPS Meter-Setup-2.95.13.exe (~90MB)
+# Output: F:\dps\Infamous BPSR DPS Meter-Setup-3.1.52.exe (~90MB)
 ```
 
 #### Step 5: Test the Installer
@@ -426,7 +426,7 @@ pnpm build-msi
 cd F:\dps
 
 # Run the installer to test
-.\Infamous BPSR DPS Meter-Setup-2.95.13.exe
+.\Infamous BPSR DPS Meter-Setup-3.1.52.exe
 
 # Verify:
 # - Installation completes successfully
@@ -449,9 +449,9 @@ git push origin main
    - Click **"Draft a new release"**
 
 2. **Fill Release Details:**
-   - **Tag:** `v2.95.13` (must match version)
+   - **Tag:** `v3.1.52` (must match version)
    - **Target:** `main` branch
-   - **Title:** `Infamous BPSR DPS Meter v2.95.13 Beta`
+   - **Title:** `Infamous BPSR DPS Meter v3.1.52 Beta`
    - **Description:**
    ```markdown
    ## ⚠️ Beta Release
@@ -464,7 +464,7 @@ git push origin main
    - Improved: Installation instructions
    
    ## Installation
-   1. Download `Infamous BPSR DPS Meter-Setup-2.95.13.exe`
+   1. Download `Infamous BPSR DPS Meter-Setup-3.1.52.exe`
    2. Install Npcap from https://npcap.com/ (if not already installed)
    3. Run the installer as Administrator
    4. Follow the setup wizard
@@ -477,7 +477,7 @@ git push origin main
    ```
 
 3. **Upload the Installer:**
-   - Drag and drop: `Infamous BPSR DPS Meter-Setup-2.95.13.exe`
+   - Drag and drop: `Infamous BPSR DPS Meter-Setup-3.1.52.exe`
    - Wait for upload to complete
 
 4. **Mark as Beta:**
@@ -486,7 +486,7 @@ git push origin main
 
 5. **Publish:**
    - Click **"Publish release"**
-   - Release is now live at: `https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/tag/v2.95.13`
+   - Release is now live at: `https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/tag/v3.1.52`
 
 ---
 
@@ -509,7 +509,7 @@ pnpm build-msi        # Build EXE installer (automated)
 **Git Workflow:**
 ```bash
 git add -A
-git commit -m "v2.95.13 - Description"
+git commit -m "v3.1.52 - Description"
 git push origin main
 ```
 
@@ -620,7 +620,7 @@ winget install Microsoft.VisualStudio.BuildTools
 
 ---
 
-## 📊 Latest Updates (v2.95.6)
+## 📊 Latest Updates (v3.1.52)
 
 ### Critical Fixes
 - ✅ **Player Expansion Fixed** - Click any player to see detailed stats and skills

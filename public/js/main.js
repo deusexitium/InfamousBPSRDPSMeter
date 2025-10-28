@@ -1,4 +1,4 @@
-// BPSR Meter v2.5.1 - Performance-Focused Implementation
+// BPSR Meter v3.1.52 - Performance-Focused Implementation
 // Optimized for robustness, usability, and smooth performance
 
 'use strict';
@@ -845,6 +845,23 @@ function renderPlayers() {
     
     let html = '';
     
+    // STEP 1: Team Totals FIRST (above everything)
+    if (sorted.length >= 2) {
+        html += `
+            <div class="team-totals-row">
+                <div class="team-totals-label">
+                    <i class="fa-solid fa-users"></i> Team Totals (${activeNonIdlePlayers.length} active)
+                </div>
+                <div class="team-totals-stats">
+                    <span title="Total Team DPS"><i class="fa-solid fa-bolt"></i> ${formatNumber(teamTotalDPS)} DPS</span>
+                    <span title="Total Team Damage"><i class="fa-solid fa-fire"></i> ${formatNumber(teamTotalDamage)}</span>
+                    <span title="Total Team Healing"><i class="fa-solid fa-heart"></i> ${formatNumber(teamTotalHealing)}</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    // STEP 2: Headers (compact mode only)
     const isCompact = STATE.viewMode === 'compact';
     if (isCompact) {
         html += `
@@ -859,39 +876,16 @@ function renderPlayers() {
         `;
     }
     
-    if (sorted.length >= 2) {
-        html += `
-            <div class="team-totals-row">
-                <div class="team-totals-label">
-                    <i class="fa-solid fa-users"></i> Team Totals (${sorted.length} active)
-                </div>
-                <div class="team-totals-stats">
-                    <span title="Total Team DPS"><i class="fa-solid fa-bolt"></i> ${formatNumber(teamTotalDPS)} DPS</span>
-                    <span title="Total Team Damage"><i class="fa-solid fa-fire"></i> ${formatNumber(teamTotalDamage)}</span>
-                    <span title="Total Team Healing"><i class="fa-solid fa-heart"></i> ${formatNumber(teamTotalHealing)}</span>
-                </div>
-            </div>
-        `;
-    }
-    
+    // STEP 3: Local player if not rank 1
     const isExpandedList = document.getElementById('player-list')?.classList.contains('expanded');
-    // Display limits: full mode shows all, compact shows top 5 (or top 5 + local if local is lower)
     const shouldLimitDisplay = document.body.classList.contains('compact-mode');
     
     let displayLimit = shouldLimitDisplay ? 5 : sorted.length;
     
-    // NEW LOGIC: Always show local player on top if they're NOT rank 1
-    // In compact mode: show local + top 5 if local is rank 6+
-    // In full mode: show local on top if they're rank 2+
     const shouldShowLocalSeparately = localPlayer && localPlayerRank > 1;
     if (shouldShowLocalSeparately) {
         html += renderPlayerRow(localPlayer, localPlayerRank, maxDmg, true, teamTotalDamage);
-        html += '<div class="separator">Rankings</div>';
-        
-        // In compact mode, if local is rank 6+, still limit to top 5 in rankings
-        if (shouldLimitDisplay && localPlayerRank > 5) {
-            // Keep displayLimit at 5 to show top 5 below local
-        }
+        // NO "Rankings" separator - just show other players below
     }
     
     sorted.forEach((player, idx) => {
@@ -2291,7 +2285,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.50 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.52 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2310,32 +2304,20 @@ async function initialize() {
         }
     }
     
-    // Sync pause state from backend - CRITICAL: Ensure data flows
+    // Sync pause state from backend - NO forced unpause (was causing startup delay)
     try {
         const res = await fetch(CONFIG.apiPause);
         const data = await res.json();
-        isPaused = data.paused || false; // Default to false (NOT paused)
-        
-        // Force unpause if backend says paused (startup issue)
-        if (isPaused) {
-            console.warn('⚠️ Backend was paused on startup - forcing unpause for data flow');
-            await fetch(CONFIG.apiPause, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ paused: false })
-            });
-            isPaused = false;
-        }
+        isPaused = data.paused || false;
         
         const btn = document.getElementById('btn-pause');
         const icon = btn?.querySelector('i');
         if (btn && icon) {
-            icon.className = 'fa-solid fa-pause';
-            btn.title = 'Pause';
+            icon.className = isPaused ? 'fa-solid fa-play' : 'fa-solid fa-pause';
+            btn.title = isPaused ? 'Resume' : 'Pause';
         }
     } catch (e) {
         console.warn('Could not sync pause state:', e);
-        // Default to NOT paused if we can't connect
         isPaused = false;
         const btn = document.getElementById('btn-pause');
         const icon = btn?.querySelector('i');
@@ -2361,7 +2343,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.50 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.52 - Ready!');
 }
 
 // ============================================================================

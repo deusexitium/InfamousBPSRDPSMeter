@@ -178,21 +178,20 @@ body {
     margin-bottom: 3px;
 }
 
-/* Compact Player Row - Truly Horizontal Layout */
+/* Player Row - Full Mode Layout */
 .player-row {
     display: grid;
-    grid-template-columns: 40px minmax(180px, 1fr) repeat(7, minmax(80px, 1fr));
-    gap: 8px;
+    grid-template-columns: 40px minmax(200px, 2fr) repeat(6, minmax(90px, 1fr)); /* 7 stats total */
+    gap: 10px;
     align-items: center;
-    padding: 10px 12px;
-    padding-left: 12px; /* Explicit left padding for alignment */
+    padding: 12px 14px;
     background: var(--bg-card);
     border-left: 3px solid transparent;
     cursor: pointer;
     transition: none;
     position: relative;
     overflow: visible;
-    min-width: 850px;
+    min-width: 900px;
     z-index: 1;
 }
 
@@ -341,8 +340,9 @@ body {
     font-weight: 700;
 }
 
-/* Separator */
+/* Separator - REMOVED (no longer used) */
 .separator {
+    display: none !important; /* Hide completely */
     padding: 8px 12px;
     background: var(--bg-header);
     color: var(--text-secondary);
@@ -1463,8 +1463,8 @@ input[type="range"]::-moz-range-thumb {
    ============================================================================ */
 
 body.compact-mode .meter-container {
-    min-width: 400px;
-    max-width: 420px;
+    min-width: 480px; /* Increased from 400px for DMG TAKEN column */
+    max-width: 500px; /* Increased from 420px */
     min-height: auto !important; /* Don't force min height in compact mode */
     height: auto !important; /* Let content determine height */
     background: rgba(26, 29, 41, 0.85) !important;

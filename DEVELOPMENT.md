@@ -136,6 +136,57 @@ pnpm dist
 - Downloads and installs automatically
 - Requires proper GitHub release with installer
 
+### Release Process
+
+**1. Update version numbers:**
+```bash
+# Update all version references
+- package.json
+- README.md  
+- public/index.html (3 places)
+- public/js/main.js (2 places)
+- server.js (uses VERSION variable)
+```
+
+**2. Commit changes:**
+```bash
+git add -A
+git commit -m "vX.X.X - Description of changes"
+git push origin main
+```
+
+**3. Create git tag:**
+```bash
+git tag -a vX.X.X -m "vX.X.X - Description"
+git push origin vX.X.X
+```
+
+**4. Build installer:**
+```bash
+# From WSL
+bash build-from-wsl.sh
+```
+
+**5. Create GitHub release:**
+```bash
+gh release create vX.X.X \
+  --title "vX.X.X - Title" \
+  --notes "Release notes here" \
+  --repo ssalihsrz/InfamousBPSRDPSMeter
+```
+
+**6. Upload installer:**
+```bash
+gh release upload vX.X.X \
+  "Infamous BPSR DPS Meter-Setup-X.X.X.exe" \
+  --repo ssalihsrz/InfamousBPSRDPSMeter \
+  --clobber
+```
+
+**7. Verify auto-update:**
+- Users on v3.1.27+ will see update notification
+- Test update process on clean install
+
 ---
 
 ## 🚨 CRITICAL RULES
