@@ -1,24 +1,34 @@
 ; Custom NSIS script for Infamous BPSR DPS Meter
-; This script clears cache and old data during installation
+; This script clears ONLY browser cache during installation
+; USER DATA IS PRESERVED: sessions/, player_map.json, settings.json, etc.
 
 !macro customInstall
-  ; Clear Electron cache folders in AppData
+  ; Clear ONLY Electron browser cache folders (NOT user data!)
+  ; This fixes stale JS/CSS without deleting your sessions or settings
   SetShellVarContext current
-  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\Cache"
-  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\CachedData"
-  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\GPUCache"
-  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\Service Worker"
-  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\Code Cache"
   
-  ; Log cleanup
-  DetailPrint "Cleared application cache"
+  ; Electron browser cache folders (safe to delete)
+  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\Cache"
+  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\GPUCache"
+  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\Code Cache"
+  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\DawnGraphiteCache"
+  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\DawnWebGPUCache"
+  
+  ; EXPLICITLY PRESERVE USER DATA (DO NOT DELETE):
+  ; - sessions/ (your saved DPS charts)
+  ; - player_map.json (saved player names)
+  ; - settings.json (your settings)
+  ; - skill_translations.json
+  ; - talent_table.json
+  ; - conflicts.json
+  
+  DetailPrint "Cleared browser cache (sessions and settings preserved)"
 !macroend
 
 !macro customUnInstall
-  ; Clean up all user data on uninstall
+  ; Only on UNINSTALL, remove all app data (including user data)
   SetShellVarContext current
   RMDir /r "$APPDATA\infamous-bpsr-dps-meter"
   
-  ; Log cleanup
   DetailPrint "Removed all application data"
 !macroend
