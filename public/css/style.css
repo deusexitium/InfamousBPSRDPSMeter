@@ -1632,14 +1632,13 @@ body.compact-mode .tab.active {
     border-bottom: 2px solid var(--accent-gold);
 }
 
-/* Compact player rows - MORE DATA, SMALLER TEXT */
+/* Compact player rows - 6 columns (rank + name + 4 stats: DPS, MAX DPS, TOTAL DMG, DMG TAKEN) */
 body.compact-mode .player-row {
-    display: flex !important;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 5px;
-    margin: 1px 3px;
-    font-size: 9px;
+    display: grid;
+    grid-template-columns: 30px minmax(120px, 160px) repeat(4, 85px);
+    gap: 5px;
+    padding: 5px 8px;
+    font-size: 11px;
     min-height: 28px;
     background: rgba(42, 45, 58, 0.5) !important;
     border-radius: 3px;
