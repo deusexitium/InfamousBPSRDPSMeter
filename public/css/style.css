@@ -32,9 +32,9 @@ body {
     box-sizing: border-box;
 }
 
-/* Main Container - Content-based sizing */
+/* Main Container - Fixed width prevents infinite growth */
 .meter-container {
-    width: fit-content;
+    width: 100%;
     min-width: 900px;
     max-width: 1200px;
     background: var(--bg-dark);
