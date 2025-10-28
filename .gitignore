@@ -1,3 +1,8 @@
+# Documentation - Keep docs local only
+docs/
+*.md
+!README.md
+
 # Dependencies
 node_modules/
 /node_modules
