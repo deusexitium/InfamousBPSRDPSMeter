@@ -979,11 +979,11 @@ function autoResizeWindow() {
         let targetHeight, targetWidth, finalHeight, finalWidth;
         
         if (isCompact) {
-            // Compact mode: tight fit, fixed width
+            // Compact mode: height auto-sizes, width uses current window width (manually resizable)
             targetHeight = actualHeight + 5;
-            targetWidth = 430; // Fixed width for compact mode (420px container + 10px padding)
+            targetWidth = currentWidth; // Keep current width - allows manual resizing
             finalHeight = Math.max(200, Math.min(targetHeight, 600));
-            finalWidth = 430; // Always use fixed width in compact mode
+            finalWidth = Math.max(420, targetWidth); // Min 420px, but respects manual resize
         } else {
             // Full mode: generous padding
             targetHeight = actualHeight + 10;
@@ -2292,7 +2292,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.73 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.74 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2350,7 +2350,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.73 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.74 - Ready!');
 }
 
 // ============================================================================
@@ -2933,13 +2933,13 @@ function updateSessionDropdown() {
     sortedSessions.forEach(session => {
         const option = document.createElement('option');
         option.value = session.id;
-        const date = new Date(session.timestamp).toLocaleDateString('en-US', { 
-            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+        const date = new Date(session.timestamp).toLocaleString('en-US', { 
+            month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true
         });
-        const charInfo = session.characterName ? ` [${session.characterName}]` : '';
         const icon = session.autoSaved ? '🤖' : '📝';
         const duration = formatDuration(session.duration || 0);
-        option.textContent = `${icon} ${session.name} - ${duration} (${date})`;
+        // Consistent format: icon + name + duration + timestamp
+        option.textContent = `${icon} ${session.name} - ${duration} - ${date}`;
         dropdown.appendChild(option);
     });
     

@@ -1462,17 +1462,17 @@ input[type="range"]::-moz-range-thumb {
    ============================================================================ */
 
 body.compact-mode .meter-container {
-    width: 420px !important;
+    width: 100% !important;
     min-width: 420px !important;
-    max-width: 420px !important;
-    overflow: hidden !important;
-    height: fit-content !important;
+    max-width: 100% !important;
+    height: 100% !important;
     background: rgba(26, 29, 41, 0.95) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    overflow: visible !important;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Compact title bar - show ALL buttons */
