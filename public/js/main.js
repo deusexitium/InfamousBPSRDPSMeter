@@ -967,9 +967,13 @@ function autoResizeWindow() {
         clearTimeout(resizeDebounceTimer);
     }
 
-    // Faster debounce for responsive UI
+    // Fast debounce for responsive UI
     resizeDebounceTimer = setTimeout(() => {
-        // Force browser to calculate actual layout
+        // Force reflow to get actual dimensions
+        container.style.display = 'none';
+        container.offsetHeight; // Force reflow
+        container.style.display = 'flex';
+        
         const rect = container.getBoundingClientRect();
         const actualHeight = Math.ceil(rect.height);
         const actualWidth = Math.ceil(rect.width);
@@ -1008,7 +1012,7 @@ function autoResizeWindow() {
                 isResizing = false;
             }, 150);
         }
-    }, 50); // Fast debounce for responsive UI
+    }, 30); // Very fast debounce - 30ms
 }
 
 function filterPlayers(players) {

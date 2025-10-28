@@ -128,10 +128,10 @@ autoUpdater.on('error', (err) => {
         await killProcessUsingPort(8989);
 
         mainWindow = new BrowserWindow({
-            width: 950,
-            height: 650,
+            width: 960,
+            height: 680,
             minWidth: 900,
-            minHeight: 500,
+            minHeight: 400,
             maxWidth: 1600,
             maxHeight: 1200,
             frame: false,

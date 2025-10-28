@@ -140,14 +140,14 @@ body {
     background: rgba(251, 191, 36, 0.1);
 }
 
-/* Player list - Content-based height, scrolls after 20 players */
+/* Player list - Content-based height, scrolls after 10 players */
 .player-list {
     padding: 4px;
     overflow-y: auto;
     overflow-x: hidden;
     background: var(--bg-dark);
     position: relative;
-    max-height: calc(20 * 60px); /* Scrolls after 20 players */
+    max-height: 600px; /* ~10 players @ 60px = 600px, forces scrollbar */
     pointer-events: auto !important;
 }
 
@@ -1460,8 +1460,8 @@ input[type="range"]::-moz-range-thumb {
    ============================================================================ */
 
 body.compact-mode .meter-container {
-    min-width: 380px; /* Compact - just past DMG TAKEN */
-    max-width: 400px; /* Not too wide */
+    min-width: 420px; /* Wider for full stat visibility */
+    max-width: 450px;
     width: 100%; /* Fill available space */
     min-height: auto !important;
     height: 100%; /* Fill parent height */
@@ -1805,10 +1805,10 @@ body.compact-mode .player-list:not(.expanded) .player-row.compact-hidden {
     display: none !important;
 }
 
-/* Compact mode: smaller list, scrollbar at 20 players */
+/* Compact mode: smaller list, scrollbar at 6 players */
 body.compact-mode .player-list {
     padding: 4px;
-    max-height: calc(20 * 45px);
+    max-height: 270px; /* ~6 players @ 45px = 270px */
     overflow-y: auto;
 }
 
