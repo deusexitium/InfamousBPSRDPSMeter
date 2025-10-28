@@ -718,24 +718,40 @@ class UserDataManager {
         }, 60000); // Check every 60 seconds
     }
     
-    /** Load player names from player_map.json */
+    /** Load player names from player_map.json (async, non-blocking) */
     async loadPlayerMap() {
         try {
-            this.logger.debug(`Loading player map from: ${this.playerMapPath}`);
+            this.logger.info(`⏳ Loading player cache in background...`);
             const data = await fsPromises.readFile(this.playerMapPath, 'utf8');
             const playerMapObj = JSON.parse(data);
-            for (const [uid, name] of Object.entries(playerMapObj)) {
+            const entries = Object.entries(playerMapObj);
+            
+            // If cache is too large, keep only the last 5000 entries
+            // Assumes newer entries are at the end (they are when we save)
+            const entriesToLoad = entries.length > this.playerMapMaxSize 
+                ? entries.slice(-this.playerMapMaxSize) 
+                : entries;
+            
+            for (const [uid, name] of entriesToLoad) {
                 this.playerMap.set(uid, name);
             }
-            this.logger.info(`✅ Loaded ${this.playerMap.size} player names from cache (${this.playerMapPath})`);
+            
+            const loaded = this.playerMap.size;
+            const pruned = entries.length - loaded;
+            if (pruned > 0) {
+                this.logger.info(`✅ Loaded ${loaded} player names (pruned ${pruned} old entries)`);
+                this.playerMapDirty = true; // Save pruned version
+            } else {
+                this.logger.info(`✅ Loaded ${loaded} player names from cache`);
+            }
         } catch (error) {
             if (error.code === 'ENOENT') {
-                this.logger.info(`No player_map.json found at ${this.playerMapPath}, starting fresh`);
+                this.logger.info(`No player cache found, starting fresh`);
             } else if (error instanceof SyntaxError) {
-                this.logger.error(`Failed to parse player_map.json (corrupted JSON): ${error.message}`);
-                this.logger.info('Starting with empty player map');
+                this.logger.error(`Failed to parse player cache (corrupted): ${error.message}`);
+                this.logger.info('Starting with empty player cache');
             } else {
-                this.logger.error(`Failed to load player_map.json from ${this.playerMapPath}:`, error.message);
+                this.logger.error(`Failed to load player cache:`, error.message);
             }
         }
     }

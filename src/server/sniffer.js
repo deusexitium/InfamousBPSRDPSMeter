@@ -4,6 +4,7 @@ const PROTOCOL = decoders.PROTOCOL;
 const Readable = require('stream').Readable;
 const findDefaultNetworkDevice = require('../../algo/netInterfaceUtil'); // Adjust path
 const { Lock } = require('./dataManager'); // Import Lock from dataManager
+const PacketProcessor = require('../../algo/packet'); // Import PacketProcessor for decode
 
 const Cap = cap.Cap;
 
