@@ -677,7 +677,10 @@ class UserDataManager {
         
         // Cleanup old history logs on startup (once per app launch)
         setTimeout(async () => {
-            await this.cleanupOldHistoryLogs();
+            // Safety check in case method doesn't exist in older versions
+            if (typeof this.cleanupOldHistoryLogs === 'function') {
+                await this.cleanupOldHistoryLogs();
+            }
         }, 5000); // Wait 5 seconds after startup to avoid blocking
         
         // CRITICAL: Periodic auto-save every 2 minutes if there's active combat data
@@ -693,8 +696,11 @@ class UserDataManager {
                 // 2. At least 2 minutes since last auto-save
                 if (timeSinceStart > 30000 && timeSinceLastSave > 120000) {
                     this.logger.info(`⏰ Periodic auto-save triggered (2min interval)`);
-                    await this.autoSaveSession();
-                    this.lastAutoSaveTime = now;
+                    // Safety check in case method doesn't exist
+                    if (typeof this.autoSaveSession === 'function') {
+                        await this.autoSaveSession();
+                        this.lastAutoSaveTime = now;
+                    }
                 }
             }
         }, 60000); // Check every 60 seconds
@@ -1321,7 +1327,9 @@ class UserDataManager {
             this.logger.debug(`Saved data for ${summary.userCount} users to ${logDir}`);
             
             // Cleanup old history logs after saving new one
-            await this.cleanupOldHistoryLogs();
+            if (typeof this.cleanupOldHistoryLogs === 'function') {
+                await this.cleanupOldHistoryLogs();
+            }
         } catch (error) {
             this.logger.error('Failed to save all user data:', error);
             throw error;
