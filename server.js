@@ -13,7 +13,7 @@ const initializeApi = require(path.join(__dirname, 'src', 'server', 'api'));
 const PacketProcessor = require(path.join(__dirname, 'algo', 'packet'));
 
 // Read version from package.json (works in both dev and production)
-let VERSION = '3.1.66'; // No "v" prefix - will be added where displayed
+let VERSION = '3.1.67'; // No "v" prefix - will be added where displayed
 try {
     const packageJson = require(path.join(__dirname, 'package.json'));
     VERSION = packageJson.version; // package.json has no "v" prefix

@@ -1003,15 +1003,8 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
         }
     }, 100);
     
-    // Log all registered routes for debugging
     logger.info('✅ API endpoints registered successfully');
-    logger.info(`📍 Registered routes:`);
-    app._router.stack.forEach((middleware) => {
-        if (middleware.route) {
-            const methods = Object.keys(middleware.route.methods).join(',').toUpperCase();
-            logger.info(`   ${methods} ${middleware.route.path}`);
-        }
-    });
+    logger.info('📍 Session endpoint /api/sessions/all should be available');
 }
 
 module.exports = initializeApi;
