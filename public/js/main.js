@@ -843,25 +843,32 @@ function renderPlayers() {
     
     const otherPlayers = sorted.filter(p => !(p.isLocalPlayer || p.uid === STATE.localPlayerUid));
     
-    let html = '';
-    
-    // STEP 1: Team Totals FIRST (above everything)
-    if (sorted.length >= 2) {
-        html += `
-            <div class="team-totals-row">
-                <div class="team-totals-label">
-                    <i class="fa-solid fa-users"></i> Team Totals (${activeNonIdlePlayers.length} active)
+    // Render Team Totals ABOVE column headers (separate from player list)
+    const teamTotalsContainer = document.getElementById('team-totals-container');
+    if (teamTotalsContainer) {
+        if (sorted.length >= 2) {
+            teamTotalsContainer.innerHTML = `
+                <div class="team-totals-row">
+                    <div class="team-totals-label">
+                        <i class="fa-solid fa-users"></i> Team Totals (${activeNonIdlePlayers.length} active)
+                    </div>
+                    <div class="team-totals-stats">
+                        <span title="Total Team DPS"><i class="fa-solid fa-bolt"></i> ${formatNumber(teamTotalDPS)} DPS</span>
+                        <span title="Total Team Damage"><i class="fa-solid fa-fire"></i> ${formatNumber(teamTotalDamage)}</span>
+                        <span title="Total Team Healing"><i class="fa-solid fa-heart"></i> ${formatNumber(teamTotalHealing)}</span>
+                    </div>
                 </div>
-                <div class="team-totals-stats">
-                    <span title="Total Team DPS"><i class="fa-solid fa-bolt"></i> ${formatNumber(teamTotalDPS)} DPS</span>
-                    <span title="Total Team Damage"><i class="fa-solid fa-fire"></i> ${formatNumber(teamTotalDamage)}</span>
-                    <span title="Total Team Healing"><i class="fa-solid fa-heart"></i> ${formatNumber(teamTotalHealing)}</span>
-                </div>
-            </div>
-        `;
+            `;
+            teamTotalsContainer.style.display = 'block';
+        } else {
+            teamTotalsContainer.innerHTML = '';
+            teamTotalsContainer.style.display = 'none';
+        }
     }
     
-    // STEP 2: Headers (compact mode only)
+    let html = '';
+    
+    // Compact headers (inside player list for compact mode)
     const isCompact = STATE.viewMode === 'compact';
     if (isCompact) {
         html += `
@@ -878,9 +885,9 @@ function renderPlayers() {
     
     // STEP 3: Local player if not rank 1
     const isExpandedList = document.getElementById('player-list')?.classList.contains('expanded');
-    const shouldLimitDisplay = document.body.classList.contains('compact-mode');
+    const shouldLimitDisplay = document.body.classList.contains('compact-mode') && !isExpandedList;
     
-    let displayLimit = shouldLimitDisplay ? 5 : sorted.length;
+    let displayLimit = shouldLimitDisplay ? 6 : sorted.length; // Show 6 in compact (not 5)
     
     const shouldShowLocalSeparately = localPlayer && localPlayerRank > 1;
     if (shouldShowLocalSeparately) {

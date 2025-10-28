@@ -34,14 +34,14 @@ body {
     width: 100vw; /* Match window width */
 }
 
-/* Main Container - ALWAYS fill window */
+/* Main Container - Fill window exactly */
 .meter-container {
-    width: 100vw; /* CRITICAL: Match window width exactly */
-    height: 100vh; /* CRITICAL: Match window height exactly */
-    max-width: 1200px;
+    width: 100%; /* Fill parent */
+    height: 100%; /* Fill parent */
+    max-width: none; /* No max width */
     min-width: 900px;
     background: var(--bg-dark);
-    border-radius: 0; /* No radius to avoid gaps */
+    border-radius: 0;
     box-shadow: var(--shadow);
     overflow: hidden;
     box-sizing: border-box;
@@ -145,13 +145,16 @@ body {
     background: rgba(251, 191, 36, 0.1);
 }
 
-/* Player list - Dynamic height allowing up to 20 players before scrolling */
+/* Player list - Allow up to 20 players (~60px each) before scrolling */
 .player-list {
     padding: 4px;
     overflow-y: auto;
     overflow-x: hidden;
-    /* Allow ~20 players @ 44px each + team totals + local player + margins = ~1000px */
-    max-height: 1100px;
+    flex: 1;
+    background: var(--bg-dark);
+    position: relative;
+    min-height: 200px;
+    max-height: calc(20 * 60px); /* 20 players × 60px per row = 1200px */
     pointer-events: auto !important; /* CRITICAL: Ensure player rows are clickable */
 }
 
@@ -1464,10 +1467,11 @@ input[type="range"]::-moz-range-thumb {
    ============================================================================ */
 
 body.compact-mode .meter-container {
-    min-width: 480px; /* Increased from 400px for DMG TAKEN column */
-    max-width: 500px; /* Increased from 420px */
-    min-height: auto !important; /* Don't force min height in compact mode */
-    height: auto !important; /* Let content determine height */
+    min-width: 380px; /* Compact - just past DMG TAKEN */
+    max-width: 400px; /* Not too wide */
+    width: 100%; /* Fill available space */
+    min-height: auto !important;
+    height: 100%; /* Fill parent height */
     background: rgba(26, 29, 41, 0.85) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -1808,10 +1812,10 @@ body.compact-mode .player-list:not(.expanded) .player-row.compact-hidden {
     display: none !important;
 }
 
-/* Compact mode: smaller gaps */
+/* Compact mode: smaller list, scrollbar at 20 players */
 body.compact-mode .player-list {
     padding: 4px;
-    max-height: 400px;
+    max-height: calc(20 * 45px); /* 20 players × 45px per row in compact = 900px */
     overflow-y: auto;
 }
 
