@@ -781,7 +781,6 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
 
     // Get ALL sessions (no limit) for session manager
     app.get('/api/sessions/all', async (req, res) => {
-        console.log('🚀 /api/sessions/all endpoint HIT!');
         logger.info('🚀 /api/sessions/all endpoint HIT!');
         try {
             logger.info(`📂 Loading sessions from: ${SESSIONS_PATH}`);
@@ -1004,9 +1003,15 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
         }
     }, 100);
     
-    console.log('✅ API endpoints registered successfully');
+    // Log all registered routes for debugging
     logger.info('✅ API endpoints registered successfully');
-    logger.info(`📍 Session endpoint: /api/sessions/all should be available`);
+    logger.info(`📍 Registered routes:`);
+    app._router.stack.forEach((middleware) => {
+        if (middleware.route) {
+            const methods = Object.keys(middleware.route.methods).join(',').toUpperCase();
+            logger.info(`   ${methods} ${middleware.route.path}`);
+        }
+    });
 }
 
 module.exports = initializeApi;

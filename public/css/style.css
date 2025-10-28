@@ -34,7 +34,9 @@ body {
 
 /* Main Container - Content-based sizing */
 .meter-container {
+    width: fit-content;
     min-width: 900px;
+    max-width: 1200px;
     background: var(--bg-dark);
     border-radius: 0;
     box-shadow: var(--shadow);
@@ -1463,11 +1465,13 @@ body.compact-mode .meter-container {
     width: 420px !important;
     min-width: 420px !important;
     max-width: 420px !important;
-    background: rgba(26, 29, 41, 0.85) !important;
+    height: fit-content !important;
+    background: rgba(26, 29, 41, 0.95) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    overflow: visible !important;
 }
 
 /* Compact title bar - show ALL buttons */
