@@ -1620,9 +1620,17 @@ body.compact-mode .cell-value {
     white-space: nowrap;
 }
 
-/* Hide extra columns in compact mode - only show DPS, MAX DPS, TOTAL DMG */
-body.compact-mode .cell-value:nth-child(n+5) {
-    display: none !important;
+/* Hide selective columns in compact mode - show DPS, MAX DPS, TOTAL DMG, DMG TAKEN */
+body.compact-mode .cell-value:nth-child(5) {
+    display: none !important; /* Hide AVG DPS */
+}
+
+body.compact-mode .cell-value:nth-child(7) {
+    display: none !important; /* Hide HPS */
+}
+
+body.compact-mode .cell-value:nth-child(9) {
+    display: none !important; /* Hide GS */
 }
 
 body.compact-mode .player-row:hover {
