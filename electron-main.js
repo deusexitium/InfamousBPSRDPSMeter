@@ -13,6 +13,19 @@ function logToFile(msg) {
         const logPath = path.join(userData, 'iniciar_log.txt');
         const timestamp = new Date().toISOString();
         fs.mkdirSync(userData, { recursive: true });
+        
+        // Log rotation: if file > 5MB, rotate to .old
+        if (fs.existsSync(logPath)) {
+            const stats = fs.statSync(logPath);
+            if (stats.size > 5 * 1024 * 1024) { // 5 MB limit
+                const oldPath = logPath + '.old';
+                if (fs.existsSync(oldPath)) {
+                    fs.unlinkSync(oldPath); // Delete previous .old file
+                }
+                fs.renameSync(logPath, oldPath);
+            }
+        }
+        
         fs.appendFileSync(logPath, `[${timestamp}] ${msg}\n`);
     } catch (e) {
         // If there's an error, show in console
@@ -27,42 +40,33 @@ let server_port = 8989; // Initial port
 let isLocked = false; // Initial lock state: unlocked
 logToFile('==== ELECTRON START ====');
 
-// Configure auto-updater
-autoUpdater.autoDownload = false; // Don't auto-download, ask user first
-autoUpdater.autoInstallOnAppQuit = true;
+// Configure auto-updater - SIMPLIFIED: Just check and notify
+autoUpdater.autoDownload = false; // Never auto-download
+autoUpdater.autoInstallOnAppQuit = false; // Don't auto-install
 
-// Auto-updater event handlers
+// Auto-updater event handlers - SIMPLIFIED
 autoUpdater.on('checking-for-update', () => {
     logToFile('Checking for updates...');
 });
 
 autoUpdater.on('update-available', (info) => {
-    logToFile(`Update available: v${info.version}`);
+    logToFile(`✨ Update available: v${info.version}`);
     if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('update-available', info);
+        // Send simplified update notification to frontend
+        mainWindow.webContents.send('update-available-simple', {
+            version: info.version,
+            releaseUrl: `https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest`
+        });
     }
 });
 
 autoUpdater.on('update-not-available', (info) => {
-    logToFile('App is up to date');
+    logToFile('✅ App is up to date');
 });
 
 autoUpdater.on('error', (err) => {
-    logToFile('Error in auto-updater: ' + err);
-});
-
-autoUpdater.on('download-progress', (progressObj) => {
-    logToFile(`Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}%`);
-    if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('download-progress', progressObj);
-    }
-});
-
-autoUpdater.on('update-downloaded', (info) => {
-    logToFile('Update downloaded, will install on quit');
-    if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('update-downloaded', info);
-    }
+    // Silent fail - just log, don't bother user
+    logToFile(`Auto-update check failed (not critical): ${err.message}`);
 });
 
     // Function to check if a port is in use
@@ -480,20 +484,17 @@ autoUpdater.on('update-downloaded', (info) => {
         }, 5000);
     });
 
-    // IPC handlers for update actions
-    ipcMain.on('download-update', () => {
-        logToFile('User requested update download');
-        autoUpdater.downloadUpdate();
-    });
-
-    ipcMain.on('install-update', () => {
-        logToFile('User requested update install');
-        autoUpdater.quitAndInstall(false, true);
+    // IPC handlers for update actions - SIMPLIFIED
+    ipcMain.on('open-release-page', () => {
+        logToFile('User opening releases page');
+        shell.openExternal('https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest');
     });
 
     ipcMain.on('check-for-updates', () => {
         logToFile('User manually checking for updates');
-        autoUpdater.checkForUpdates();
+        autoUpdater.checkForUpdates().catch(err => {
+            logToFile(`Update check failed: ${err.message}`);
+        });
     });
 }
 

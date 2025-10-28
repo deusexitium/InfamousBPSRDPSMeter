@@ -5,11 +5,19 @@ const { ipcRenderer } = require('electron');
 let updateInfo = null;
 let downloadProgress = 0;
 
-// Listen for update events from main process
+// Listen for SIMPLIFIED update events from main process
+ipcRenderer.on('update-available-simple', (event, data) => {
+    console.log(`✨ Update available: v${data.version}`);
+    showSimpleUpdateNotification(data);
+});
+
+// Keep old handler for backwards compatibility (will be removed later)
 ipcRenderer.on('update-available', (event, info) => {
-    updateInfo = info;
-    console.log('Update available:', info.version);
-    showUpdateNotification(info);
+    console.log('Update available (old):', info.version);
+    showSimpleUpdateNotification({
+        version: info.version,
+        releaseUrl: 'https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest'
+    });
 });
 
 ipcRenderer.on('download-progress', (event, progress) => {
@@ -173,9 +181,12 @@ function showUpdateReadyNotification(info) {
     `;
 }
 
-// Install update
-window.installUpdate = function() {
-    ipcRenderer.send('install-update');
+// Open releases page in browser
+window.openReleasePage = function() {
+    if (window.updateReleaseUrl) {
+        ipcRenderer.send('open-release-page');
+        closeUpdateNotification();
+    }
 };
 
 // Close notification
