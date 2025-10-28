@@ -118,6 +118,9 @@ CHANGELOG-v*.md
 RELEASE-NOTES-v*.md
 RELEASE_NOTES*.md
 VPN-SUPPORT.md
+
+# Cleanup script is tracked (needed for repo management)
+!cleanup.sh
 VPN-COMPATIBILITY.md
 BUILD-FROM-WSL.md
 BUILD-SCRIPTS.md
