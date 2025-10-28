@@ -65,8 +65,8 @@ echo "✓ Build completed"
 echo ""
 
 echo "[5/5] Copying installer..."
-# Find installer dynamically (version-independent)
-INSTALLER=$(find "$WIN_TEMP/dist_electron" -name "Infamous BPSR DPS Meter-Setup-*.exe" -type f | head -n 1)
+# Find installer dynamically (version-independent, no spaces in filename)
+INSTALLER=$(find "$WIN_TEMP/dist_electron" -name "InfamousBPSRDPSMeter-Setup-*.exe" -type f | head -n 1)
 if [ -f "$INSTALLER" ]; then
     BASENAME=$(basename "$INSTALLER")
     
