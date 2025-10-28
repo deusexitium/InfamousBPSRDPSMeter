@@ -885,10 +885,21 @@ class UserDataManager {
             user.setName(name);
             this.logger.info(`Found player name ${name} for uid ${uid}`);
             
-            // Cache the name in playerMap for future sessions
+            // Cache the name in playerMap for future sessions (LRU - most recent at end)
             const uidStr = String(uid);
             if (!this.playerMap.has(uidStr) || this.playerMap.get(uidStr) !== name) {
+                // Delete and re-add to move to end (LRU)
+                if (this.playerMap.has(uidStr)) {
+                    this.playerMap.delete(uidStr);
+                }
                 this.playerMap.set(uidStr, name);
+                
+                // Enforce max size (LRU eviction)
+                if (this.playerMap.size > this.playerMapMaxSize) {
+                    const firstKey = this.playerMap.keys().next().value;
+                    this.playerMap.delete(firstKey);
+                }
+                
                 this.playerMapDirty = true;
             }
         }
