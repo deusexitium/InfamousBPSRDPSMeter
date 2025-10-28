@@ -253,36 +253,20 @@ class Sniffer {
                                         // Mark server change for frontend notification
                                         this.userDataManager.markServerChanged();
                                         
-                                        // DECODE ZONE INFO FROM PROTOBUF
-                                        let zoneName = 'Unknown Zone';
+                                        // ZONE/SERVER CHANGE DETECTED - Extract basic info
+                                        let zoneName = 'Zone Change';
                                         let zoneId = null;
+                                        let serverInfo = '';
                                         
                                         try {
-                                            // Skip signature (11 bytes) and decode protobuf
-                                            const protoData = data1.subarray(11);
-                                            const decoded = this.pb.SyncToMeEntity.decode(protoData);
-                                            
-                                            // Extract zone information
-                                            if (decoded && decoded.EntityInfo) {
-                                                const entityInfo = decoded.EntityInfo;
-                                                
-                                                // Try to extract zone ID from entity data
-                                                if (entityInfo.SceneId) {
-                                                    zoneId = entityInfo.SceneId;
-                                                } else if (entityInfo.ConfigId) {
-                                                    zoneId = entityInfo.ConfigId;
-                                                }
-                                                
-                                                // Translate zone ID to name
-                                                if (zoneId && this.zoneNames && this.zoneNames[zoneId]) {
-                                                    zoneName = this.zoneNames[zoneId];
-                                                } else if (zoneId) {
-                                                    zoneName = `Zone ${zoneId}`;
-                                                }
-                                            }
-                                        } catch (decodeError) {
-                                            // If decode fails, try to extract from raw data
-                                            console.log(`⚠️ Failed to decode zone protobuf: ${decodeError.message}`);
+                                            // Extract server IP/port for identification
+                                            const [serverIp, serverPort] = src_server.split(':')[0].split('.');
+                                            const portNum = parseInt(src_server.split(':')[1]);
+                                            zoneId = portNum; // Use port as zone identifier
+                                            serverInfo = `Server ${serverIp}.${serverPort}:${portNum}`;
+                                            zoneName = `${serverInfo}`;
+                                        } catch (e) {
+                                            zoneName = 'Zone Change';
                                         }
                                         
                                         // Set current zone for session naming
@@ -290,12 +274,11 @@ class Sniffer {
                                         this.currentZoneId = zoneId;
                                         this.userDataManager.setCurrentZone(zoneName, zoneId);
                                         
-                                        // LOG ZONE CHANGE WITH DECODED INFO
+                                        // LOG ZONE CHANGE
                                         console.log('='.repeat(80));
-                                        console.log('🌍 ZONE CHANGE DETECTED:');
-                                        console.log(`Server: ${src_server}`);
-                                        console.log(`Zone: ${zoneName} ${zoneId ? `(ID: ${zoneId})` : ''}`);
-                                        console.log(`Data hex (first 100 bytes): ${data1?.subarray(0, 100).toString('hex') || 'N/A'}`);
+                                        console.log('🌍 ZONE/SERVER CHANGE DETECTED');
+                                        console.log(`📍 ${zoneName}`);
+                                        console.log(`🔗 Full: ${src_server}`);
                                         console.log('='.repeat(80));
                                         
                                         if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
