@@ -1186,16 +1186,24 @@ class UserDataManager {
 
             // Detect zone/boss context
             const zoneContext = this.detectZoneContext();
-            const zoneSuffix = zoneContext ? ` - ${zoneContext}` : '';
+            const duration = this.getDuration();
+            
+            // Format: MM/DD HH:MM AM/PM - Zone/Boss - Duration (X players)
+            const date = new Date(timestamp);
+            const dateStr = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}`;
+            const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            const durationStr = duration > 0 ? this.formatDuration(duration) : '0s';
+            const zoneName = zoneContext || 'Battle';
+            const sessionName = `${dateStr} ${timeStr} - ${zoneName} - ${durationStr} (${players.length}p)`;
             
             const sessionData = {
                 id: timestamp,
-                name: `Auto: ${new Date(timestamp).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}${zoneSuffix}`,
+                name: sessionName,
                 timestamp: timestamp,
                 players: players,
                 totalDps: players.reduce((sum, p) => sum + (p.total_dps || 0), 0),
                 playerCount: players.length,
-                duration: this.getDuration(),
+                duration: duration,
                 autoSaved: true,
                 zoneContext: zoneContext // Store for future filtering
             };

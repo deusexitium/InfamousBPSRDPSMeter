@@ -1,6 +1,6 @@
 {
   "name": "infamous-bpsr-dps-meter",
-  "version": "3.1.36",
+  "version": "3.1.38",
   "description": "Infamous BPSR DPS Meter - The Ultimate Blue Protocol DPS Tracker",
   "main": "electron-main.js",
   "bin": {
@@ -64,6 +64,7 @@
   "build": {
     "appId": "com.infamous.bpsr.dps.meter",
     "productName": "Infamous BPSR DPS Meter",
+    "artifactName": "${productName}-Setup-${version}.${ext}",
     "files": [
       "electron-main.js",
       "preload.js",
@@ -130,16 +131,13 @@
       }
     ],
     "win": {
-      "icon": "icon.ico",
       "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
+        "nsis"
       ],
+      "icon": "icon.ico",
       "requestedExecutionLevel": "requireAdministrator",
+      "signAndEditExecutable": false,
+      "publisherName": "Infamous",
       "verifyUpdateCodeSignature": false
     },
     "nsis": {
@@ -148,15 +146,16 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Infamous BPSR DPS Meter",
-      "runAfterFinish": true,
-      "artifactName": "${productName}-Setup-${version}.exe",
-      "deleteAppDataOnUninstall": false,
       "perMachine": true,
+      "runAfterFinish": false,
+      "deleteAppDataOnUninstall": false,
+      "allowElevation": true,
       "installerIcon": "icon.ico",
       "uninstallerIcon": "icon.ico",
+      "installerHeaderIcon": "icon.ico",
+      "packElevateHelper": true,
       "displayLanguageSelector": false,
-      "menuCategory": true,
-      "allowElevation": true
+      "menuCategory": true
     },
     "publish": {
       "provider": "github",
