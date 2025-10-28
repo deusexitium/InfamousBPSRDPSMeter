@@ -872,70 +872,32 @@ function renderPlayers() {
         }
     }
     
-    let html = '';
-    
-    // Compact headers (inside player list for compact mode)
-    const isCompact = STATE.viewMode === 'compact';
-    if (isCompact) {
-        html += `
-            <div class="compact-headers">
-                <div class="compact-header-rank">#</div>
-                <div class="compact-header-name">PLAYER</div>
-                <div class="compact-header-dps">DPS</div>
-                <div class="compact-header-stat">MAX</div>
-                <div class="compact-header-stat">TOTAL</div>
-                <div class="compact-header-stat">%</div>
-            </div>
-        `;
-    }
-    
-    // STEP 3: Local player if not rank 1
-    const isExpandedList = document.getElementById('player-list')?.classList.contains('expanded');
-    const shouldLimitDisplay = document.body.classList.contains('compact-mode') && !isExpandedList;
-    
-    let displayLimit = shouldLimitDisplay ? 6 : sorted.length; // Show 6 in compact (not 5)
-    
-    const shouldShowLocalSeparately = localPlayer && localPlayerRank > 1;
-    if (shouldShowLocalSeparately) {
-        html += renderPlayerRow(localPlayer, localPlayerRank, maxDmg, true, teamTotalDamage);
-        // NO "Rankings" separator - just show other players below
-    }
-    
-    sorted.forEach((player, idx) => {
-        const rank = idx + 1;
-        const isLocal = player.isLocalPlayer || player.uid === STATE.localPlayerUid;
-        
-        // Skip local player if already shown separately on top
-        if (isLocal && shouldShowLocalSeparately) {
-            return;
-        }
-        
-        const rowHtml = renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage);
-        
-        if (shouldLimitDisplay && idx >= displayLimit) {
-            html += rowHtml.replace('<div class="player-row', '<div class="player-row compact-hidden');
-        } else {
-            html += rowHtml;
-        }
+    // Generate player rows HTML
+    let playerRowsHTML = '';
+    sorted.forEach((player, index) => {
+        playerRowsHTML += renderPlayerRow(player, index + 1, teamTotalDamage, teamTotalHealing);
     });
     
-    const expandBtn = document.getElementById('btn-expand-list');
-    if (expandBtn) {
-        if (shouldLimitDisplay) {
-            const hasHiddenPlayers = sorted.length > displayLimit;
-            expandBtn.style.display = hasHiddenPlayers ? 'flex' : 'none';
-            
-            const text = expandBtn.querySelector('span');
-            const icon = expandBtn.querySelector('i');
-            if (text) text.textContent = isExpandedList ? 'Show Less' : 'Show More';
-            if (icon) icon.className = isExpandedList ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
-        } else {
-            expandBtn.style.display = 'none';
-        }
-    }
+    // Add "Show More" button if there are hidden players
+    const showMoreButton = (!showingAll && sorted.length > defaultShowCount) ? `
+        <div class="show-more-container">
+            <button class="show-more-btn" onclick="document.getElementById('player-list').classList.add('show-all'); renderPlayers();">
+                <i class="fa-solid fa-chevron-down"></i> Show ${sorted.length - defaultShowCount} More Players
+            </button>
+        </div>
+    ` : (showingAll && sorted.length > defaultShowCount) ? `
+        <div class="show-more-container">
+            <button class="show-more-btn" onclick="document.getElementById('player-list').classList.remove('show-all'); renderPlayers();">
+                <i class="fa-solid fa-chevron-up"></i> Show Less
+            </button>
+        </div>
+    ` : '';
     
-    list.innerHTML = html;
+    // Set the HTML - ONLY show playersToShow, not all sorted
+    const displayHTML = playersToShow.map((player, index) => renderPlayerRow(player, index + 1, teamTotalDamage, teamTotalHealing)).join('');
+    list.innerHTML = displayHTML + showMoreButton;
     
+    // Attach click handlers to player rows
     document.querySelectorAll('.player-row').forEach(row => {
         row.style.cursor = 'pointer';
         row.addEventListener('click', (e) => {
@@ -947,13 +909,17 @@ function renderPlayers() {
         });
     });
     
+    // Restore expanded player details from cache
     expandedPlayerIds.forEach(uid => {
         if (skillsCache.has(uid)) {
             renderSkillsFromCache(uid);
         }
     });
     
-    autoResizeWindow();
+    // Auto-resize window after rendering
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => autoResizeWindow());
+    });
 }
 
 // AUTO-RESIZE VARIABLES
@@ -2299,7 +2265,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.87 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.88 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2357,7 +2323,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.87 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.88 - Ready!');
 }
 
 // ============================================================================
