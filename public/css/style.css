@@ -181,10 +181,10 @@ body {
 /* Player Row - Full Mode Layout */
 .player-row {
     display: grid;
-    grid-template-columns: 40px minmax(200px, 2fr) repeat(6, minmax(90px, 1fr)); /* 7 stats total */
-    gap: 10px;
+    grid-template-columns: 40px minmax(180px, 2fr) repeat(7, minmax(85px, 1fr)); /* 9 total: rank + name + 7 stats */
+    gap: 8px;
     align-items: center;
-    padding: 12px 14px;
+    padding: 10px 12px;
     background: var(--bg-card);
     border-left: 3px solid transparent;
     cursor: pointer;

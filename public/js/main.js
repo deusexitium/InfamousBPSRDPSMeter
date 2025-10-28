@@ -960,7 +960,7 @@ function autoResizeWindow() {
         clearTimeout(resizeDebounceTimer);
     }
 
-    // Debounce with longer delay to prevent resize fighting
+    // Faster debounce for responsive UI
     resizeDebounceTimer = setTimeout(() => {
         // Force browser to calculate actual layout
         const rect = container.getBoundingClientRect();
@@ -1001,7 +1001,7 @@ function autoResizeWindow() {
                 isResizing = false;
             }, 150);
         }
-    }, 100); // Slower debounce to prevent resize spam
+    }, 50); // Fast debounce for responsive UI
 }
 
 function filterPlayers(players) {

@@ -255,18 +255,7 @@ class Sniffer {
                                         console.log(`Data1 hex (first 200 bytes): ${data1?.subarray(0, 200).toString('hex') || 'N/A'}`);
                                         console.log(`Data1 ascii: ${data1?.toString('ascii', 0, Math.min(200, data1?.length || 0)).replace(/[^\x20-\x7E]/g, '.') || 'N/A'}`);
                                         
-                                        // Try to decode the protobuf message
-                                        try {
-                                            if (pb && pb.SyncToMeEntity) {
-                                                const decoded = pb.SyncToMeEntity.decode(data1.subarray(11));
-                                                console.log(`Decoded message keys: ${Object.keys(decoded).join(', ')}`);
-                                                console.log(`Full decoded message: ${JSON.stringify(decoded, null, 2)}`);
-                                            } else {
-                                                console.log('⚠️ pb.SyncToMeEntity not available, skipping decode');
-                                            }
-                                        } catch (e) {
-                                            console.log(`Failed to decode as SyncToMeEntity: ${e.message}`);
-                                        }
+                                        // Zone data logged - decode not implemented yet
                                         console.log('='.repeat(80));
                                         
                                         if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
