@@ -811,6 +811,12 @@ function renderPlayers() {
         return;
     }
     
+    // Show top 10 by default, rest behind "Show More"
+    const isCompactView = document.body.classList.contains('compact-mode');
+    const defaultShowCount = isCompactView ? 6 : 10;
+    const showingAll = list.classList.contains('show-all');
+    const playersToShow = showingAll ? sorted : sorted.slice(0, defaultShowCount);
+    
     if (sorted.length === 0) {
         const connectionStatus = STATE.lastUpdate > 0 
             ? `Connected • Last update: ${Math.floor((Date.now() - STATE.lastUpdate) / 1000)}s ago`
@@ -928,7 +934,7 @@ function renderPlayers() {
         }
     }
     
-    list.innerHTML = html;
+    list.innerHTML = html + showMoreButton;
     
     document.querySelectorAll('.player-row').forEach(row => {
         row.style.cursor = 'pointer';
@@ -989,11 +995,10 @@ function autoResizeWindow() {
             finalHeight = Math.max(200, Math.min(targetHeight, 600));
             finalWidth = Math.max(420, Math.min(targetWidth, 480)); // 420-480px - tighter fit
         } else {
-            // Full mode: enforce strict max width
+            // Full mode: jump to max width immediately, no slow growth
             targetHeight = actualHeight + 10;
-            targetWidth = actualWidth + 10;
             finalHeight = Math.max(250, Math.min(targetHeight, 1200));
-            finalWidth = Math.max(900, Math.min(targetWidth, 1200)); // STRICT: never exceed 1200px
+            finalWidth = 1000; // FIXED: Always 1000px, no slow growth
         }
 
         // Only resize if difference is significant (not every pixel)
@@ -2294,7 +2299,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.83 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.84 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2352,7 +2357,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.83 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.84 - Ready!');
 }
 
 // ============================================================================

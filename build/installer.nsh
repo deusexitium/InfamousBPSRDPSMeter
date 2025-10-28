@@ -14,6 +14,9 @@
   RMDir /r "$APPDATA\infamous-bpsr-dps-meter\DawnGraphiteCache"
   RMDir /r "$APPDATA\infamous-bpsr-dps-meter\DawnWebGPUCache"
   
+  ; PRESERVE LOGS - Do NOT delete iniciar_log.txt or any log files
+  ; User needs these for debugging
+  
   ; EXPLICITLY PRESERVE USER DATA (DO NOT DELETE):
   ; - sessions/ (your saved DPS charts)
   ; - player_map.json (saved player names)

@@ -1,0 +1,33 @@
+/* Show More Button */
+.show-more-container {
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+    background: var(--bg-card);
+    margin-top: 4px;
+}
+
+.show-more-btn {
+    padding: 8px 20px;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 6px;
+    color: var(--accent-gold);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.show-more-btn:hover {
+    background: rgba(251, 191, 36, 0.2);
+    border-color: var(--accent-gold);
+    transform: translateY(-1px);
+}
+
+.show-more-btn i {
+    font-size: 10px;
+}
