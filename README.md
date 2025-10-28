@@ -1,4 +1,4 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.49
+# ⚔️ Infamous BPSR DPS Meter v3.1.50
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
@@ -21,7 +21,7 @@
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `InfamousBPSRDPSMeter-Setup-3.1.48.exe` (~90MB)
+- Get: `InfamousBPSRDPSMeter-Setup-3.1.49.exe` (~90MB)
 - 🆕 **Auto-Update:** v3.1.40+ includes automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**
