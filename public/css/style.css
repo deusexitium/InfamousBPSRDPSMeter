@@ -34,11 +34,8 @@ body {
     width: 100vw; /* Match window width */
 }
 
-/* Main Container - Fill window exactly */
+/* Main Container - Content-based sizing */
 .meter-container {
-    width: 100%; /* Fill parent */
-    height: 100%; /* Fill parent */
-    max-width: none; /* No max width */
     min-width: 900px;
     background: var(--bg-dark);
     border-radius: 0;
@@ -145,17 +142,15 @@ body {
     background: rgba(251, 191, 36, 0.1);
 }
 
-/* Player list - Allow up to 20 players (~60px each) before scrolling */
+/* Player list - Content-based height, scrolls after 20 players */
 .player-list {
     padding: 4px;
     overflow-y: auto;
     overflow-x: hidden;
-    flex: 1;
     background: var(--bg-dark);
     position: relative;
-    min-height: 200px;
-    max-height: calc(20 * 60px); /* 20 players × 60px per row = 1200px */
-    pointer-events: auto !important; /* CRITICAL: Ensure player rows are clickable */
+    max-height: calc(20 * 60px); /* Scrolls after 20 players */
+    pointer-events: auto !important;
 }
 
 .player-list::-webkit-scrollbar {
@@ -1815,7 +1810,7 @@ body.compact-mode .player-list:not(.expanded) .player-row.compact-hidden {
 /* Compact mode: smaller list, scrollbar at 20 players */
 body.compact-mode .player-list {
     padding: 4px;
-    max-height: calc(20 * 45px); /* 20 players × 45px per row in compact = 900px */
+    max-height: calc(20 * 45px);
     overflow-y: auto;
 }
 
