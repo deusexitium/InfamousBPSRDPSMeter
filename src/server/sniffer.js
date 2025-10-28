@@ -4,7 +4,7 @@ const PROTOCOL = decoders.PROTOCOL;
 const Readable = require('stream').Readable;
 const findDefaultNetworkDevice = require('../../algo/netInterfaceUtil'); // Adjust path
 const { Lock } = require('./dataManager'); // Import Lock from dataManager
-const PacketProcessor = require('../../algo/packet'); // Import PacketProcessor for decode
+const pb = require('../../algo/blueprotobuf'); // Import protobuf definitions directly
 
 const Cap = cap.Cap;
 
@@ -257,9 +257,13 @@ class Sniffer {
                                         
                                         // Try to decode the protobuf message
                                         try {
-                                            const decoded = PacketProcessor.SyncToMeEntity.decode(data1.subarray(11));
-                                            console.log(`Decoded message keys: ${Object.keys(decoded).join(', ')}`);
-                                            console.log(`Full decoded message: ${JSON.stringify(decoded, null, 2)}`);
+                                            if (pb && pb.SyncToMeEntity) {
+                                                const decoded = pb.SyncToMeEntity.decode(data1.subarray(11));
+                                                console.log(`Decoded message keys: ${Object.keys(decoded).join(', ')}`);
+                                                console.log(`Full decoded message: ${JSON.stringify(decoded, null, 2)}`);
+                                            } else {
+                                                console.log('⚠️ pb.SyncToMeEntity not available, skipping decode');
+                                            }
                                         } catch (e) {
                                             console.log(`Failed to decode as SyncToMeEntity: ${e.message}`);
                                         }
@@ -308,28 +312,9 @@ class Sniffer {
                                 console.log('🌍 ZONE/SERVER CHANGE DETECTED (LOGIN PACKET) - FULL PACKET DUMP:');
                                 console.log(`Server: ${src_server}`);
                                 console.log(`Packet length: ${buf.length} bytes`);
-                                console.log(`Buffer hex (first 200 bytes): ${buf.subarray(0, 200).toString('hex')}`);
-                                console.log(`Buffer ascii: ${buf.toString('ascii', 0, Math.min(200, buf.length)).replace(/[^\x20-\x7E]/g, '.')}`);
-                                
-                                // Try to decode login packet
-                                try {
-                                    // Login packet structure: skip header and decode
-                                    const data = buf.subarray(10); // Skip first 10 bytes (header)
-                                    if (data.length > 0) {
-                                        const stream = require('stream').Readable.from(data, { objectMode: false });
-                                        const len_buf = stream.read(4);
-                                        if (len_buf) {
-                                            const data1 = stream.read(len_buf.readUInt32BE() - 4);
-                                            if (data1 && data1.length > 11) {
-                                                const decoded = PacketProcessor.SyncToMeEntity.decode(data1.subarray(11));
-                                                console.log(`Decoded message keys: ${Object.keys(decoded).join(', ')}`);
-                                                console.log(`Full decoded message: ${JSON.stringify(decoded, null, 2)}`);
-                                            }
-                                        }
-                                    }
-                                } catch (e) {
-                                    console.log(`Failed to decode login packet: ${e.message}`);
-                                }
+                                console.log(`Buffer hex (ALL bytes): ${buf.toString('hex')}`);
+                                console.log(`Buffer ascii: ${buf.toString('ascii').replace(/[^\x20-\x7E]/g, '.')}`);
+                                console.log(`Buffer utf8 (filtered): ${buf.toString('utf8').replace(/[^\x20-\x7E]/g, '')}`);
                                 console.log('='.repeat(80));
                                 
                                 if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
