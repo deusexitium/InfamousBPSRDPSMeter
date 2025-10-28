@@ -1,8 +1,24 @@
 # 💾 Disk Usage & Cleanup Management
 
 **Last Updated:** October 27, 2025  
-**Version:** 3.1.29  
-**Purpose:** Track and manage disk usage in development environment
+**Version:** 3.1.33  
+**Purpose:** Track and manage disk usage in development environment AND user machines
+
+---
+
+## 🎯 Automated Cleanup Features (v3.1.30+)
+
+### User Machine Protection
+**Auto-cleanup prevents unlimited disk growth:**
+- ✅ **History logs:** 30-day retention (older logs auto-deleted)
+- ✅ **Sessions:** Max 20 auto-saved sessions (oldest deleted automatically)
+- ✅ **Electron logs:** 5 MB rotation limit (2 files max: current + .old)
+- ✅ **Periodic saves:** Every 2 minutes during combat (v3.1.31+)
+
+### Cleanup Triggers
+1. **On startup:** Cleanup runs 5 seconds after app launch
+2. **After save:** Cleanup runs after each history save
+3. **Automatic:** No user action required
 
 ---
 
@@ -35,6 +51,37 @@
   
 - `Dist/` - **1.2 MB**
   - Npcap installer for distribution
+
+---
+
+## 🖥️ User Machine Disk Usage
+
+### Application Data Location
+**Windows:** `%APPDATA%\Infamous BPSR DPS Meter\`
+
+### Disk Usage on User Machines
+
+**Typical Storage:**
+```
+History Logs/    Max 30 days      ~varies (auto-cleaned)
+Sessions/        Max 20 auto      ~1-2 MB
+Settings/        1 file           ~10 KB
+Player Map/      1 file           ~50 KB
+Electron Log/    2 files          ~10 MB max
+
+Total:           Well-managed, won't grow infinitely
+```
+
+**Cleanup Schedule:**
+- History logs: Every 30 days (automatic)
+- Sessions: Keep last 20 (automatic)
+- Electron log: 5 MB rotation (automatic)
+
+**Manual Cleanup:**
+Users can safely delete:
+- Old session files in `%APPDATA%\Infamous BPSR DPS Meter\sessions\`
+- Old history logs in `./logs/` (if app folder is accessible)
+- `iniciar_log.txt.old` if exists
   - Keep for user convenience
   
 - `public/` - **552 KB**
