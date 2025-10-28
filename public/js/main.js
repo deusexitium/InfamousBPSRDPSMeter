@@ -545,6 +545,8 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
     if (document.body.classList.contains('compact-mode')) {
         // Compact mode: Simple 6-column grid (rank + name + 4 stats)
         // Grid: 30px | minmax(120px,160px) | 85px | 85px | 85px | 85px
+        // Use total_damage_taken not taken_damage for DMG TAKEN
+        const dmgTakenValue = player.total_damage_taken?.total || player.taken_damage || 0;
         return `
             <div class="player-row ${isLocal ? 'local-player' : ''} ${isIdle ? 'idle' : ''}" data-uid="${player.uid}">
                 <div class="cell-rank">${rank}</div>
@@ -554,7 +556,7 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                 <div class="cell-value">${formatNumber(currentDps)}</div>
                 <div class="cell-value">${formatNumber(maxDps)}</div>
                 <div class="cell-value">${formatNumber(totalDmg)}</div>
-                <div class="cell-value">${formatNumber(dmgTaken)}</div>
+                <div class="cell-value">${formatNumber(dmgTakenValue)}</div>
             </div>
         `;
     }
@@ -568,7 +570,7 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                 <div class="rank ${rankClass}">${rank}</div>
                 <div class="player-name-col">
                     <div class="name-line">
-                        ${isLocal ? '<span class="local-star">★</span>' : ''}
+                        ${isLocal && (player.isLocalPlayer || player.uid === STATE.localPlayerUid) ? '<span class="local-star">★</span>' : ''}
                         <span class="name">${name}${isIdle ? ' <span style="opacity:0.5">(IDLE)</span>' : ''}</span>
                         <span class="role-badge ${prof.role}">${prof.role.toUpperCase()}</span>
                     </div>
@@ -2201,7 +2203,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.90 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.91 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2259,7 +2261,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.90 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.91 - Ready!');
 }
 
 // ============================================================================
