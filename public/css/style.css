@@ -1460,8 +1460,9 @@ input[type="range"]::-moz-range-thumb {
    ============================================================================ */
 
 body.compact-mode .meter-container {
-    min-width: 420px;
-    max-width: 450px;
+    width: 420px !important;
+    min-width: 420px !important;
+    max-width: 420px !important;
     background: rgba(26, 29, 41, 0.85) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
