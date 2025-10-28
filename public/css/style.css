@@ -25,13 +25,11 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Inter', -apple-system, sans-serif;
-    background: var(--bg-dark); /* Match window background to prevent white borders */
+    background: var(--bg-dark);
     color: var(--text-primary);
-    overflow: hidden; /* Prevent scrollbars causing extra space */
+    overflow: hidden;
     -webkit-font-smoothing: antialiased;
-    box-sizing: border-box; /* Fix layout issues */
-    height: 100vh; /* Match window height */
-    width: 100vw; /* Match window width */
+    box-sizing: border-box;
 }
 
 /* Main Container - Content-based sizing */
