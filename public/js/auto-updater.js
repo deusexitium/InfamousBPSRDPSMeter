@@ -250,7 +250,7 @@ function showUpdateReadyNotification(info) {
 
 // Open releases page in browser
 window.openReleasePage = function() {
-    if (window.updateReleaseUrl && window.electronAPI && window.electronAPI.openReleasePageelectronAPI) {
+    if (window.updateReleaseUrl && window.electronAPI && window.electronAPI.openReleasePage) {
         window.electronAPI.openReleasePage();
         closeUpdateNotification();
     }
