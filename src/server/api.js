@@ -13,7 +13,6 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
     const SETTINGS_PATH = path.join(userDataPath, 'settings.json');
     const LOGS_DPS_PATH = path.join(userDataPath, 'logs_dps.json');
     
-    console.log('🔧 Initializing API endpoints...');
     logger.info('🔧 Initializing API endpoints...');
     
     // Initialize VPN detector
@@ -984,13 +983,18 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
         }
     });
 
+    logger.info('📍 VPN detection endpoint registered');
+
+    // WebSocket handlers
     io.on('connection', (socket) => {
-        console.log('Cliente WebSocket conectado: ' + socket.id);
+        logger.info(`WebSocket client connected: ${socket.id}`);
 
         socket.on('disconnect', () => {
-            console.log('Cliente WebSocket desconectado: ' + socket.id);
+            logger.info(`WebSocket client disconnected: ${socket.id}`);
         });
     });
+
+        logger.info('📡 WebSocket handlers registered');
 
     setInterval(() => {
         if (!globalSettings.isPaused) {
@@ -1003,6 +1007,7 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
         }
     }, 100);
     
+    logger.info('⏱️ Data broadcast interval started');
     logger.info('✅ API endpoints registered successfully');
     logger.info('📍 Session endpoint /api/sessions/all should be available');
 }
