@@ -437,7 +437,7 @@ class PacketProcessor {
         }
     }
 
-    _processSyncToMeDeltaInfo(payloadBuffer) {
+    async _processSyncToMeDeltaInfo(payloadBuffer) {
         const syncToMeDeltaInfo = pb.SyncToMeDeltaInfo.decode(payloadBuffer);
         // this.logger.debug(JSON.stringify(syncToMeDeltaInfo, null, 2));
 
@@ -454,7 +454,7 @@ class PacketProcessor {
             // CRITICAL: Character switch detected - auto clear old data
             if (this.userDataManager && oldLocalPlayerUid > 0 && newLocalPlayerUid > 0 && oldLocalPlayerUid !== newLocalPlayerUid) {
                 this.logger.info(`🔄 Character switch detected: ${oldLocalPlayerUid} → ${newLocalPlayerUid}. Auto-clearing old data...`);
-                this.userDataManager.clearAll();
+                await this.userDataManager.clearAll();
                 this.userDataManager.startTime = Date.now();
             }
             
@@ -751,7 +751,9 @@ class PacketProcessor {
                 this._processSyncContainerDirtyData(msgPayload);
                 break;
             case NotifyMethod.SyncToMeDeltaInfo:
-                this._processSyncToMeDeltaInfo(msgPayload);
+                this._processSyncToMeDeltaInfo(msgPayload).catch(err => {
+                    this.logger.error('Error processing SyncToMeDeltaInfo:', err);
+                });
                 break;
             case NotifyMethod.SyncNearDeltaInfo:
                 this._processSyncNearDeltaInfo(msgPayload);

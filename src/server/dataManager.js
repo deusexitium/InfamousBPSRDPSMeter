@@ -1262,12 +1262,15 @@ class UserDataManager {
     }
 
     /** Limpiar todos los datos de usuario */
-    clearAll() {
-        // Automatically save current session before clearing (if there's data to save)
+    async clearAll() {
+        // CRITICAL: Must AWAIT auto-save before resetting startTime to avoid race condition
+        // Otherwise getDuration() reads the NEW startTime and duration becomes 0!
         if (this.users.size > 0 && this.globalSettings.keepDataAfterDungeon !== false) {
-            this.autoSaveSession().catch(error => {
+            try {
+                await this.autoSaveSession();
+            } catch (error) {
                 this.logger.warn('Failed to auto-save session before clearing:', error.message);
-            });
+            }
         }
         
         this.users = new Map();
@@ -1347,8 +1350,10 @@ class UserDataManager {
         }
     }
 
-    checkTimeoutClear() {
-        if (!this.globalSettings.autoClearOnTimeout || this.users.size === 0) return;
+    /** Check if combat has timed out and clear data if needed */
+    async checkCombatTimeout() {
+        if (this.users.size === 0) return; // No data to check
+        
         const currentTime = Date.now();
         
         // CRITICAL FIX: Changed from 20s to 60s to prevent mid-combat clears
@@ -1362,7 +1367,7 @@ class UserDataManager {
             });
             
             if (!hasRecentActivity) {
-                this.clearAll();
+                await this.clearAll();
                 this.logger.info(`⏱️ Combat timeout (${COMBAT_TIMEOUT/1000}s idle) - Statistics cleared`);
             } else {
                 this.logger.debug('Combat timeout check: Recent activity detected, skipping clear');
