@@ -630,6 +630,7 @@ class UserDataManager {
         this.partyMembers = new Set();
         this.raidGroups = new Map();
         this.startTime = Date.now();
+        this.lastAutoSaveTime = 0; // Track last periodic auto-save time
         this.playerMap = new Map(); // UID -> Name cache
         this.playerMapDirty = false;
         this.playerMapLock = new Lock();
