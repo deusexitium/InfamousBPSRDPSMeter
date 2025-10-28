@@ -51,8 +51,8 @@ body {
     flex-direction: column; /* Stack children vertically */
 }
 
-/* Compact Header - ENTIRE HEADER IS DRAGGABLE */
-.header {
+/* Title Bar - DRAGGABLE */
+.title-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -61,17 +61,17 @@ body {
     background: var(--bg-header);
     border-bottom: 1px solid var(--border);
     -webkit-app-region: drag;
-    cursor: grab;
+    cursor: move; /* Changed from grab to move for clarity */
+    flex-shrink: 0; /* Don't shrink title bar */
 }
 
-.header:active {
-    cursor: grabbing;
-}
-
-/* Buttons in header should NOT be draggable - CRITICAL FIX */
-.header-btn, .duration {
+/* Buttons in title bar should NOT be draggable - CRITICAL FIX */
+.title-bar .header-btn,
+.title-bar button,
+.title-bar * {
     -webkit-app-region: no-drag !important;
     pointer-events: auto !important;
+    cursor: pointer !important; /* Ensure buttons show pointer */
 }
 
 .header-btn {
