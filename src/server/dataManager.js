@@ -642,7 +642,7 @@ class UserDataManager {
         this.hpCache = new Map();
         
         // Initialize skill translation manager (will be loaded in initialize())
-        this.skillTranslations = new SkillTranslationManager(logger, userDataPath, userDataPath);
+        this.skillTranslations = new SkillTranslationManager(logger, userDataPath);
 
         this.logLock = new Lock();
         this.logDirExist = new Set();
@@ -1052,6 +1052,21 @@ class UserDataManager {
         return Date.now() - this.startTime;
     }
 
+    /** Format duration in human-readable format */
+    formatDuration(ms) {
+        const seconds = Math.floor(ms / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        
+        if (hours > 0) {
+            return `${hours}h${minutes % 60}m`;
+        } else if (minutes > 0) {
+            return `${minutes}m${seconds % 60}s`;
+        } else {
+            return `${seconds}s`;
+        }
+    }
+
     /** Detect zone/map change based on player count */
     detectZoneChange(currentPlayerCount) {
         const now = Date.now();
@@ -1223,7 +1238,7 @@ class UserDataManager {
 
             this.logger.info(`💾 Auto-saved session: ${players.length} players, ${sessionData.totalDps.toLocaleString()} DPS`);
         } catch (error) {
-            this.logger.error('Failed to auto-save session:', error.message);
+            this.logger.error('Failed to auto-save session:', error.message, error.stack);
         }
     }
 

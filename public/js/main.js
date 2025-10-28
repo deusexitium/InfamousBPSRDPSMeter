@@ -2361,7 +2361,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.399 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.39 - Ready!');
 }
 
 // ============================================================================
