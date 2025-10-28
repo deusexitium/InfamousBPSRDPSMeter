@@ -715,6 +715,53 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
         }
     });
 
+    // Get ALL sessions (no limit) for session manager
+    // CRITICAL: This MUST be defined BEFORE /api/sessions/:id to avoid route conflict
+    app.get('/api/sessions/all', async (req, res) => {
+        console.log('🚀 /api/sessions/all endpoint HIT!');
+        logger.info('🚀 /api/sessions/all endpoint HIT!');
+        try {
+            console.log(`📂 Loading sessions from: ${SESSIONS_PATH}`);
+            logger.info(`📂 Loading sessions from: ${SESSIONS_PATH}`);
+            await fsPromises.mkdir(SESSIONS_PATH, { recursive: true });
+            const files = await fsPromises.readdir(SESSIONS_PATH);
+            console.log(`📋 Found ${files.length} files in sessions directory`);
+            logger.info(`📋 Found ${files.length} files in sessions directory`);
+            const sessionFiles = files.filter(f => f.endsWith('.json'));
+            console.log(`📊 Found ${sessionFiles.length} session files`);
+            logger.info(`📊 Found ${sessionFiles.length} session files`);
+
+            const sessions = await Promise.all(
+                sessionFiles.map(async (file) => {
+                    try {
+                        const filePath = path.join(SESSIONS_PATH, file);
+                        const data = await fsPromises.readFile(filePath, 'utf8');
+                        const session = JSON.parse(data);
+                        return {
+                            id: path.basename(file, '.json'),
+                            ...session
+                        };
+                    } catch (error) {
+                        logger.error(`Failed to read session ${file}:`, error);
+                        return null;
+                    }
+                })
+            );
+
+            const validSessions = sessions.filter(s => s !== null).sort((a, b) => b.timestamp - a.timestamp);
+            logger.info(`✅ Returning ${validSessions.length} valid sessions`);
+            res.json({ code: 0, sessions: validSessions });
+        } catch (error) {
+            logger.error(`❌ Failed to fetch all sessions: ${error.message}`, error);
+            res.json({ code: 1, msg: error.message, sessions: [] });
+        }
+    });
+    
+    console.log('✅ /api/sessions/all endpoint REGISTERED');
+    logger.info('✅ /api/sessions/all endpoint REGISTERED');
+
+    // Get a specific session by ID
+    // CRITICAL: This MUST be defined AFTER /api/sessions/all to avoid route conflict
     app.get('/api/sessions/:id', async (req, res) => {
         try {
             const { id } = req.params;
@@ -778,50 +825,6 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
             }
         }
     });
-
-    // Get ALL sessions (no limit) for session manager
-    app.get('/api/sessions/all', async (req, res) => {
-        console.log('🚀 /api/sessions/all endpoint HIT!');
-        logger.info('🚀 /api/sessions/all endpoint HIT!');
-        try {
-            console.log(`📂 Loading sessions from: ${SESSIONS_PATH}`);
-            logger.info(`📂 Loading sessions from: ${SESSIONS_PATH}`);
-            await fsPromises.mkdir(SESSIONS_PATH, { recursive: true });
-            const files = await fsPromises.readdir(SESSIONS_PATH);
-            console.log(`📋 Found ${files.length} files in sessions directory`);
-            logger.info(`📋 Found ${files.length} files in sessions directory`);
-            const sessionFiles = files.filter(f => f.endsWith('.json'));
-            console.log(`📊 Found ${sessionFiles.length} session files`);
-            logger.info(`📊 Found ${sessionFiles.length} session files`);
-
-            const sessions = await Promise.all(
-                sessionFiles.map(async (file) => {
-                    try {
-                        const filePath = path.join(SESSIONS_PATH, file);
-                        const data = await fsPromises.readFile(filePath, 'utf8');
-                        const session = JSON.parse(data);
-                        return {
-                            id: path.basename(file, '.json'),
-                            ...session
-                        };
-                    } catch (error) {
-                        logger.error(`Failed to read session ${file}:`, error);
-                        return null;
-                    }
-                })
-            );
-
-            const validSessions = sessions.filter(s => s !== null).sort((a, b) => b.timestamp - a.timestamp);
-            logger.info(`✅ Returning ${validSessions.length} valid sessions`);
-            res.json({ code: 0, sessions: validSessions });
-        } catch (error) {
-            logger.error(`❌ Failed to fetch all sessions: ${error.message}`, error);
-            res.json({ code: 1, msg: error.message, sessions: [] });
-        }
-    });
-    
-    console.log('✅ /api/sessions/all endpoint REGISTERED');
-    logger.info('✅ /api/sessions/all endpoint REGISTERED');
 
     // Retrofit old session names to new intelligent format
     app.post('/api/sessions/retrofit-names', async (req, res) => {
