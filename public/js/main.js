@@ -969,11 +969,7 @@ function autoResizeWindow() {
 
     // Fast debounce for responsive UI
     resizeDebounceTimer = setTimeout(() => {
-        // Force reflow to get actual dimensions
-        container.style.display = 'none';
-        container.offsetHeight; // Force reflow
-        container.style.display = 'flex';
-        
+        // Get dimensions without forcing reflow (causes flicker)
         const rect = container.getBoundingClientRect();
         const actualHeight = Math.ceil(rect.height);
         const actualWidth = Math.ceil(rect.width);

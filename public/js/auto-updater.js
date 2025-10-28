@@ -1,34 +1,34 @@
 // Auto-Update Handler for Frontend
 
-const { ipcRenderer } = require('electron');
+// Check if running in Electron context
+if (!window.electronAPI) {
+    console.warn('⚠️ Auto-updater: Not running in Electron context');
+} else {
+    let updateInfo = null;
+    let downloadProgress = 0;
 
-let updateInfo = null;
-let downloadProgress = 0;
+    // Listen for update events through electronAPI
+    if (window.electronAPI.onUpdateAvailable) {
+        window.electronAPI.onUpdateAvailable((data) => {
+            console.log(`✨ Update available: v${data.version}`);
+            showSimpleUpdateNotification(data);
+        });
+    }
 
-// Listen for SIMPLIFIED update events from main process
-ipcRenderer.on('update-available-simple', (event, data) => {
-    console.log(`✨ Update available: v${data.version}`);
-    showSimpleUpdateNotification(data);
-});
+    if (window.electronAPI.onDownloadProgress) {
+        window.electronAPI.onDownloadProgress((progress) => {
+            downloadProgress = progress.percent;
+            updateDownloadProgress(progress);
+        });
+    }
 
-// Keep old handler for backwards compatibility (will be removed later)
-ipcRenderer.on('update-available', (event, info) => {
-    console.log('Update available (old):', info.version);
-    showSimpleUpdateNotification({
-        version: info.version,
-        releaseUrl: 'https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest'
-    });
-});
-
-ipcRenderer.on('download-progress', (event, progress) => {
-    downloadProgress = progress.percent;
-    updateDownloadProgress(progress);
-});
-
-ipcRenderer.on('update-downloaded', (event, info) => {
-    console.log('Update downloaded, ready to install');
-    showUpdateReadyNotification(info);
-});
+    if (window.electronAPI.onUpdateDownloaded) {
+        window.electronAPI.onUpdateDownloaded((info) => {
+            console.log('Update downloaded, ready to install');
+            showUpdateReadyNotification(info);
+        });
+    }
+}
 
 // Show SIMPLIFIED update notification - just notify + link
 function showSimpleUpdateNotification(data) {
@@ -172,6 +172,8 @@ function showUpdateNotification(info) {
 
 // Download update
 window.downloadUpdate = function() {
+    if (!window.electronAPI) return;
+    
     const progressContainer = document.getElementById('download-progress-container');
     if (progressContainer) {
         progressContainer.style.display = 'block';
@@ -180,7 +182,9 @@ window.downloadUpdate = function() {
     const buttons = document.querySelectorAll('#update-notification button');
     buttons.forEach(btn => btn.disabled = true);
     
-    ipcRenderer.send('download-update');
+    if (window.electronAPI.downloadUpdate) {
+        window.electronAPI.downloadUpdate();
+    }
 };
 
 // Update download progress
@@ -246,8 +250,8 @@ function showUpdateReadyNotification(info) {
 
 // Open releases page in browser
 window.openReleasePage = function() {
-    if (window.updateReleaseUrl) {
-        ipcRenderer.send('open-release-page');
+    if (window.updateReleaseUrl && window.electronAPI && window.electronAPI.openReleasePageelectronAPI) {
+        window.electronAPI.openReleasePage();
         closeUpdateNotification();
     }
 };
@@ -263,12 +267,19 @@ window.closeUpdateNotification = function() {
 
 // Manual check for updates (for settings button)
 window.checkForUpdates = function() {
-    showToast('Checking for updates...', 'info');
-    ipcRenderer.send('check-for-updates');
+    if (!window.electronAPI) return;
+    
+    if (typeof showToast === 'function') {
+        showToast('Checking for updates...', 'info');
+    }
+    
+    if (window.electronAPI.checkForUpdates) {
+        window.electronAPI.checkForUpdates();
+    }
     
     // Show "up to date" message if no update found after 5 seconds
     setTimeout(() => {
-        if (!document.getElementById('update-notification')) {
+        if (!document.getElementById('update-notification') && typeof showToast === 'function') {
             showToast('You are using the latest version!', 'success');
         }
     }, 5000);

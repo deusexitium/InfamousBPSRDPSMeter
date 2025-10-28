@@ -1460,11 +1460,8 @@ input[type="range"]::-moz-range-thumb {
    ============================================================================ */
 
 body.compact-mode .meter-container {
-    min-width: 420px; /* Wider for full stat visibility */
+    min-width: 420px;
     max-width: 450px;
-    width: 100%; /* Fill available space */
-    min-height: auto !important;
-    height: 100%; /* Fill parent height */
     background: rgba(26, 29, 41, 0.85) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
