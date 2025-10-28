@@ -2070,10 +2070,124 @@ async function saveLogsToFile() {
 window.saveDebugLogs = saveLogsToFile;
 
 // ============================================================================
-// VPN DETECTION & MANAGEMENT
+// VPN COMPATIBILITY WARNING
 // ============================================================================
 
-async function checkVPNCompatibility() {
+function checkVPNCompatibility() {
+    // This runs once on startup to inform users about VPN issues
+    // VPNs can encrypt/redirect packets causing:
+    // 1. No data captured at all (encrypted before we see it)
+    // 2. Incomplete data (some packets missing)
+    // 3. Wrong adapter selected (traffic on VPN adapter, not game adapter)
+    // 4. DELAYED STARTUP: Packet capture may take up to 2 minutes to start
+    
+    // Check if user has previously acknowledged VPN warning
+    const acknowledged = localStorage.getItem('bpsr-vpn-warning-seen-v2');
+    
+    // Don't show on every startup - only if they haven't seen updated version
+    if (acknowledged === 'true') {
+        return; // User already knows
+    }
+    
+    // Show VPN compatibility notice on first launch
+    setTimeout(() => {
+        showToast(
+            '⚠️ VPN Users: Packet capture may be delayed up to 2 minutes. ' +
+            'If no data appears, try disabling VPN and restarting the app.',
+            'warning',
+            8000 // 8 seconds
+        );
+        
+        localStorage.setItem('bpsr-vpn-warning-seen-v2', 'true');
+    }, 3000); // Show after 3 seconds (after main UI loads)
+}
+
+function showVPNTroubleshooting() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.id = 'vpn-troubleshooting-modal';
+    
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">⚠️ VPN Compatibility & Troubleshooting</h3>
+                <button class="modal-close" onclick="document.getElementById('vpn-troubleshooting-modal').remove()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="max-height: 500px; overflow-y: auto; line-height: 1.6;">
+                <h4 style="color: var(--accent-gold); margin-top: 0;">VPN Impact on Packet Capture</h4>
+                <p style="color: var(--text-secondary); font-size: 13px;">
+                    VPNs encrypt and redirect network traffic, which can interfere with the DPS meter's packet capture.
+                </p>
+                
+                <h4 style="color: var(--accent-gold); margin-top: 16px;">Common Issues:</h4>
+                <ul style="color: var(--text-secondary); font-size: 13px; margin: 8px 0;">
+                    <li><strong>Delayed Startup:</strong> Packet capture may take <strong>up to 2 minutes</strong> to begin</li>
+                    <li><strong>No Data:</strong> Encrypted packets may not be visible to the meter</li>
+                    <li><strong>Incomplete Data:</strong> Some packets may be missed or redirected</li>
+                    <li><strong>Wrong Adapter:</strong> Auto-detection may select VPN adapter instead of game adapter</li>
+                </ul>
+                
+                <h4 style="color: var(--accent-gold); margin-top: 16px;">VPN Compatibility:</h4>
+                <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 6px; margin: 8px 0;">
+                    <div style="margin-bottom: 8px;">
+                        <strong style="color: var(--accent-green);">✅ Partial Support:</strong>
+                        <span style="color: var(--text-secondary); font-size: 13px;">ExitLag (Legacy-NDIS mode) - 70-80% accuracy</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <strong style="color: var(--accent-red);">❌ Not Compatible:</strong>
+                        <span style="color: var(--text-secondary); font-size: 13px;">Kernel-level VPNs (packets encrypted before capture)</span>
+                    </div>
+                    <div>
+                        <strong style="color: var(--accent-green);">✅ Recommended:</strong>
+                        <span style="color: var(--text-secondary); font-size: 13px;">Disable VPN for 100% accuracy</span>
+                    </div>
+                </div>
+                
+                <h4 style="color: var(--accent-gold); margin-top: 16px;">Troubleshooting Steps:</h4>
+                <ol style="color: var(--text-secondary); font-size: 13px; margin: 8px 0; padding-left: 20px;">
+                    <li><strong>Wait 2 minutes:</strong> VPN users may experience delayed packet capture startup</li>
+                    <li><strong>Test without VPN:</strong> Disable VPN temporarily and restart the meter</li>
+                    <li><strong>Compare results:</strong> If meter works without VPN, the VPN is causing interference</li>
+                    <li><strong>Change instance:</strong> Switch game channels/instances once to trigger capture</li>
+                    <li><strong>Check adapter:</strong> Ensure correct network adapter is selected (Settings → Network Adapter)</li>
+                    <li><strong>Restart app:</strong> Close and reopen meter as Administrator</li>
+                </ol>
+                
+                <h4 style="color: var(--accent-gold); margin-top: 16px;">For Best Results:</h4>
+                <div style="background: rgba(102, 126, 234, 0.2); padding: 12px; border-radius: 6px; border-left: 3px solid var(--accent-gold);">
+                    <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">
+                        <strong>💡 Recommendation:</strong> Disable VPN while using the DPS meter for 100% accuracy.
+                        You can re-enable it after your combat session.
+                    </p>
+                </div>
+                
+                <p style="color: var(--text-muted); font-size: 11px; margin-top: 16px; font-style: italic;">
+                    Note: VPN compatibility is experimental and depends on your specific VPN configuration.
+                </p>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <button class="btn-primary" onclick="document.getElementById('vpn-troubleshooting-modal').remove()" style="padding: 8px 16px; font-size: 13px;">
+                    <i class="fa-solid fa-check"></i> Got It
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+// OLD VPN detection code - replaced with simpler warning system
+async function checkVPNCompatibilityOLD() {
     try {
         const res = await fetch(`${CONFIG.apiBase}/vpn/detect`);
         if (!res.ok) return; // Silently fail if VPN detection not available
