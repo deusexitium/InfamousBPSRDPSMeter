@@ -13,6 +13,9 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
     const SETTINGS_PATH = path.join(userDataPath, 'settings.json');
     const LOGS_DPS_PATH = path.join(userDataPath, 'logs_dps.json');
     
+    console.log('🔧 Initializing API endpoints...');
+    logger.info('🔧 Initializing API endpoints...');
+    
     // Initialize VPN detector
     const vpnDetector = new VPNDetector(logger);
     
@@ -778,6 +781,8 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
 
     // Get ALL sessions (no limit) for session manager
     app.get('/api/sessions/all', async (req, res) => {
+        console.log('🚀 /api/sessions/all endpoint HIT!');
+        logger.info('🚀 /api/sessions/all endpoint HIT!');
         try {
             logger.info(`📂 Loading sessions from: ${SESSIONS_PATH}`);
             await fsPromises.mkdir(SESSIONS_PATH, { recursive: true });
@@ -998,6 +1003,10 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
             io.emit('data', data);
         }
     }, 100);
+    
+    console.log('✅ API endpoints registered successfully');
+    logger.info('✅ API endpoints registered successfully');
+    logger.info(`📍 Session endpoint: /api/sessions/all should be available`);
 }
 
 module.exports = initializeApi;
