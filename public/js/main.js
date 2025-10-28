@@ -989,11 +989,11 @@ function autoResizeWindow() {
             finalHeight = Math.max(200, Math.min(targetHeight, 600));
             finalWidth = Math.max(700, Math.min(targetWidth, 900)); // Min 700px to show all 7 columns
         } else {
-            // Full mode: generous padding
+            // Full mode: enforce strict max width
             targetHeight = actualHeight + 10;
             targetWidth = actualWidth + 10;
             finalHeight = Math.max(250, Math.min(targetHeight, 1200));
-            finalWidth = Math.max(800, Math.min(targetWidth, 1600));
+            finalWidth = Math.max(900, Math.min(targetWidth, 1200)); // STRICT: never exceed 1200px
         }
 
         // Only resize if difference is significant (not every pixel)

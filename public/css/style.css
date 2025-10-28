@@ -1463,8 +1463,8 @@ input[type="range"]::-moz-range-thumb {
 
 body.compact-mode .meter-container {
     width: fit-content !important;
-    min-width: 700px !important;
-    max-width: fit-content !important;
+    min-width: 380px !important;
+    max-width: 450px !important;
     height: fit-content !important;
     background: rgba(26, 29, 41, 0.95) !important;
     backdrop-filter: blur(16px);
@@ -1608,16 +1608,21 @@ body.compact-mode .player-row {
     border-left: 2px solid transparent;
 }
 
-/* Compact mode cell values - ensure all columns show */
+/* Compact mode cell values - only show 3 columns */
 body.compact-mode .cell-value {
     font-size: 10px;
-    min-width: 50px;
-    max-width: 70px;
-    text-align: right;
+    min-width: 55px;
+    max-width: 75px;
+    text-align: left;
     flex-shrink: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* Hide extra columns in compact mode - only show DPS, MAX DPS, TOTAL DMG */
+body.compact-mode .cell-value:nth-child(n+5) {
+    display: none !important;
 }
 
 body.compact-mode .player-row:hover {
