@@ -64,7 +64,7 @@
   "build": {
     "appId": "com.infamous.bpsr.dps.meter",
     "productName": "Infamous BPSR DPS Meter",
-    "artifactName": "${productName}-Setup-${version}.${ext}",
+    "artifactName": "InfamousBPSRDPSMeter-Setup-${version}.${ext}",
     "files": [
       "electron-main.js",
       "preload.js",
