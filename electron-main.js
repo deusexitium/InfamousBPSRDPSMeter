@@ -129,9 +129,9 @@ autoUpdater.on('error', (err) => {
 
         mainWindow = new BrowserWindow({
             width: 960,
-            height: 680,
+            height: 500,
             minWidth: 900,
-            minHeight: 400,
+            minHeight: 300,
             maxWidth: 1600,
             maxHeight: 1200,
             frame: false,

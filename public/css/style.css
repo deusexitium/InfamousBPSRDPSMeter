@@ -140,14 +140,14 @@ body {
     background: rgba(251, 191, 36, 0.1);
 }
 
-/* Player list - Content-based height, scrolls after 10 players */
+/* Player list - Dynamic height, no forced max */
 .player-list {
     padding: 4px;
     overflow-y: auto;
     overflow-x: hidden;
     background: var(--bg-dark);
     position: relative;
-    max-height: 600px; /* ~10 players @ 60px = 600px, forces scrollbar */
+    /* No max-height - let content determine size */
     pointer-events: auto !important;
 }
 
@@ -1802,10 +1802,10 @@ body.compact-mode .player-list:not(.expanded) .player-row.compact-hidden {
     display: none !important;
 }
 
-/* Compact mode: smaller list, scrollbar at 6 players */
+/* Compact mode: smaller list, no fixed max */
 body.compact-mode .player-list {
     padding: 4px;
-    max-height: 270px; /* ~6 players @ 45px = 270px */
+    /* No max-height - sizes to content */
     overflow-y: auto;
 }
 
