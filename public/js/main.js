@@ -974,6 +974,10 @@ function autoResizeWindow() {
         const actualHeight = Math.ceil(rect.height);
         const actualWidth = Math.ceil(rect.width);
         
+        // Get current window dimensions FIRST (needed for compact mode logic)
+        const currentHeight = window.innerHeight;
+        const currentWidth = window.innerWidth;
+        
         // Different constraints for compact vs full mode
         const isCompact = document.body.classList.contains('compact-mode');
         let targetHeight, targetWidth, finalHeight, finalWidth;
@@ -993,8 +997,6 @@ function autoResizeWindow() {
         }
 
         // Only resize if difference is significant (not every pixel)
-        const currentHeight = window.innerHeight;
-        const currentWidth = window.innerWidth;
         const heightDiff = Math.abs(finalHeight - currentHeight);
         const widthDiff = Math.abs(finalWidth - currentWidth);
         
@@ -2292,7 +2294,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.76 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.77 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2350,7 +2352,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.76 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.77 - Ready!');
 }
 
 // ============================================================================
