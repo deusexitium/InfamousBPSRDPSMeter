@@ -686,21 +686,32 @@ class UserDataManager {
         // CRITICAL: Periodic auto-save every 2 minutes if there's active combat data
         // This ensures sessions are saved even without character switches
         setInterval(async () => {
+            const now = Date.now();
+            const timeSinceStart = now - this.startTime;
+            const timeSinceLastSave = now - (this.lastAutoSaveTime || this.startTime);
+            
+            this.logger.debug(`⏱️ Auto-save check: users=${this.users.size}, timeSinceStart=${Math.floor(timeSinceStart/1000)}s, timeSinceLastSave=${Math.floor(timeSinceLastSave/1000)}s`);
+            
             if (this.users.size > 0) {
-                const now = Date.now();
-                const timeSinceStart = now - this.startTime;
-                const timeSinceLastSave = now - (this.lastAutoSaveTime || this.startTime);
-                
                 // Auto-save if:
                 // 1. At least 30 seconds have passed since combat started (not just random hits)
                 // 2. At least 2 minutes since last auto-save
                 if (timeSinceStart > 30000 && timeSinceLastSave > 120000) {
-                    this.logger.info(`⏰ Periodic auto-save triggered (2min interval)`);
+                    this.logger.info(`⏰ Periodic auto-save triggered (2min interval) - Saving ${this.users.size} players`);
                     // Safety check in case method doesn't exist
                     if (typeof this.autoSaveSession === 'function') {
-                        await this.autoSaveSession();
-                        this.lastAutoSaveTime = now;
+                        try {
+                            await this.autoSaveSession();
+                            this.lastAutoSaveTime = now;
+                            this.logger.info(`✅ Periodic auto-save completed successfully`);
+                        } catch (error) {
+                            this.logger.error(`❌ Periodic auto-save failed:`, error);
+                        }
+                    } else {
+                        this.logger.error(`❌ autoSaveSession is not a function!`);
                     }
+                } else {
+                    this.logger.debug(`⏸️ Auto-save skipped: timeSinceStart=${Math.floor(timeSinceStart/1000)}s (need >30s), timeSinceLastSave=${Math.floor(timeSinceLastSave/1000)}s (need >120s)`);
                 }
             }
         }, 60000); // Check every 60 seconds
