@@ -1,4 +1,4 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.48
+# ⚔️ Infamous BPSR DPS Meter v3.1.49
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
