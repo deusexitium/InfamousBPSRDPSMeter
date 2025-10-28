@@ -265,6 +265,10 @@ class Sniffer {
                                         this.logger.info('='.repeat(80));
                                         
                                         if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
+                                            // Auto-save BEFORE clearing
+                                            if (typeof this.userDataManager.autoSaveSession === 'function') {
+                                                await this.userDataManager.autoSaveSession();
+                                            }
                                             this.userDataManager.clearAll(this.globalSettings);
                                             console.log('Server changed, statistics cleared!');
                                         } else if (this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0) {
@@ -308,6 +312,10 @@ class Sniffer {
                                 this.logger.info('='.repeat(80));
                                 
                                 if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
+                                    // Auto-save BEFORE clearing
+                                    if (typeof this.userDataManager.autoSaveSession === 'function') {
+                                        await this.userDataManager.autoSaveSession();
+                                    }
                                     this.userDataManager.clearAll(this.globalSettings);
                                     console.log('Server changed, statistics cleared!');
                                 } else if (this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0) {

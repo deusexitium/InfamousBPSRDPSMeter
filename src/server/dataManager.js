@@ -631,7 +631,8 @@ class UserDataManager {
         this.raidGroups = new Map();
         this.startTime = Date.now();
         this.lastAutoSaveTime = 0; // Track last periodic auto-save time
-        this.playerMap = new Map(); // UID -> Name cache
+        this.playerMap = new Map(); // UID -> Name cache (LRU, max 5000 entries)
+        this.playerMapMaxSize = 5000; // Limit cache to 5000 most recent players
         this.playerMapDirty = false;
         this.playerMapLock = new Lock();
         this.userCache = new Map(); // UID -> cached user data (profession, fightPoint)
@@ -843,7 +844,12 @@ class UserDataManager {
 
         const logDir = path.join('./logs', String(this.startTime));
         const logFile = path.join(logDir, 'fight.log');
-        const timestamp = new Date().toISOString();
+        // Use local timezone for logs
+        const now = new Date();
+        const timestamp = now.toLocaleString('en-US', { 
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false 
+        });
         const logEntry = `[${timestamp}] ${log}\n`;
 
         await this.logLock.acquire();
@@ -1078,7 +1084,7 @@ class UserDataManager {
         }
     }
 
-    /** Detect zone/map change based on player count */
+    /** Detect zone/map change based on player count AND combat activity */
     detectZoneChange(currentPlayerCount) {
         const now = Date.now();
         
@@ -1092,8 +1098,9 @@ class UserDataManager {
             };
         }
         
-        // Track highest player count seen
-        if (currentPlayerCount > this.zoneChangeTracking.highestPlayerCount) {
+        // Track highest player count seen IN COMBAT (not just idle)
+        const hasCombatActivity = this.getDuration() > 5000; // At least 5 seconds of combat
+        if (currentPlayerCount > this.zoneChangeTracking.highestPlayerCount && hasCombatActivity) {
             this.zoneChangeTracking.highestPlayerCount = currentPlayerCount;
         }
         
@@ -1101,19 +1108,19 @@ class UserDataManager {
         // Example: Open world 15+ players → Dungeon 5 players
         const hadManyPlayers = this.zoneChangeTracking.highestPlayerCount >= 8;
         const nowFewPlayers = currentPlayerCount > 0 && currentPlayerCount <= 5;
-        const significantDrop = hadManyPlayers && nowFewPlayers;
+        const significantDrop = hadManyPlayers && nowFewPlayers && hasCombatActivity;
         
-        // If we detect a significant drop, wait 3 seconds to confirm it's stable
+        // If we detect a significant drop WITH combat, wait 3 seconds to confirm
         if (significantDrop && this.zoneChangeTracking.dropStartTime === 0) {
             this.zoneChangeTracking.dropStartTime = now;
-            this.logger.info(`🚪 Possible dungeon entrance detected: ${this.zoneChangeTracking.highestPlayerCount} → ${currentPlayerCount} players`);
+            this.logger.info(`🚪 Possible dungeon entrance detected: ${this.zoneChangeTracking.highestPlayerCount} → ${currentPlayerCount} players (combat active)`);
         }
         
         // Confirm zone change if drop is sustained for 3 seconds
         const dropDuration = now - this.zoneChangeTracking.dropStartTime;
         const dropSustained = this.zoneChangeTracking.dropStartTime > 0 && dropDuration >= 3000;
         
-        if (significantDrop && dropSustained && currentPlayerCount <= 5) {
+        if (significantDrop && dropSustained && currentPlayerCount <= 5 && hasCombatActivity) {
             // Prevent spam - only trigger once per 30 seconds
             const timeSinceLastClear = now - this.zoneChangeTracking.lastSignificantDrop;
             if (timeSinceLastClear > 30000) {

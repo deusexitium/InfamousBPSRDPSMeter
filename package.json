@@ -1,6 +1,6 @@
 {
   "name": "infamous-bpsr-dps-meter",
-  "version": "3.1.44",
+  "version": "3.1.45",
   "description": "Infamous BPSR DPS Meter - The Ultimate Blue Protocol DPS Tracker",
   "main": "electron-main.js",
   "bin": {
@@ -146,7 +146,7 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Infamous BPSR DPS Meter",
       "perMachine": true,
-      "runAfterFinish": false,
+      "runAfterFinish": true,
       "deleteAppDataOnUninstall": false,
       "allowElevation": true,
       "installerIcon": "icon.ico",
@@ -156,7 +156,8 @@
       "displayLanguageSelector": false,
       "menuCategory": true,
       "installerHeader": "icon.ico",
-      "installerSidebar": "icon.ico"
+      "installerSidebar": "icon.ico",
+      "warningsAsErrors": false
     },
     "publish": {
       "provider": "github",

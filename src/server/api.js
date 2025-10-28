@@ -779,9 +779,12 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
     // Get ALL sessions (no limit) for session manager
     app.get('/api/sessions/all', async (req, res) => {
         try {
+            logger.info(`📂 Loading sessions from: ${SESSIONS_PATH}`);
             await fsPromises.mkdir(SESSIONS_PATH, { recursive: true });
             const files = await fsPromises.readdir(SESSIONS_PATH);
+            logger.info(`📋 Found ${files.length} files in sessions directory`);
             const sessionFiles = files.filter(f => f.endsWith('.json'));
+            logger.info(`📊 Found ${sessionFiles.length} session files`);
 
             const sessions = await Promise.all(
                 sessionFiles.map(async (file) => {
@@ -801,9 +804,10 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
             );
 
             const validSessions = sessions.filter(s => s !== null).sort((a, b) => b.timestamp - a.timestamp);
+            logger.info(`✅ Returning ${validSessions.length} valid sessions`);
             res.json({ code: 0, sessions: validSessions });
         } catch (error) {
-            logger.error(`Failed to fetch all sessions: ${error.message}`);
+            logger.error(`❌ Failed to fetch all sessions: ${error.message}`, error);
             res.json({ code: 1, msg: error.message, sessions: [] });
         }
     });
