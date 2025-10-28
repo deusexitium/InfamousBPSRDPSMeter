@@ -665,8 +665,8 @@ class UserDataManager {
             this.logger.error('Failed to initialize skill translations:', err);
         }
         
-        // Load player_map.json for name caching
-        await this.loadPlayerMap();
+        // Load player_map.json for name caching (async, non-blocking)
+        this.loadPlayerMap(); // Don't await - load in background
         
         // Save player map periodically (every 30 seconds if dirty)
         setInterval(async () => {
