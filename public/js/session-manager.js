@@ -2,20 +2,39 @@
 
 // Open Session Manager Modal
 async function openSessionManager() {
+    console.log('🚀 Opening Session Manager...');
     const sessions = await fetchAllSessions();
+    console.log(`📋 Received ${sessions.length} sessions, showing modal...`);
     showSessionManagerModal(sessions);
 }
 
 // Fetch all sessions from backend
 async function fetchAllSessions() {
     try {
+        console.log('🔍 Fetching sessions from /api/sessions/all');
         const response = await fetch('/api/sessions/all');
-        if (!response.ok) throw new Error('Failed to fetch sessions');
+        console.log(`📡 Response status: ${response.status}`);
+        
+        if (!response.ok) {
+            console.error(`❌ Response not OK: ${response.status} ${response.statusText}`);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const data = await response.json();
-        return data.sessions || [];
+        console.log('📦 Response data:', data);
+        console.log(`📊 Sessions count: ${data.sessions?.length || 0}`);
+        
+        if (data.code !== 0) {
+            console.error('❌ API returned error code:', data);
+            throw new Error(data.msg || 'API error');
+        }
+        
+        const sessions = data.sessions || [];
+        console.log(`✅ Returning ${sessions.length} sessions to modal`);
+        return sessions;
     } catch (error) {
-        console.error('Failed to fetch sessions:', error);
-        showToast('Failed to load sessions', 'error');
+        console.error('❌ Failed to fetch sessions:', error);
+        showToast(`Failed to load sessions: ${error.message}`, 'error');
         return [];
     }
 }
