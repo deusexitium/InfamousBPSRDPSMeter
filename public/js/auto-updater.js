@@ -30,7 +30,70 @@ ipcRenderer.on('update-downloaded', (event, info) => {
     showUpdateReadyNotification(info);
 });
 
-// Show update available notification
+// Show SIMPLIFIED update notification - just notify + link
+function showSimpleUpdateNotification(data) {
+    const notification = document.createElement('div');
+    notification.id = 'update-notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 60px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 16px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        z-index: 999999;
+        min-width: 320px;
+        animation: slideInRight 0.3s ease-out;
+    `;
+    
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <i class="fa-solid fa-download" style="font-size: 24px;"></i>
+            <div>
+                <strong style="font-size: 14px;">Update Available!</strong>
+                <div style="font-size: 12px; opacity: 0.9; margin-top: 2px;">
+                    v${data.version} is ready to download
+                </div>
+            </div>
+        </div>
+        <div style="font-size: 11px; margin-bottom: 12px; opacity: 0.95; line-height: 1.4;">
+            Click below to download the latest version from GitHub
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button onclick="openReleasePage()" style="
+                flex: 1;
+                padding: 8px;
+                background: white;
+                color: #667eea;
+                border: none;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+            ">
+                <i class="fa-solid fa-external-link-alt"></i> Download Update
+            </button>
+            <button onclick="closeUpdateNotification()" style="
+                padding: 8px 12px;
+                background: rgba(255,255,255,0.2);
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-size: 12px;
+                cursor: pointer;
+            ">
+                Later
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    window.updateReleaseUrl = data.releaseUrl;
+}
+
+// Show update available notification (OLD - complex version)
 function showUpdateNotification(info) {
     const currentVersion = document.querySelector('.status-right span:last-child')?.textContent || '';
     const newVersion = `v${info.version}`;
