@@ -13,7 +13,8 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
     const SETTINGS_PATH = path.join(userDataPath, 'settings.json');
     const LOGS_DPS_PATH = path.join(userDataPath, 'logs_dps.json');
     
-    logger.info('🔧 Initializing API endpoints...');
+    console.log('🔧 INSIDE initializeApi - STARTING');
+    logger.info('🔧 INSIDE initializeApi - STARTING');
     
     // Initialize VPN detector
     const vpnDetector = new VPNDetector(logger);
@@ -780,13 +781,17 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
 
     // Get ALL sessions (no limit) for session manager
     app.get('/api/sessions/all', async (req, res) => {
+        console.log('🚀 /api/sessions/all endpoint HIT!');
         logger.info('🚀 /api/sessions/all endpoint HIT!');
         try {
+            console.log(`📂 Loading sessions from: ${SESSIONS_PATH}`);
             logger.info(`📂 Loading sessions from: ${SESSIONS_PATH}`);
             await fsPromises.mkdir(SESSIONS_PATH, { recursive: true });
             const files = await fsPromises.readdir(SESSIONS_PATH);
+            console.log(`📋 Found ${files.length} files in sessions directory`);
             logger.info(`📋 Found ${files.length} files in sessions directory`);
             const sessionFiles = files.filter(f => f.endsWith('.json'));
+            console.log(`📊 Found ${sessionFiles.length} session files`);
             logger.info(`📊 Found ${sessionFiles.length} session files`);
 
             const sessions = await Promise.all(
@@ -1007,9 +1012,14 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
         }
     }, 100);
     
+    console.log('⏱️ Data broadcast interval started');
     logger.info('⏱️ Data broadcast interval started');
+    console.log('✅ API endpoints registered successfully');
     logger.info('✅ API endpoints registered successfully');
+    console.log('📍 Session endpoint /api/sessions/all should be available');
     logger.info('📍 Session endpoint /api/sessions/all should be available');
+    console.log('🔧 INSIDE initializeApi - COMPLETED');
+    logger.info('🔧 INSIDE initializeApi - COMPLETED');
 }
 
 module.exports = initializeApi;

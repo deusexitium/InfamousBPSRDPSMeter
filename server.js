@@ -160,7 +160,17 @@ async function main() {
         },
     });
 
-    initializeApi(app, server, io, userDataManager, logger, globalSettings, VERSION, userDataPath); // Initialize API with globalSettings and userDataPath
+    console.log('🔧 About to initialize API...');
+    logger.info('🔧 About to initialize API...');
+    
+    try {
+        initializeApi(app, server, io, userDataManager, logger, globalSettings, VERSION, userDataPath); // Initialize API with globalSettings and userDataPath
+        console.log('✅ API initialization completed');
+        logger.info('✅ API initialization completed');
+    } catch (error) {
+        console.error('❌ API initialization FAILED:', error);
+        logger.error('❌ API initialization FAILED:', error);
+    }
 
     server.listen(server_port, '0.0.0.0', () => {
         const localUrl = `http://localhost:${server_port}`;
