@@ -934,7 +934,7 @@ function renderPlayers() {
         }
     }
     
-    list.innerHTML = html + showMoreButton;
+    list.innerHTML = html;
     
     document.querySelectorAll('.player-row').forEach(row => {
         row.style.cursor = 'pointer';
