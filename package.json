@@ -137,7 +137,6 @@
       "icon": "icon.ico",
       "requestedExecutionLevel": "requireAdministrator",
       "signAndEditExecutable": false,
-      "publisherName": "Infamous",
       "verifyUpdateCodeSignature": false
     },
     "nsis": {
@@ -155,7 +154,9 @@
       "installerHeaderIcon": "icon.ico",
       "packElevateHelper": true,
       "displayLanguageSelector": false,
-      "menuCategory": true
+      "menuCategory": true,
+      "installerHeader": "icon.ico",
+      "installerSidebar": "icon.ico"
     },
     "publish": {
       "provider": "github",
