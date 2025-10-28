@@ -979,11 +979,11 @@ function autoResizeWindow() {
         let targetHeight, targetWidth, finalHeight, finalWidth;
         
         if (isCompact) {
-            // Compact mode: tight fit, minimal padding
+            // Compact mode: tight fit, fixed width
             targetHeight = actualHeight + 5;
-            targetWidth = actualWidth + 5;
+            targetWidth = 430; // Fixed width for compact mode (420px container + 10px padding)
             finalHeight = Math.max(200, Math.min(targetHeight, 600));
-            finalWidth = Math.max(400, Math.min(targetWidth, 450));
+            finalWidth = 430; // Always use fixed width in compact mode
         } else {
             // Full mode: generous padding
             targetHeight = actualHeight + 10;
@@ -2292,7 +2292,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.70 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.71 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2350,7 +2350,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.70 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.71 - Ready!');
 }
 
 // ============================================================================

@@ -180,7 +180,7 @@ body {
 /* Player Row - Full Mode Layout */
 .player-row {
     display: grid;
-    grid-template-columns: 40px minmax(180px, 2fr) repeat(7, minmax(85px, 1fr)); /* 9 total: rank + name + 7 stats */
+    grid-template-columns: 40px minmax(180px, 1fr) repeat(7, minmax(85px, 1fr)); /* 9 total: rank + name + 7 stats */
     gap: 8px;
     align-items: center;
     padding: 10px 12px;
@@ -854,7 +854,7 @@ body.compact-mode .modal {
 /* Sortable Column Headers */
 .column-headers {
     display: grid;
-    grid-template-columns: 40px minmax(180px, 1fr) repeat(7, minmax(80px, 1fr));
+    grid-template-columns: 40px minmax(180px, 1fr) repeat(7, minmax(85px, 1fr));
     gap: 8px;
     padding: 8px 12px;
     padding-left: 12px; /* Explicit left padding for alignment */
@@ -1465,6 +1465,7 @@ body.compact-mode .meter-container {
     width: 420px !important;
     min-width: 420px !important;
     max-width: 420px !important;
+    overflow: hidden !important;
     height: fit-content !important;
     background: rgba(26, 29, 41, 0.95) !important;
     backdrop-filter: blur(16px);
