@@ -872,6 +872,22 @@ function renderPlayers() {
         }
     }
     
+    // Add compact mode headers if in compact mode
+    const isCompact = document.body.classList.contains('compact-mode');
+    let compactHeadersHTML = '';
+    if (isCompact) {
+        compactHeadersHTML = `
+            <div class="compact-headers">
+                <div>#</div>
+                <div>PLAYER</div>
+                <div>DPS</div>
+                <div>MAX DPS</div>
+                <div>TOTAL DMG</div>
+                <div>DMG TAKEN</div>
+            </div>
+        `;
+    }
+    
     // Generate player rows HTML
     let playerRowsHTML = '';
     sorted.forEach((player, index) => {
@@ -895,7 +911,7 @@ function renderPlayers() {
     
     // Set the HTML - ONLY show playersToShow, not all sorted
     const displayHTML = playersToShow.map((player, index) => renderPlayerRow(player, index + 1, teamTotalDamage, teamTotalHealing)).join('');
-    list.innerHTML = displayHTML + showMoreButton;
+    list.innerHTML = compactHeadersHTML + displayHTML + showMoreButton;
     
     // Attach click handlers to player rows
     document.querySelectorAll('.player-row').forEach(row => {
@@ -2265,7 +2281,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.88 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.89 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2323,7 +2339,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.88 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.89 - Ready!');
 }
 
 // ============================================================================

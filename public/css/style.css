@@ -342,7 +342,21 @@ body {
     font-weight: 700;
 }
 
-/* Separator - REMOVED (no longer used) */
+/* Compact mode headers - Match player row grid exactly */
+body.compact-mode .compact-headers {
+    display: grid;
+    grid-template-columns: 30px minmax(120px, 160px) repeat(4, 85px);
+    gap: 5px;
+    padding: 5px 8px;
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--border);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+/* Column headers */
 .column-headers {
     display: grid;
     grid-template-columns: 40px minmax(140px, 200px) repeat(7, 90px); /* Match player-row exactly */
@@ -1487,13 +1501,12 @@ input[type="range"]::-moz-range-thumb {
    ============================================================================ */
 
 body.compact-mode .meter-container {
-    width: fit-content !important;
-    min-width: 420px !important;
-    max-width: 480px !important;
+    width: auto !important;
+    min-width: 520px !important;
+    max-width: 580px !important;
     height: fit-content !important;
-    background: rgba(26, 29, 41, 0.95) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(20, 22, 26, 0.85);
+    backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     display: flex;
