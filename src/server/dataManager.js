@@ -678,6 +678,25 @@ class UserDataManager {
         setTimeout(async () => {
             await this.cleanupOldHistoryLogs();
         }, 5000); // Wait 5 seconds after startup to avoid blocking
+        
+        // CRITICAL: Periodic auto-save every 2 minutes if there's active combat data
+        // This ensures sessions are saved even without character switches
+        setInterval(async () => {
+            if (this.users.size > 0) {
+                const now = Date.now();
+                const timeSinceStart = now - this.startTime;
+                const timeSinceLastSave = now - (this.lastAutoSaveTime || this.startTime);
+                
+                // Auto-save if:
+                // 1. At least 30 seconds have passed since combat started (not just random hits)
+                // 2. At least 2 minutes since last auto-save
+                if (timeSinceStart > 30000 && timeSinceLastSave > 120000) {
+                    this.logger.info(`⏰ Periodic auto-save triggered (2min interval)`);
+                    await this.autoSaveSession();
+                    this.lastAutoSaveTime = now;
+                }
+            }
+        }, 60000); // Check every 60 seconds
     }
     
     /** Load player names from player_map.json */
@@ -1235,6 +1254,7 @@ class UserDataManager {
         
         this.users = new Map();
         this.startTime = Date.now();
+        this.lastAutoSaveTime = 0; // Reset auto-save timer
         this.resetZoneChangeFlag();
     }
 
