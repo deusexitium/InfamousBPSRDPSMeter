@@ -642,7 +642,7 @@ class UserDataManager {
         this.hpCache = new Map();
         
         // Initialize skill translation manager (will be loaded in initialize())
-        this.skillTranslations = new SkillTranslationManager(logger);
+        this.skillTranslations = new SkillTranslationManager(logger, userDataPath, userDataPath);
 
         this.logLock = new Lock();
         this.logDirExist = new Set();

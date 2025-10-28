@@ -3,16 +3,22 @@ const path = require('path');
 const https = require('https');
 
 class SkillTranslationManager {
-    constructor(logger) {
+    constructor(logger, userDataPath) {
         this.logger = logger;
         this.translations = new Map();
         this.talentTable = new Map();
         this.conflicts = new Map();
         
-        // File paths
-        this.translationsPath = path.join(__dirname, '../../tables/skill_translations.json');
-        this.talentPath = path.join(__dirname, '../../tables/talent_table.json');
-        this.conflictsPath = path.join(__dirname, '../../tables/conflicts.json');
+        // Installation directory paths (READ-ONLY)
+        this.installTranslationsPath = path.join(__dirname, '../../tables/skill_translations.json');
+        this.installTalentPath = path.join(__dirname, '../../tables/talent_table.json');
+        this.installConflictsPath = path.join(__dirname, '../../tables/conflicts.json');
+        
+        // User data directory paths (WRITABLE)
+        this.userDataPath = userDataPath;
+        this.translationsPath = path.join(userDataPath, 'skill_translations.json');
+        this.talentPath = path.join(userDataPath, 'talent_table.json');
+        this.conflictsPath = path.join(userDataPath, 'conflicts.json');
         
         // Remote URLs
         this.translationsUrl = 'https://raw.githubusercontent.com/winjwinj/bpsr-logs/refs/heads/main/raw-game-files/4_Final/CombinedTranslatedWithManualOverrides.json';
@@ -36,27 +42,30 @@ class SkillTranslationManager {
     }
 
     /**
-     * Load local translation files
+     * Load local translation files (try userData first, fall back to installation directory)
      */
     loadLocalFiles() {
         try {
-            // Load main translations
-            if (fs.existsSync(this.translationsPath)) {
-                const data = JSON.parse(fs.readFileSync(this.translationsPath, 'utf8'));
+            // Load main translations (try userData first, then installation)
+            const translationsPath = fs.existsSync(this.translationsPath) ? this.translationsPath : this.installTranslationsPath;
+            if (fs.existsSync(translationsPath)) {
+                const data = JSON.parse(fs.readFileSync(translationsPath, 'utf8'));
                 this.parseTranslations(data);
                 this.logger.info(`📖 Loaded ${this.translations.size} skill translations from local file`);
             }
             
-            // Load talent table
-            if (fs.existsSync(this.talentPath)) {
-                const data = JSON.parse(fs.readFileSync(this.talentPath, 'utf8'));
+            // Load talent table (try userData first, then installation)
+            const talentPath = fs.existsSync(this.talentPath) ? this.talentPath : this.installTalentPath;
+            if (fs.existsSync(talentPath)) {
+                const data = JSON.parse(fs.readFileSync(talentPath, 'utf8'));
                 this.parseTalentTable(data);
                 this.logger.info(`📖 Loaded talent table from local file`);
             }
             
-            // Load conflicts
-            if (fs.existsSync(this.conflictsPath)) {
-                const data = JSON.parse(fs.readFileSync(this.conflictsPath, 'utf8'));
+            // Load conflicts (try userData first, then installation)
+            const conflictsPath = fs.existsSync(this.conflictsPath) ? this.conflictsPath : this.installConflictsPath;
+            if (fs.existsSync(conflictsPath)) {
+                const data = JSON.parse(fs.readFileSync(conflictsPath, 'utf8'));
                 this.parseConflicts(data);
                 this.logger.info(`📖 Loaded conflicts from local file`);
             }
