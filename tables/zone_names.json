@@ -1,0 +1,22 @@
+{
+  "comment": "Zone and Dungeon Names for Blue Protocol",
+  "zones": {
+    "1001": "Asterleeds",
+    "1002": "Training Grounds",
+    "1100": "Central City",
+    "2001": "Plateau of Beginnings",
+    "2002": "Everlasting Summer Beach",
+    "2003": "Underground City Remnants",
+    "3001": "Raid: Thunder Wyvern",
+    "3002": "Raid: Ancient Dragon",
+    "4001": "Dungeon: Abandoned Mine (Normal)",
+    "4002": "Dungeon: Abandoned Mine (Hard)",
+    "4003": "Dungeon: Ancient Temple (Normal)",
+    "4004": "Dungeon: Ancient Temple (Hard)",
+    "4005": "Dungeon: Demon's Nest (Normal)",
+    "4006": "Dungeon: Demon's Nest (Hard)",
+    "5001": "Arena",
+    "5002": "PvP Battle Zone",
+    "9999": "Unknown Zone"
+  }
+}

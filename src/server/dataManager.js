@@ -1085,6 +1085,18 @@ class UserDataManager {
         return Date.now() - this.startTime;
     }
 
+    /** Set current zone for session naming */
+    setCurrentZone(zoneName, zoneId) {
+        this.currentZone = zoneName;
+        this.currentZoneId = zoneId;
+        this.logger.info(`📍 Zone changed to: ${zoneName}${zoneId ? ` (ID: ${zoneId})` : ''}`);
+    }
+
+    /** Get current zone name for display */
+    getCurrentZoneName() {
+        return this.currentZone || 'Unknown Zone';
+    }
+
     /** Format duration in human-readable format */
     formatDuration(ms) {
         const seconds = Math.floor(ms / 1000);
@@ -1360,6 +1372,8 @@ class UserDataManager {
                 duration: endTime - timestamp,
                 userCount: users.size,
                 version: this.appVersion,
+                zoneName: this.currentZone || 'Unknown Zone',
+                zoneId: this.currentZoneId || null,
             };
 
             const allUsersData = {};

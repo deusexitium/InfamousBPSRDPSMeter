@@ -5,6 +5,7 @@ const Readable = require('stream').Readable;
 const findDefaultNetworkDevice = require('../../algo/netInterfaceUtil'); // Adjust path
 const { Lock } = require('./dataManager'); // Import Lock from dataManager
 const pb = require('../../algo/blueprotobuf'); // Import protobuf definitions directly
+const zoneNamesData = require('../../tables/zone_names.json'); // Import zone names
 
 const Cap = cap.Cap;
 
@@ -97,6 +98,12 @@ class Sniffer {
         this.tcp_last_time = 0;
         this.tcp_lock = new Lock();
         this.fragmentIpCache = new Map();
+        
+        // Zone tracking for session naming
+        this.pb = pb;
+        this.zoneNames = zoneNamesData.zones;
+        this.currentZone = 'Unknown Zone';
+        this.currentZoneId = null;
         this.FRAGMENT_TIMEOUT = 30000;
         this.eth_queue = [];
         this.capInstance = null;
@@ -246,16 +253,49 @@ class Sniffer {
                                         // Mark server change for frontend notification
                                         this.userDataManager.markServerChanged();
                                         
-                                        // LOG ALL ZONE CHANGE DATA FOR DEBUGGING
-                                        console.log('='.repeat(80));
-                                        console.log('🌍 ZONE/SERVER CHANGE DETECTED - FULL PACKET DUMP:');
-                                        console.log(`Server: ${src_server}`);
-                                        console.log(`Packet length: ${buf.length} bytes`);
-                                        console.log(`Data1 length: ${data1?.length || 0} bytes`);
-                                        console.log(`Data1 hex (first 200 bytes): ${data1?.subarray(0, 200).toString('hex') || 'N/A'}`);
-                                        console.log(`Data1 ascii: ${data1?.toString('ascii', 0, Math.min(200, data1?.length || 0)).replace(/[^\x20-\x7E]/g, '.') || 'N/A'}`);
+                                        // DECODE ZONE INFO FROM PROTOBUF
+                                        let zoneName = 'Unknown Zone';
+                                        let zoneId = null;
                                         
-                                        // Zone data logged - decode not implemented yet
+                                        try {
+                                            // Skip signature (11 bytes) and decode protobuf
+                                            const protoData = data1.subarray(11);
+                                            const decoded = this.pb.SyncToMeEntity.decode(protoData);
+                                            
+                                            // Extract zone information
+                                            if (decoded && decoded.EntityInfo) {
+                                                const entityInfo = decoded.EntityInfo;
+                                                
+                                                // Try to extract zone ID from entity data
+                                                if (entityInfo.SceneId) {
+                                                    zoneId = entityInfo.SceneId;
+                                                } else if (entityInfo.ConfigId) {
+                                                    zoneId = entityInfo.ConfigId;
+                                                }
+                                                
+                                                // Translate zone ID to name
+                                                if (zoneId && this.zoneNames && this.zoneNames[zoneId]) {
+                                                    zoneName = this.zoneNames[zoneId];
+                                                } else if (zoneId) {
+                                                    zoneName = `Zone ${zoneId}`;
+                                                }
+                                            }
+                                        } catch (decodeError) {
+                                            // If decode fails, try to extract from raw data
+                                            console.log(`⚠️ Failed to decode zone protobuf: ${decodeError.message}`);
+                                        }
+                                        
+                                        // Set current zone for session naming
+                                        this.currentZone = zoneName;
+                                        this.currentZoneId = zoneId;
+                                        this.userDataManager.setCurrentZone(zoneName, zoneId);
+                                        
+                                        // LOG ZONE CHANGE WITH DECODED INFO
+                                        console.log('='.repeat(80));
+                                        console.log('🌍 ZONE CHANGE DETECTED:');
+                                        console.log(`Server: ${src_server}`);
+                                        console.log(`Zone: ${zoneName} ${zoneId ? `(ID: ${zoneId})` : ''}`);
+                                        console.log(`Data hex (first 100 bytes): ${data1?.subarray(0, 100).toString('hex') || 'N/A'}`);
                                         console.log('='.repeat(80));
                                         
                                         if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
