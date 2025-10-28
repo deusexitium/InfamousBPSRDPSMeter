@@ -673,6 +673,11 @@ class UserDataManager {
                 await this.savePlayerMap();
             }
         }, 30000);
+        
+        // Cleanup old history logs on startup (once per app launch)
+        setTimeout(async () => {
+            await this.cleanupOldHistoryLogs();
+        }, 5000); // Wait 5 seconds after startup to avoid blocking
     }
     
     /** Load player names from player_map.json */
@@ -1293,6 +1298,9 @@ class UserDataManager {
             await fsPromises.writeFile(path.join(logDir, 'summary.json'), JSON.stringify(summary, null, 2), 'utf8');
 
             this.logger.debug(`Saved data for ${summary.userCount} users to ${logDir}`);
+            
+            // Cleanup old history logs after saving new one
+            await this.cleanupOldHistoryLogs();
         } catch (error) {
             this.logger.error('Failed to save all user data:', error);
             throw error;

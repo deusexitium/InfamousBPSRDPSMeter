@@ -309,6 +309,19 @@
                         
                         <p style="font-size:11px;color:var(--text-secondary);margin:8px 0">Real-time Blue Protocol combat tracker</p>
                         
+                        <!-- VPN Warning -->
+                        <div style="background:rgba(255,193,7,0.15);border-left:3px solid var(--accent-gold);padding:8px;border-radius:4px;margin:8px 0;">
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                                <i class="fa-solid fa-triangle-exclamation" style="color:var(--accent-gold);font-size:14px;"></i>
+                                <strong style="color:var(--accent-gold);font-size:11px;">VPN Users</strong>
+                            </div>
+                            <p style="font-size:10px;color:var(--text-secondary);margin:0;line-height:1.4;">
+                                Packet capture may be delayed up to 2 minutes with VPNs.
+                                For best results, disable VPN or 
+                                <a href="#" onclick="showVPNTroubleshooting(); return false;" style="color:var(--accent-gold);text-decoration:underline;">view troubleshooting guide</a>.
+                            </p>
+                        </div>
+                        
                         <div class="about-section-compact">
                             <strong style="font-size:11px;color:var(--accent-gold)">Data Location</strong>
                             <p id="user-data-path" style="font-size:10px;color:var(--text-secondary);margin:4px 0;word-break:break-all;">Loading...</p>

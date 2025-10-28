@@ -2170,7 +2170,7 @@ window.handleVPNAction = function(action) {
     if (modal) {
         modal.remove();
     }
-};
+}
 
 // ============================================================================
 // INITIALIZATION
