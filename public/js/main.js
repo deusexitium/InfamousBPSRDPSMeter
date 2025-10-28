@@ -543,98 +543,18 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
     const isIdle = player.isIdle || false;
     
     if (document.body.classList.contains('compact-mode')) {
-        const isHealer = prof.role === 'heal';
-        const isTank = prof.role === 'tank';
-        
-        const showDps = SETTINGS.columnsCompact?.dps !== false;
-        const showMaxDps = SETTINGS.columnsCompact?.maxDps !== false;
-        const showAvgDps = SETTINGS.columnsCompact?.avgDps !== false;
-        const showTotalDmg = SETTINGS.columnsCompact?.totalDmg !== false;
-        const showHps = SETTINGS.columnsCompact?.hps !== false;
-        const showDmgTaken = SETTINGS.columnsCompact?.dmgTaken !== false;
-        const showGs = SETTINGS.columnsCompact?.gs !== false;
-        
+        // Compact mode: Simple 6-column grid (rank + name + 4 stats)
+        // Grid: 30px | minmax(120px,160px) | 85px | 85px | 85px | 85px
         return `
-            <div class="player-row ${isLocal ? 'local' : ''} ${isIdle ? 'idle' : ''}" 
-                 data-uid="${player.uid}"
-                 style="--dmg-percent: ${dmgBarPercent}%">
-                <div class="rank ${rankClass}">${rank}</div>
-                <div class="player-name-col">
-                    <div class="name-line">
-                        ${isLocal ? '<span class="local-star">★</span>' : ''}
-                        <span class="name">${name}${isIdle ? ' <span style="opacity:0.5">(IDLE)</span>' : ''}</span>
-                        <span class="role-badge ${prof.role}">${prof.role.toUpperCase()}</span>
-                    </div>
-                    <div class="hp-bar-mini">
-                        <div class="hp-fill" style="width: ${hpPercent}%; background: ${getHPColor(hpPercent)}"></div>
-                    </div>
+            <div class="player-row ${isLocal ? 'local-player' : ''} ${isIdle ? 'idle' : ''}" data-uid="${player.uid}">
+                <div class="cell-rank">${rank}</div>
+                <div class="cell-name">
+                    <span class="${prof.class}">${name}</span>
                 </div>
-                ${!isHealer ? `
-                    ${showDps ? `
-                    <div class="stat-col">
-                        <div class="stat-value">${formatNumber(currentDps)}</div>
-                        <div class="stat-label">DPS</div>
-                    </div>
-                    ` : ''}
-                    ${showMaxDps ? `
-                    <div class="stat-col">
-                        <div class="stat-value">${formatNumber(maxDps)}</div>
-                        <div class="stat-label">MAX DPS</div>
-                    </div>
-                    ` : ''}
-                    ${showAvgDps ? `
-                    <div class="stat-col">
-                        <div class="stat-value">${formatNumber(avgDps)}</div>
-                        <div class="stat-label">AVG DPS</div>
-                    </div>
-                    ` : ''}
-                    ${showTotalDmg ? `
-                    <div class="stat-col">
-                        <div class="stat-value">${formatNumber(totalDmg)}</div>
-                        <div class="stat-label">TOTAL DMG</div>
-                    </div>
-                    ` : ''}
-                    ${showDmgTaken ? `
-                    <div class="stat-col">
-                        <div class="stat-value">${formatNumber(dmgTaken)}</div>
-                        <div class="stat-label">DMG TAKEN</div>
-                    </div>
-                    ` : ''}
-                    ${showGs ? `
-                    <div class="stat-col">
-                        <div class="stat-value">${formatNumber(gs)}</div>
-                        <div class="stat-label">GS</div>
-                    </div>
-                    ` : ''}
-                ` : ''}
-                ${isHealer ? `
-                    ${showHps ? `
-                    <div class="stat-col heal">
-                        <div class="stat-value">${formatNumber(hps)}</div>
-                        <div class="stat-label">HPS</div>
-                    </div>
-                    <div class="stat-col heal">
-                        <div class="stat-value">${formatNumber(maxHps)}</div>
-                        <div class="stat-label">MAX HPS</div>
-                    </div>
-                    <div class="stat-col heal">
-                        <div class="stat-value">${formatNumber(totalHealing)}</div>
-                        <div class="stat-label">TOTAL HPS</div>
-                    </div>
-                    ` : ''}
-                    ${showDmgTaken ? `
-                    <div class="stat-col">
-                        <div class="stat-value">${formatNumber(dmgTaken)}</div>
-                        <div class="stat-label">DMG TAKEN</div>
-                    </div>
-                    ` : ''}
-                    ${showGs ? `
-                    <div class="stat-col">
-                        <div class="stat-value">${formatNumber(gs)}</div>
-                        <div class="stat-label">GS</div>
-                    </div>
-                    ` : ''}
-                ` : ''}
+                <div class="cell-value">${formatNumber(currentDps)}</div>
+                <div class="cell-value">${formatNumber(maxDps)}</div>
+                <div class="cell-value">${formatNumber(totalDmg)}</div>
+                <div class="cell-value">${formatNumber(dmgTaken)}</div>
             </div>
         `;
     }
@@ -2281,7 +2201,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.89 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.90 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2339,7 +2259,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.89 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.90 - Ready!');
 }
 
 // ============================================================================
