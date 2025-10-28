@@ -690,7 +690,7 @@ class UserDataManager {
             const timeSinceStart = now - this.startTime;
             const timeSinceLastSave = now - (this.lastAutoSaveTime || this.startTime);
             
-            this.logger.debug(`⏱️ Auto-save check: users=${this.users.size}, timeSinceStart=${Math.floor(timeSinceStart/1000)}s, timeSinceLastSave=${Math.floor(timeSinceLastSave/1000)}s`);
+            this.logger.info(`⏱️ Auto-save check: users=${this.users.size}, timeSinceStart=${Math.floor(timeSinceStart/1000)}s, timeSinceLastSave=${Math.floor(timeSinceLastSave/1000)}s`);
             
             if (this.users.size > 0) {
                 // Auto-save if:
@@ -711,7 +711,7 @@ class UserDataManager {
                         this.logger.error(`❌ autoSaveSession is not a function!`);
                     }
                 } else {
-                    this.logger.debug(`⏸️ Auto-save skipped: timeSinceStart=${Math.floor(timeSinceStart/1000)}s (need >30s), timeSinceLastSave=${Math.floor(timeSinceLastSave/1000)}s (need >120s)`);
+                    this.logger.info(`⏸️ Auto-save skipped: timeSinceStart=${Math.floor(timeSinceStart/1000)}s (need >30s), timeSinceLastSave=${Math.floor(timeSinceLastSave/1000)}s (need >120s)`);
                 }
             }
         }, 60000); // Check every 60 seconds
