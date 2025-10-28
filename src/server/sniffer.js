@@ -246,23 +246,23 @@ class Sniffer {
                                         this.userDataManager.markServerChanged();
                                         
                                         // LOG ALL ZONE CHANGE DATA FOR DEBUGGING
-                                        this.logger.info('='.repeat(80));
-                                        this.logger.info('🌍 ZONE/SERVER CHANGE DETECTED - FULL PACKET DUMP:');
-                                        this.logger.info(`Server: ${src_server}`);
-                                        this.logger.info(`Packet length: ${buf.length} bytes`);
-                                        this.logger.info(`Data1 length: ${data1?.length || 0} bytes`);
-                                        this.logger.info(`Data1 hex (first 200 bytes): ${data1?.subarray(0, 200).toString('hex') || 'N/A'}`);
-                                        this.logger.info(`Data1 ascii: ${data1?.toString('ascii', 0, Math.min(200, data1?.length || 0)).replace(/[^\x20-\x7E]/g, '.') || 'N/A'}`);
+                                        console.log('='.repeat(80));
+                                        console.log('🌍 ZONE/SERVER CHANGE DETECTED - FULL PACKET DUMP:');
+                                        console.log(`Server: ${src_server}`);
+                                        console.log(`Packet length: ${buf.length} bytes`);
+                                        console.log(`Data1 length: ${data1?.length || 0} bytes`);
+                                        console.log(`Data1 hex (first 200 bytes): ${data1?.subarray(0, 200).toString('hex') || 'N/A'}`);
+                                        console.log(`Data1 ascii: ${data1?.toString('ascii', 0, Math.min(200, data1?.length || 0)).replace(/[^\x20-\x7E]/g, '.') || 'N/A'}`);
                                         
                                         // Try to decode the protobuf message
                                         try {
                                             const decoded = PacketProcessor.SyncToMeEntity.decode(data1.subarray(11));
-                                            this.logger.info(`Decoded message keys: ${Object.keys(decoded).join(', ')}`);
-                                            this.logger.info(`Full decoded message: ${JSON.stringify(decoded, null, 2)}`);
+                                            console.log(`Decoded message keys: ${Object.keys(decoded).join(', ')}`);
+                                            console.log(`Full decoded message: ${JSON.stringify(decoded, null, 2)}`);
                                         } catch (e) {
-                                            this.logger.info(`Failed to decode as SyncToMeEntity: ${e.message}`);
+                                            console.log(`Failed to decode as SyncToMeEntity: ${e.message}`);
                                         }
-                                        this.logger.info('='.repeat(80));
+                                        console.log('='.repeat(80));
                                         
                                         if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
                                             // Auto-save BEFORE clearing
@@ -303,13 +303,13 @@ class Sniffer {
                                 this.userDataManager.markServerChanged();
                                 
                                 // LOG ALL ZONE CHANGE DATA FOR DEBUGGING (LOGIN PACKET)
-                                this.logger.info('='.repeat(80));
-                                this.logger.info('🌍 ZONE/SERVER CHANGE DETECTED (LOGIN PACKET) - FULL PACKET DUMP:');
-                                this.logger.info(`Server: ${src_server}`);
-                                this.logger.info(`Packet length: ${buf.length} bytes`);
-                                this.logger.info(`Buffer hex (first 200 bytes): ${buf.subarray(0, 200).toString('hex')}`);
-                                this.logger.info(`Buffer ascii: ${buf.toString('ascii', 0, Math.min(200, buf.length)).replace(/[^\x20-\x7E]/g, '.')}`);
-                                this.logger.info('='.repeat(80));
+                                console.log('='.repeat(80));
+                                console.log('🌍 ZONE/SERVER CHANGE DETECTED (LOGIN PACKET) - FULL PACKET DUMP:');
+                                console.log(`Server: ${src_server}`);
+                                console.log(`Packet length: ${buf.length} bytes`);
+                                console.log(`Buffer hex (first 200 bytes): ${buf.subarray(0, 200).toString('hex')}`);
+                                console.log(`Buffer ascii: ${buf.toString('ascii', 0, Math.min(200, buf.length)).replace(/[^\x20-\x7E]/g, '.')}`);
+                                console.log('='.repeat(80));
                                 
                                 if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
                                     // Auto-save BEFORE clearing
