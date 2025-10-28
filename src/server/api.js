@@ -819,6 +819,9 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
             res.json({ code: 1, msg: error.message, sessions: [] });
         }
     });
+    
+    console.log('✅ /api/sessions/all endpoint REGISTERED');
+    logger.info('✅ /api/sessions/all endpoint REGISTERED');
 
     // Retrofit old session names to new intelligent format
     app.post('/api/sessions/retrofit-names', async (req, res) => {
