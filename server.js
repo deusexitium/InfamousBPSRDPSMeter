@@ -173,8 +173,8 @@ async function main() {
     console.log('Detecting game server, please wait...');
 
     // Interval to clean IP and TCP fragment cache
-    setInterval(() => {
-        userDataManager.checkTimeoutClear();
+    setInterval(async () => {
+        await userDataManager.checkCombatTimeout();
     }, 10000);
 }
 

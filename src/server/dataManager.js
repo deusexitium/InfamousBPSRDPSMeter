@@ -830,7 +830,7 @@ class UserDataManager {
      * */
     addTakenDamage(uid, damage, isDead) {
         // isPaused will be handled in the sniffer or entry point
-        this.checkTimeoutClear();
+        this.checkCombatTimeout();
         const user = this.getUser(uid);
         user.addTakenDamage(damage, isDead);
     }
