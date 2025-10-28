@@ -18,7 +18,7 @@
     "build-msi": "bash build-msi-from-wsl.sh"
   },
   "keywords": [],
-  "author": "dmlgzs <https://github.com/dmlgzs/StarResonanceDamageCounter>",
+  "author": "Infamous <https://github.com/ssalihsrz/InfamousBPSRDPSMeter>",
   "contributors": [
     "MrSnakeVT",
     "NeRooNx <https://github.com/NeRooNx>",
