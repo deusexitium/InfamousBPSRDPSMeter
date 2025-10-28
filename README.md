@@ -3,7 +3,7 @@
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.1.47-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-3.1.48-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -21,7 +21,7 @@
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `InfamousBPSRDPSMeter-Setup-3.1.47.exe` (~90MB)
+- Get: `InfamousBPSRDPSMeter-Setup-3.1.48.exe` (~90MB)
 - 🆕 **Auto-Update:** v3.1.40+ includes automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**
