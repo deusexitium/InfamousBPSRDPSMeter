@@ -9,6 +9,9 @@
     border-radius: 6px;
     margin-bottom: 12px;
     font-weight: 600;
+    width: 100%;
+    max-width: 1000px;
+    box-sizing: border-box;
 }
 
 .team-totals-label {

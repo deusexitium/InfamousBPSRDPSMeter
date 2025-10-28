@@ -60,6 +60,9 @@ body {
     -webkit-app-region: drag;
     cursor: grab;
     flex-shrink: 0;
+    width: 100%;
+    max-width: 1000px;
+    box-sizing: border-box;
 }
 
 .title-bar:active {
@@ -748,11 +751,15 @@ body.compact-mode .modal {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 16px;
+    padding: 8px 12px;
     background: var(--bg-header);
     border-top: 1px solid var(--border);
     font-size: 11px;
     color: var(--text-secondary);
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 1000px;
+    box-sizing: border-box;
     pointer-events: auto !important; /* CRITICAL: Ensure status bar is visible */
 }
 
