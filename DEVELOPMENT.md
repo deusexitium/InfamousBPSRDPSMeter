@@ -1,19 +1,140 @@
 # 🛠️ BPSR Meter Development Guidelines
 
-**Last Updated:** October 26, 2025  
-**Version:** 3.0.0  
+**Last Updated:** October 27, 2025  
+**Version:** 3.1.29  
 **Status:** 🟢 Living Document
 
 ---
 
 ## 📋 Table of Contents
 
-1. [Critical Rules](#critical-rules)
-2. [Architecture Overview](#architecture-overview)
-3. [Code Patterns](#code-patterns)
-4. [Common Pitfalls](#common-pitfalls)
-5. [Testing Checklist](#testing-checklist)
-6. [Deployment](#deployment)
+1. [Build Environment](#build-environment)
+2. [Critical Rules](#critical-rules)
+3. [Architecture Overview](#architecture-overview)
+4. [Code Patterns](#code-patterns)
+5. [Common Pitfalls](#common-pitfalls)
+6. [Testing Checklist](#testing-checklist)
+7. [Deployment](#deployment)
+
+---
+
+## 🏗️ BUILD ENVIRONMENT
+
+### Recommended Setup: WSL + Windows Hybrid
+
+**Why this approach?**
+- ✅ Develop in Linux (faster, better tools)
+- ✅ Build on Windows (electron-builder requirement)
+- ✅ Automatic copying between environments
+- ✅ Version-independent build script
+
+### Prerequisites
+
+**WSL (Ubuntu/Debian):**
+```bash
+# Git for version control
+sudo apt install git
+
+# rsync for efficient file copying
+sudo apt install rsync
+```
+
+**Windows:**
+```powershell
+# Node.js v22.15.0+ (required)
+winget install OpenJS.NodeJS
+
+# pnpm package manager
+npm install -g pnpm
+
+# Code signing certificate (for production builds)
+# Install your .pfx certificate in Windows Certificate Store
+```
+
+### Quick Build from WSL
+
+```bash
+# Navigate to project
+cd /development/BPSR-Meter
+
+# Run build script
+bash build-from-wsl.sh
+```
+
+**What the script does:**
+1. Detects Windows username automatically
+2. Copies source to `C:\Users\<USER>\AppData\Local\Temp\BPSR-Meter-Build`
+3. Runs `pnpm install` on Windows
+4. Runs `pnpm dist` (electron-builder)
+5. Copies installer to `/development/` and `/mnt/f/DPS/`
+6. Auto-detects version from package.json
+
+**Output:**
+```
+Infamous BPSR DPS Meter-Setup-3.1.29.exe (~90MB)
+```
+
+### Manual Build (Windows Native)
+
+```cmd
+# Open Command Prompt as Administrator
+cd C:\path\to\BPSR-Meter
+
+# Install dependencies
+pnpm install
+
+# Build Windows installer
+pnpm dist
+```
+
+**Output:** `dist_electron/Infamous BPSR DPS Meter-Setup-X.X.X.exe`
+
+### Build Configuration
+
+**package.json - electron-builder config:**
+```json
+{
+  "build": {
+    "appId": "com.infamous.bpsr.meter",
+    "productName": "Infamous BPSR DPS Meter",
+    "win": {
+      "target": ["nsis"],
+      "icon": "build/icon.ico",
+      "sign": "./sign.js"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": true,
+      "installerIcon": "build/icon.ico"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "ssalihsrz",
+      "repo": "InfamousBPSRDPSMeter",
+      "releaseType": "release"
+    }
+  }
+}
+```
+
+### Version Management
+
+**Updating version:**
+```bash
+# All version strings are in sync
+# Update in these files:
+- package.json: "version": "3.1.29"
+- README.md: All instances of version number
+- public/index.html: Title and footer
+- server.js: Uses VERSION variable (dynamic)
+```
+
+**Auto-Update System:**
+- v3.1.27+ includes auto-update from GitHub
+- Users get notifications for new versions
+- Downloads and installs automatically
+- Requires proper GitHub release with installer
 
 ---
 

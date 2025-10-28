@@ -52,21 +52,38 @@
 
 ## 👨‍💻 For Developers
 
-### ⚠️ IMPORTANT BUILD NOTICES
+### 🔧 Build Instructions
 
-### Windows Build Only
-**This application MUST be built on Windows.** Do NOT build in WSL (Windows Subsystem for Linux).
+**Recommended: WSL → Windows Hybrid Build**  
+Development in WSL, building on Windows for best compatibility.
 
-- ✅ **Build on:** Windows 10/11 native
-- ❌ **Do NOT build on:** WSL, Linux, macOS
-- 📖 **See:** [BUILD-WINDOWS.md](BUILD-WINDOWS.md) for detailed instructions
+#### Quick Build (from WSL):
+```bash
+# From WSL terminal in project directory
+bash build-from-wsl.sh
+```
 
-**Quick Build (Windows):**
+**What this does:**
+1. Copies source from WSL to Windows temp directory
+2. Installs dependencies on Windows (pnpm)
+3. Builds Windows installer using electron-builder
+4. Copies installer back to WSL and F:/DPS
+5. Auto-detects version from package.json
+
+#### Manual Build (Windows Native):
 ```cmd
-# Run in Command Prompt (as Administrator)
+# Run in Windows Command Prompt (as Administrator)
 pnpm install
 pnpm dist
 ```
+
+#### Prerequisites:
+- **Node.js:** v22.15.0+ (Windows)
+- **pnpm:** Latest version
+- **Windows 10/11:** Build must run on Windows
+- **Code signing:** Certificate installed for signing .exe
+
+📖 **Detailed Instructions:** [DEVELOPMENT.md](DEVELOPMENT.md)
 
 ### ⚠️ VPN Limitations
 **VPNs interfere with packet capture - use with caution**
