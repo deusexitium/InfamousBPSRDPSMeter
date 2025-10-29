@@ -832,7 +832,8 @@ function renderPlayers() {
     ` : '';
     
     // Set the HTML - ONLY show playersToShow, not all sorted
-    const displayHTML = playersToShow.map((player, index) => renderPlayerRow(player, index + 1, teamTotalDamage, teamTotalHealing)).join('');
+    // Pass maxDmg as 3rd param, NOT teamTotalDamage (renderPlayerRow signature is: player, rank, maxDmg, isLocal, teamTotalDamage)
+    const displayHTML = playersToShow.map((player, index) => renderPlayerRow(player, index + 1, maxDmg, false, teamTotalDamage)).join('');
     list.innerHTML = compactHeadersHTML + displayHTML + showMoreButton;
     
     // Attach click handlers to player rows
@@ -2203,7 +2204,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.91 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.92 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2261,7 +2262,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.91 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.92 - Ready!');
 }
 
 // ============================================================================
