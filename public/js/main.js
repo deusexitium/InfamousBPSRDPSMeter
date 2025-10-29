@@ -441,14 +441,11 @@ async function fetchPlayerData() {
             stopDurationCounter();
         }
         
-        // CRITICAL: Detect character switch BEFORE processing any players
+        // REMOVED: Aggressive character switch detection that was clearing data
+        // User complaint: "everyone is showing up as Unknown, sessions are missing"
+        // This was TOO AGGRESSIVE and cleared data when it shouldn't
+        // Only update local player UID, DON'T clear data
         const newLocalPlayerUid = payload.data.find(p => p.isLocalPlayer)?.uid;
-        if (newLocalPlayerUid && STATE.localPlayerUid !== null && STATE.localPlayerUid !== newLocalPlayerUid) {
-            STATE.players.clear();
-            STATE.startTime = null;
-            STATE.inCombat = false;
-            STATE.zoneChanged = false;
-        }
         
         // Update local player UID if we have a local player
         if (newLocalPlayerUid) {
@@ -2204,7 +2201,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.92 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.93 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2262,7 +2259,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.92 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.93 - Ready!');
 }
 
 // ============================================================================

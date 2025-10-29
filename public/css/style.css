@@ -1505,10 +1505,11 @@ body.compact-mode .meter-container {
     min-width: 520px !important;
     max-width: 580px !important;
     height: fit-content !important;
-    background: rgba(20, 22, 26, 0.85);
+    background: rgba(20, 22, 26, 0.95);
     backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
     display: flex;
     flex-direction: column;
 }
