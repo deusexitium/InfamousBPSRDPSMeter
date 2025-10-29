@@ -897,49 +897,11 @@ body.compact-mode .modal {
     }
 }
 
-/* Sortable Column Headers */
-.column-headers {
-    display: grid;
-    grid-template-columns: 40px minmax(180px, 1fr) repeat(7, minmax(85px, 1fr));
-    gap: 8px;
-    padding: 8px 12px;
-    padding-left: 12px; /* Explicit left padding for alignment */
-    background: var(--bg-header);
-    border-bottom: 2px solid var(--border);
-    border-left: 3px solid transparent; /* Match player-row border for alignment */
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    box-sizing: border-box; /* Ensure consistent box model */
-}
-
-.column-headers > div {
-    cursor: pointer;
-    user-select: none;
-    transition: color 0.2s, transform 0.1s;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.column-headers > div:hover {
-    color: var(--accent-gold);
-    transform: translateY(-1px);
-}
-
-.column-headers > div.sorted-asc i,
-.column-headers > div.sorted-desc i {
-    color: var(--accent-gold);
-}
-
-.column-headers > div.sorted-asc i::before {
-    content: "\f0de"; /* fa-sort-up */
-}
-
-.column-headers > div.sorted-desc i::before {
-    content: "\f0dd"; /* fa-sort-down */
-}
+/* REMOVED: Duplicate .column-headers causing alignment issues
+   Correct definition is at line 360 with matching grid to player-row:
+   grid-template-columns: 40px minmax(140px, 200px) repeat(7, 90px)
+   gap: 4px
+   This duplicate was using different values causing misalignment */
 
 /* Title Bar with Branding */
 .title-bar {
