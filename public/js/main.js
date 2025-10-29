@@ -441,11 +441,14 @@ async function fetchPlayerData() {
             stopDurationCounter();
         }
         
-        // REMOVED: Aggressive character switch detection that was clearing data
-        // User complaint: "everyone is showing up as Unknown, sessions are missing"
-        // This was TOO AGGRESSIVE and cleared data when it shouldn't
-        // Only update local player UID, DON'T clear data
+        // CRITICAL: Detect character switch BEFORE processing any players
         const newLocalPlayerUid = payload.data.find(p => p.isLocalPlayer)?.uid;
+        if (newLocalPlayerUid && STATE.localPlayerUid !== null && STATE.localPlayerUid !== newLocalPlayerUid) {
+            STATE.players.clear();
+            STATE.startTime = null;
+            STATE.inCombat = false;
+            STATE.zoneChanged = false;
+        }
         
         // Update local player UID if we have a local player
         if (newLocalPlayerUid) {
@@ -540,21 +543,98 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
     const isIdle = player.isIdle || false;
     
     if (document.body.classList.contains('compact-mode')) {
-        // Compact mode: Simple 6-column grid (rank + name + 4 stats)
-        // Grid: 25px | minmax(80px,120px) | 65px | 65px | 65px | 65px
-        // DMG TAKEN: show "-" for 0, null, or undefined
-        const dmgTakenValue = player.total_damage_taken?.total || player.taken_damage || 0;
-        const dmgTakenDisplay = (dmgTakenValue && dmgTakenValue > 0) ? formatNumber(dmgTakenValue) : '-';
+        const isHealer = prof.role === 'heal';
+        const isTank = prof.role === 'tank';
+        
+        const showDps = SETTINGS.columnsCompact?.dps !== false;
+        const showMaxDps = SETTINGS.columnsCompact?.maxDps !== false;
+        const showAvgDps = SETTINGS.columnsCompact?.avgDps !== false;
+        const showTotalDmg = SETTINGS.columnsCompact?.totalDmg !== false;
+        const showHps = SETTINGS.columnsCompact?.hps !== false;
+        const showDmgTaken = SETTINGS.columnsCompact?.dmgTaken !== false;
+        const showGs = SETTINGS.columnsCompact?.gs !== false;
+        
         return `
-            <div class="player-row ${isLocal ? 'local-player' : ''} ${isIdle ? 'idle' : ''}" data-uid="${player.uid}">
-                <div class="cell-rank">${rank}</div>
-                <div class="cell-name">
-                    <span class="${prof.class}">${name}</span>
+            <div class="player-row ${isLocal ? 'local' : ''} ${isIdle ? 'idle' : ''}" 
+                 data-uid="${player.uid}"
+                 style="--dmg-percent: ${dmgBarPercent}%">
+                <div class="rank ${rankClass}">${rank}</div>
+                <div class="player-name-col">
+                    <div class="name-line">
+                        ${isLocal ? '<span class="local-star">★</span>' : ''}
+                        <span class="name">${name}${isIdle ? ' <span style="opacity:0.5">(IDLE)</span>' : ''}</span>
+                        <span class="role-badge ${prof.role}">${prof.role.toUpperCase()}</span>
+                    </div>
+                    <div class="hp-bar-mini">
+                        <div class="hp-fill" style="width: ${hpPercent}%; background: ${getHPColor(hpPercent)}"></div>
+                    </div>
                 </div>
-                <div class="cell-value">${formatNumber(currentDps)}</div>
-                <div class="cell-value">${formatNumber(maxDps)}</div>
-                <div class="cell-value">${formatNumber(totalDmg)}</div>
-                <div class="cell-value">${dmgTakenDisplay}</div>
+                ${!isHealer ? `
+                    ${showDps ? `
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(currentDps)}</div>
+                        <div class="stat-label">DPS</div>
+                    </div>
+                    ` : ''}
+                    ${showMaxDps ? `
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(maxDps)}</div>
+                        <div class="stat-label">MAX DPS</div>
+                    </div>
+                    ` : ''}
+                    ${showAvgDps ? `
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(avgDps)}</div>
+                        <div class="stat-label">AVG DPS</div>
+                    </div>
+                    ` : ''}
+                    ${showTotalDmg ? `
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(totalDmg)}</div>
+                        <div class="stat-label">TOTAL DMG</div>
+                    </div>
+                    ` : ''}
+                    ${showDmgTaken ? `
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(dmgTaken)}</div>
+                        <div class="stat-label">DMG TAKEN</div>
+                    </div>
+                    ` : ''}
+                    ${showGs ? `
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(gs)}</div>
+                        <div class="stat-label">GS</div>
+                    </div>
+                    ` : ''}
+                ` : ''}
+                ${isHealer ? `
+                    ${showHps ? `
+                    <div class="stat-col heal">
+                        <div class="stat-value">${formatNumber(hps)}</div>
+                        <div class="stat-label">HPS</div>
+                    </div>
+                    <div class="stat-col heal">
+                        <div class="stat-value">${formatNumber(maxHps)}</div>
+                        <div class="stat-label">MAX HPS</div>
+                    </div>
+                    <div class="stat-col heal">
+                        <div class="stat-value">${formatNumber(totalHealing)}</div>
+                        <div class="stat-label">TOTAL HPS</div>
+                    </div>
+                    ` : ''}
+                    ${showDmgTaken ? `
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(dmgTaken)}</div>
+                        <div class="stat-label">DMG TAKEN</div>
+                    </div>
+                    ` : ''}
+                    ${showGs ? `
+                    <div class="stat-col">
+                        <div class="stat-value">${formatNumber(gs)}</div>
+                        <div class="stat-label">GS</div>
+                    </div>
+                    ` : ''}
+                ` : ''}
             </div>
         `;
     }
@@ -568,7 +648,7 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                 <div class="rank ${rankClass}">${rank}</div>
                 <div class="player-name-col">
                     <div class="name-line">
-                        ${isLocal && (player.isLocalPlayer || player.uid === STATE.localPlayerUid) ? '<span class="local-star">★</span>' : ''}
+                        ${isLocal ? '<span class="local-star">★</span>' : ''}
                         <span class="name">${name}${isIdle ? ' <span style="opacity:0.5">(IDLE)</span>' : ''}</span>
                         <span class="role-badge ${prof.role}">${prof.role.toUpperCase()}</span>
                     </div>
@@ -731,12 +811,6 @@ function renderPlayers() {
         return;
     }
     
-    // Show top 10 by default, rest behind "Show More"
-    const isCompactView = document.body.classList.contains('compact-mode');
-    const defaultShowCount = isCompactView ? 6 : 10;
-    const showingAll = list.classList.contains('show-all');
-    const playersToShow = showingAll ? sorted : sorted.slice(0, defaultShowCount);
-    
     if (sorted.length === 0) {
         const connectionStatus = STATE.lastUpdate > 0 
             ? `Connected • Last update: ${Math.floor((Date.now() - STATE.lastUpdate) / 1000)}s ago`
@@ -750,8 +824,9 @@ function renderPlayers() {
                 <div style="margin-top:5px;font-size:11px;color:#6b7280;">Server port: ${window.location.port || '8989'}</div>
             </div>
         `;
-        // Single RAF to avoid blocking drag
-        setTimeout(() => autoResizeWindow(), 50);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => autoResizeWindow());
+        });
         return;
     }
     
@@ -791,46 +866,70 @@ function renderPlayers() {
         }
     }
     
-    // Add compact mode headers if in compact mode
-    const isCompact = document.body.classList.contains('compact-mode');
-    let compactHeadersHTML = '';
+    let html = '';
+    
+    // Compact headers (inside player list for compact mode)
+    const isCompact = STATE.viewMode === 'compact';
     if (isCompact) {
-        compactHeadersHTML = `
+        html += `
             <div class="compact-headers">
-                <div>#</div>
-                <div>PLAYER</div>
-                <div>DPS</div>
-                <div>MAX DPS</div>
-                <div>TOTAL DMG</div>
-                <div>DMG TAKEN</div>
+                <div class="compact-header-rank">#</div>
+                <div class="compact-header-name">PLAYER</div>
+                <div class="compact-header-dps">DPS</div>
+                <div class="compact-header-stat">MAX</div>
+                <div class="compact-header-stat">TOTAL</div>
+                <div class="compact-header-stat">%</div>
             </div>
         `;
     }
     
-    // Generate player rows HTML
-    let playerRowsHTML = '';
-    sorted.forEach((player, index) => {
-        playerRowsHTML += renderPlayerRow(player, index + 1, teamTotalDamage, teamTotalHealing);
+    // STEP 3: Local player if not rank 1
+    const isExpandedList = document.getElementById('player-list')?.classList.contains('expanded');
+    const shouldLimitDisplay = document.body.classList.contains('compact-mode') && !isExpandedList;
+    
+    let displayLimit = shouldLimitDisplay ? 6 : sorted.length; // Show 6 in compact (not 5)
+    
+    const shouldShowLocalSeparately = localPlayer && localPlayerRank > 1;
+    if (shouldShowLocalSeparately) {
+        html += renderPlayerRow(localPlayer, localPlayerRank, maxDmg, true, teamTotalDamage);
+        // NO "Rankings" separator - just show other players below
+    }
+    
+    sorted.forEach((player, idx) => {
+        const rank = idx + 1;
+        const isLocal = player.isLocalPlayer || player.uid === STATE.localPlayerUid;
+        
+        // Skip local player if already shown separately on top
+        if (isLocal && shouldShowLocalSeparately) {
+            return;
+        }
+        
+        const rowHtml = renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage);
+        
+        if (shouldLimitDisplay && idx >= displayLimit) {
+            html += rowHtml.replace('<div class="player-row', '<div class="player-row compact-hidden');
+        } else {
+            html += rowHtml;
+        }
     });
     
-    // Show More button - always visible when there are hidden players
-    const showMoreButton = (sorted.length > defaultShowCount) ? `
-        <div class="show-more-container">
-            <button class="show-more-btn" id="show-more-toggle">
-                ${!showingAll ? 
-                    `<i class="fa-solid fa-chevron-down"></i> Show ${sorted.length - defaultShowCount} More Players` : 
-                    `<i class="fa-solid fa-chevron-up"></i> Show Less`
-                }
-            </button>
-        </div>
-    ` : '';
+    const expandBtn = document.getElementById('btn-expand-list');
+    if (expandBtn) {
+        if (shouldLimitDisplay) {
+            const hasHiddenPlayers = sorted.length > displayLimit;
+            expandBtn.style.display = hasHiddenPlayers ? 'flex' : 'none';
+            
+            const text = expandBtn.querySelector('span');
+            const icon = expandBtn.querySelector('i');
+            if (text) text.textContent = isExpandedList ? 'Show Less' : 'Show More';
+            if (icon) icon.className = isExpandedList ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
+        } else {
+            expandBtn.style.display = 'none';
+        }
+    }
     
-    // Set the HTML - ONLY show playersToShow, not all sorted
-    // Pass maxDmg as 3rd param, NOT teamTotalDamage (renderPlayerRow signature is: player, rank, maxDmg, isLocal, teamTotalDamage)
-    const displayHTML = playersToShow.map((player, index) => renderPlayerRow(player, index + 1, maxDmg, false, teamTotalDamage)).join('');
-    list.innerHTML = compactHeadersHTML + displayHTML + showMoreButton;
+    list.innerHTML = html;
     
-    // Attach click handlers to player rows
     document.querySelectorAll('.player-row').forEach(row => {
         row.style.cursor = 'pointer';
         row.addEventListener('click', (e) => {
@@ -842,29 +941,13 @@ function renderPlayers() {
         });
     });
     
-    // Restore expanded player details from cache
     expandedPlayerIds.forEach(uid => {
         if (skillsCache.has(uid)) {
             renderSkillsFromCache(uid);
         }
     });
     
-    // Attach Show More button handler
-    const showMoreBtn = document.getElementById('show-more-toggle');
-    if (showMoreBtn) {
-        showMoreBtn.addEventListener('click', () => {
-            const list = document.getElementById('player-list');
-            if (list.classList.contains('show-all')) {
-                list.classList.remove('show-all');
-            } else {
-                list.classList.add('show-all');
-            }
-            renderPlayers();
-        });
-    }
-    
-    // Auto-resize window after rendering (single RAF, not nested)
-    requestAnimationFrame(() => autoResizeWindow());
+    autoResizeWindow();
 }
 
 // AUTO-RESIZE VARIABLES
@@ -884,34 +967,34 @@ function autoResizeWindow() {
         clearTimeout(resizeDebounceTimer);
     }
 
-    // Debounce to avoid blocking drag - increased from 30ms to 100ms
+    // Faster debounce for responsive UI
     resizeDebounceTimer = setTimeout(() => {
-        // Get dimensions without forcing reflow (causes flicker)
+        // Force browser to calculate actual layout
         const rect = container.getBoundingClientRect();
         const actualHeight = Math.ceil(rect.height);
         const actualWidth = Math.ceil(rect.width);
-        
-        // Get current window dimensions FIRST (needed for compact mode logic)
-        const currentHeight = window.innerHeight;
-        const currentWidth = window.innerWidth;
         
         // Different constraints for compact vs full mode
         const isCompact = document.body.classList.contains('compact-mode');
         let targetHeight, targetWidth, finalHeight, finalWidth;
         
         if (isCompact) {
-            // Compact mode: FIXED 450px width
+            // Compact mode: tight fit, minimal padding
             targetHeight = actualHeight + 5;
-            finalHeight = Math.max(150, Math.min(targetHeight, 600));
-            finalWidth = 450; // FIXED: Always 450px for compact mode
+            targetWidth = actualWidth + 5;
+            finalHeight = Math.max(200, Math.min(targetHeight, 600));
+            finalWidth = Math.max(400, Math.min(targetWidth, 450));
         } else {
-            // Full mode: jump to max width immediately, no slow growth
+            // Full mode: generous padding
             targetHeight = actualHeight + 10;
+            targetWidth = actualWidth + 10;
             finalHeight = Math.max(250, Math.min(targetHeight, 1200));
-            finalWidth = 1000; // FIXED: Always 1000px, no slow growth
+            finalWidth = Math.max(800, Math.min(targetWidth, 1600));
         }
 
         // Only resize if difference is significant (not every pixel)
+        const currentHeight = window.innerHeight;
+        const currentWidth = window.innerWidth;
         const heightDiff = Math.abs(finalHeight - currentHeight);
         const widthDiff = Math.abs(finalWidth - currentWidth);
         
@@ -925,7 +1008,7 @@ function autoResizeWindow() {
                 isResizing = false;
             }, 150);
         }
-    }, 100); // Debounce increased to 100ms to prevent blocking drag
+    }, 50); // Fast debounce for responsive UI
 }
 
 function filterPlayers(players) {
@@ -2209,7 +2292,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.98 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.52 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2267,7 +2350,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.98 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.52 - Ready!');
 }
 
 // ============================================================================
@@ -2850,13 +2933,13 @@ function updateSessionDropdown() {
     sortedSessions.forEach(session => {
         const option = document.createElement('option');
         option.value = session.id;
-        const date = new Date(session.timestamp).toLocaleString('en-US', { 
-            month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true
+        const date = new Date(session.timestamp).toLocaleDateString('en-US', { 
+            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
         });
+        const charInfo = session.characterName ? ` [${session.characterName}]` : '';
         const icon = session.autoSaved ? '🤖' : '📝';
         const duration = formatDuration(session.duration || 0);
-        // Consistent format: icon + name + duration + timestamp
-        option.textContent = `${icon} ${session.name} - ${duration} - ${date}`;
+        option.textContent = `${icon} ${session.name} - ${duration} (${date})`;
         dropdown.appendChild(option);
     });
     
