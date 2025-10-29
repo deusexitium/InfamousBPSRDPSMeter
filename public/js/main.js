@@ -714,8 +714,9 @@ function renderPlayers() {
         }
         
         // If player has no name but PLAYER_DB has one, use it
-        if ((!p.name || p.name === 'unknown' || p.name.startsWith('Unknown_')) && PLAYER_DB.has(p.uid)) {
-            p.name = PLAYER_DB.get(p.uid);
+        const savedName = PLAYER_DB.get(p.uid);
+        if ((!p.name || p.name === 'unknown' || p.name.startsWith('Unknown_')) && savedName) {
+            p.name = savedName;
             console.log(`📖 Restored player name from DB: ${p.name} (UID: ${p.uid})`);
         }
     });
