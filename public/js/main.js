@@ -419,9 +419,19 @@ async function fetchPlayerData() {
                     await autoSaveSession('Previous Battle (Auto-saved)');
                 }
                 
-                // Clear old data to start fresh
-                console.log('✨ Clearing data for new zone');
-                STATE.players.clear();
+                // Reset DPS stats but PRESERVE player names to prevent "Unknown" players
+                console.log('✨ Resetting stats for new zone (preserving player names)');
+                STATE.players.forEach(player => {
+                    // Keep: name, uid, class_id
+                    // Reset: all damage/healing stats
+                    player.total_damage = { total: 0 };
+                    player.total_healing = { total: 0 };
+                    player.total_damage_taken = { total: 0 };
+                    player.current_dps = 0;
+                    player.max_dps = 0;
+                    player.realtime_dps = 0;
+                    player.realtime_dps_max = 0;
+                });
                 STATE.startTime = null;
             }
         }
