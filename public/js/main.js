@@ -749,9 +749,8 @@ function renderPlayers() {
                 <div style="margin-top:5px;font-size:11px;color:#6b7280;">Server port: ${window.location.port || '8989'}</div>
             </div>
         `;
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => autoResizeWindow());
-        });
+        // Single RAF to avoid blocking drag
+        setTimeout(() => autoResizeWindow(), 50);
         return;
     }
     
@@ -852,10 +851,8 @@ function renderPlayers() {
         }
     });
     
-    // Auto-resize window after rendering
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => autoResizeWindow());
-    });
+    // Auto-resize window after rendering (single RAF, not nested)
+    requestAnimationFrame(() => autoResizeWindow());
 }
 
 // AUTO-RESIZE VARIABLES
@@ -875,7 +872,7 @@ function autoResizeWindow() {
         clearTimeout(resizeDebounceTimer);
     }
 
-    // Fast debounce for responsive UI
+    // Debounce to avoid blocking drag - increased from 30ms to 100ms
     resizeDebounceTimer = setTimeout(() => {
         // Get dimensions without forcing reflow (causes flicker)
         const rect = container.getBoundingClientRect();
@@ -917,7 +914,7 @@ function autoResizeWindow() {
                 isResizing = false;
             }, 150);
         }
-    }, 30); // Very fast debounce - 30ms
+    }, 100); // Debounce increased to 100ms to prevent blocking drag
 }
 
 function filterPlayers(players) {
@@ -2201,7 +2198,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.93 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.94 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2259,7 +2256,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.93 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.94 - Ready!');
 }
 
 // ============================================================================
