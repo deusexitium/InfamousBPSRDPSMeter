@@ -1,0 +1,222 @@
+/**
+ * GOLDEN RATIO COLOR SCHEME - v3.1.144
+ * 
+ * Based on golden ratio (φ ≈ 1.618) for harmonious color distribution
+ * Primary color: Gold (#F5A623)
+ * 
+ * Color Theory Applied:
+ * - Primary (100%): Main brand color
+ * - Secondary (61.8%): φ ratio darker
+ * - Tertiary (38.2%): Complement lighter
+ * - Accents: Functional colors (blue, red, green) with same ratio applied
+ */
+
+:root {
+    /* ===== PRIMARY GOLD PALETTE (Main Brand) ===== */
+    --gold-100: #F5A623;           /* Primary brand gold */
+    --gold-80: #F8B951;            /* 20% lighter */
+    --gold-60: #F8C670;            /* 38.2% lighter (Golden ratio) */
+    --gold-40: #9B671A;            /* 61.8% darker (Golden ratio) */
+    --gold-20: #664411;            /* 80% darker */
+    
+    /* ===== ACCENT COLORS (Functional UI) ===== */
+    /* Blue - Information, Links, Selection */
+    --blue-100: #3B82F6;           /* Primary blue */
+    --blue-80: #60A5FA;            /* 20% lighter */
+    --blue-60: #93C5FD;            /* 38.2% lighter */
+    --blue-40: #1E40AF;            /* 61.8% darker */
+    --blue-20: #1E3A8A;            /* 80% darker */
+    
+    /* Red - Danger, Errors, Delete */
+    --red-100: #EF4444;            /* Primary red */
+    --red-80: #F87171;             /* 20% lighter */
+    --red-60: #FCA5A5;             /* 38.2% lighter */
+    --red-40: #B91C1C;             /* 61.8% darker */
+    --red-20: #991B1B;             /* 80% darker */
+    
+    /* Green - Success, Heal, Positive */
+    --green-100: #10B981;          /* Primary green */
+    --green-80: #34D399;           /* 20% lighter */
+    --green-60: #6EE7B7;           /* 38.2% lighter */
+    --green-40: #047857;           /* 61.8% darker */
+    --green-20: #065F46;           /* 80% darker */
+    
+    /* ===== NEUTRAL GRAYS (Base UI) ===== */
+    --gray-100: #F3F4F6;           /* Lightest text */
+    --gray-80: #D1D5DB;            /* Secondary text */
+    --gray-60: #9CA3AF;            /* Tertiary text */
+    --gray-40: #6B7280;            /* Muted text */
+    --gray-20: #4B5563;            /* Dim text */
+    
+    /* ===== BACKGROUNDS ===== */
+    --bg-dark: #0F1419;            /* Main background */
+    --bg-card: #1C2127;            /* Card/panel background */
+    --bg-hover: #252A31;           /* Hover state */
+    --bg-active: #2D333C;          /* Active/selected */
+    
+    /* ===== SEMANTIC ALIASES (Use these in components) ===== */
+    --accent-gold: var(--gold-100);
+    --accent-gold-light: var(--gold-60);
+    --accent-gold-dark: var(--gold-40);
+    
+    --accent-blue: var(--blue-100);
+    --accent-blue-light: var(--blue-60);
+    --accent-blue-dark: var(--blue-40);
+    
+    --accent-red: var(--red-100);
+    --accent-red-light: var(--red-60);
+    --accent-red-dark: var(--red-40);
+    
+    --accent-green: var(--green-100);
+    --accent-green-light: var(--green-60);
+    --accent-green-dark: var(--green-40);
+    
+    --text-primary: var(--gray-100);
+    --text-secondary: var(--gray-80);
+    --text-muted: var(--gray-60);
+    --text-dim: var(--gray-40);
+    
+    /* ===== BUTTON PRESETS (Golden Ratio Scale) ===== */
+    --btn-primary-bg: var(--gold-100);
+    --btn-primary-hover: var(--gold-80);
+    --btn-primary-active: var(--gold-40);
+    --btn-primary-text: #000;
+    
+    --btn-secondary-bg: rgba(251, 191, 36, 0.1);
+    --btn-secondary-border: rgba(251, 191, 36, 0.3);
+    --btn-secondary-hover: rgba(251, 191, 36, 0.2);
+    --btn-secondary-text: var(--gold-100);
+    
+    --btn-danger-bg: rgba(239, 68, 68, 0.1);
+    --btn-danger-border: rgba(239, 68, 68, 0.3);
+    --btn-danger-hover: rgba(239, 68, 68, 0.2);
+    --btn-danger-text: var(--red-100);
+    
+    --btn-success-bg: rgba(16, 185, 129, 0.1);
+    --btn-success-border: rgba(16, 185, 129, 0.3);
+    --btn-success-hover: rgba(16, 185, 129, 0.2);
+    --btn-success-text: var(--green-100);
+    
+    /* ===== BORDERS & DIVIDERS ===== */
+    --border-subtle: rgba(255, 255, 255, 0.05);
+    --border-default: rgba(255, 255, 255, 0.1);
+    --border-strong: rgba(255, 255, 255, 0.2);
+    --border-gold: rgba(251, 191, 36, 0.3);
+    --border-blue: rgba(59, 130, 246, 0.3);
+    --border-red: rgba(239, 68, 68, 0.3);
+    --border-green: rgba(16, 185, 129, 0.3);
+    
+    /* ===== OVERLAYS & TRANSPARENCY ===== */
+    --overlay-gold-5: rgba(251, 191, 36, 0.05);
+    --overlay-gold-10: rgba(251, 191, 36, 0.1);
+    --overlay-gold-15: rgba(251, 191, 36, 0.15);
+    --overlay-gold-20: rgba(251, 191, 36, 0.2);
+    
+    --overlay-blue-5: rgba(59, 130, 246, 0.05);
+    --overlay-blue-10: rgba(59, 130, 246, 0.1);
+    --overlay-blue-15: rgba(59, 130, 246, 0.15);
+    --overlay-blue-20: rgba(59, 130, 246, 0.2);
+    
+    --overlay-red-5: rgba(239, 68, 68, 0.05);
+    --overlay-red-10: rgba(239, 68, 68, 0.1);
+    --overlay-red-15: rgba(239, 68, 68, 0.15);
+    --overlay-red-20: rgba(239, 68, 68, 0.2);
+    
+    --overlay-green-5: rgba(16, 185, 129, 0.05);
+    --overlay-green-10: rgba(16, 185, 129, 0.1);
+    --overlay-green-15: rgba(16, 185, 129, 0.15);
+    --overlay-green-20: rgba(16, 185, 129, 0.2);
+}
+
+/**
+ * STANDARDIZED BUTTON STYLES
+ * All buttons follow golden ratio proportions and consistent styling
+ */
+
+.btn-primary {
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background: var(--btn-primary-hover);
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    background: var(--btn-primary-active);
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background: var(--btn-secondary-bg);
+    color: var(--btn-secondary-text);
+    border: 1px solid var(--btn-secondary-border);
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background: var(--btn-secondary-hover);
+    border-color: var(--gold-100);
+    transform: translateY(-1px);
+}
+
+.btn-danger {
+    background: var(--btn-danger-bg);
+    color: var(--btn-danger-text);
+    border: 1px solid var(--btn-danger-border);
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+    background: var(--btn-danger-hover);
+    border-color: var(--red-100);
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background: var(--btn-success-bg);
+    color: var(--btn-success-text);
+    border: 1px solid var(--btn-success-border);
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-success:hover {
+    background: var(--btn-success-hover);
+    border-color: var(--green-100);
+    transform: translateY(-1px);
+}
+
+/* Compact button variant (smaller) */
+.btn-compact {
+    padding: 6px 12px;
+    font-size: 11px;
+}
+
+/* Icon-only button variant */
+.btn-icon {
+    padding: 8px;
+    min-width: 32px;
+}

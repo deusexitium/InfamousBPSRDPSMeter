@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Infamous BPSR DPS Meter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=3.1.124">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1e212d;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+        
+        .popup-header {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            -webkit-app-region: drag;
+            cursor: move;
+        }
+        
+        .popup-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .popup-close {
+            -webkit-app-region: no-drag;
+            background: rgba(0,0,0,0.2);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #000;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .popup-close:hover {
+            background: rgba(0,0,0,0.4);
+        }
+        
+        .popup-content {
+            height: calc(100vh - 56px);
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        /* Copy modal styles from main CSS */
+        .settings-container {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="popup-header">
+        <div class="popup-title">
+            <i class="fa-solid fa-gear"></i>
+            Settings
+        </div>
+        <button class="popup-close" onclick="window.electronAPI?.closeSettingsWindow()">
+            <i class="fa-solid fa-times"></i>
+        </button>
+    </div>
+    
+    <div class="popup-content">
+        <!-- Copy the entire settings modal content from index.html here -->
+        <div class="modal-content-large settings-container">
+            <!-- Settings tabs and content will be loaded dynamically -->
+            <div id="settings-root"></div>
+        </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/main.js?v=3.1.124"></script>
+    <script>
+        // Initialize settings in popup window
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load settings UI dynamically
+            console.log('Settings popup window loaded');
+        });
+    </script>
+</body>
+</html>

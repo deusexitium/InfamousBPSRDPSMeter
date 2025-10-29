@@ -7,7 +7,7 @@ const fsPromises = require('fs').promises;
 const fs = require('fs');
 const VPNDetector = require('./vpnDetector');
 
-function initializeApi(app, server, io, userDataManager, logger, globalSettings, VERSION = '2.5.1', userDataPath = __dirname) {
+function initializeApi(app, server, io, userDataManager, logger, globalSettings, VERSION = '2.5.1', userDataPath = __dirname, mappingManager = null) {
     // Use userDataPath for all user data (AppData on Windows)
     const SESSIONS_PATH = path.join(userDataPath, 'sessions');
     const SETTINGS_PATH = path.join(userDataPath, 'settings.json');
@@ -43,27 +43,13 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
     });
 
     app.get('/api/data', (req, res) => {
-        const userData = userDataManager.getAllUsersData();
+        // PERFORMANCE: Only return top 30 active players + local + party
+        const userData = userDataManager.getActiveUsersData(30);
         const payload = Object.entries(userData).map(([uid, summary]) => ({
             uid: Number(uid),
             ...summary
         }));
-
-        const playerCount = payload.length;
-        
-        // Check both: actual server change OR player count-based zone detection
-        const serverChanged = userDataManager.checkAndResetServerChange();
-        const zoneChangedByCount = userDataManager.detectZoneChange(playerCount);
-        const zoneChanged = serverChanged || zoneChangedByCount;
-
-        const data = {
-            code: 0,
-            data: payload,
-            timestamp: Date.now(),
-            startTime: userDataManager.startTime,
-            zoneChanged: zoneChanged,
-        };
-        res.json(data);
+        res.json({ code: 0, players: payload });
     });
 
     app.get('/api/solo-user', (req, res) => {
@@ -183,6 +169,61 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
             }
         } else {
             res.status(400).json({ code: 1, msg: 'Missing UID or name.' });
+        }
+    });
+    
+    // CRITICAL: Save settings to AppData settings.json (PERMANENT STORAGE)
+    // File write lock to prevent corruption from simultaneous saves
+    let settingsSaveLock = Promise.resolve();
+    
+    app.post('/api/settings/save', async (req, res) => {
+        try {
+            const settings = req.body;
+            
+            // CRITICAL FIX: Direct write (atomic rename causes Windows file locking issues)
+            // Add retry logic for EPERM errors
+            settingsSaveLock = settingsSaveLock.then(async () => {
+                let retries = 3;
+                while (retries > 0) {
+                    try {
+                        await fsPromises.writeFile(SETTINGS_PATH, JSON.stringify(settings, null, 2), 'utf8');
+                        logger.info('✅ Settings saved to:', SETTINGS_PATH);
+                        break;
+                    } catch (err) {
+                        if (err.code === 'EPERM' && retries > 1) {
+                            // Wait 100ms and retry
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                            retries--;
+                        } else {
+                            throw err;
+                        }
+                    }
+                }
+            });
+            
+            await settingsSaveLock;
+            res.json({ code: 0, msg: 'Settings saved successfully' });
+        } catch (error) {
+            logger.error('❌ Failed to save settings:', error);
+            res.status(500).json({ code: 1, msg: 'Failed to save settings', error: error.message });
+        }
+    });
+    
+    // Load settings from AppData settings.json
+    app.get('/api/settings/load', async (req, res) => {
+        try {
+            const data = await fsPromises.readFile(SETTINGS_PATH, 'utf8');
+            const settings = JSON.parse(data);
+            logger.info('✅ Settings loaded from:', SETTINGS_PATH);
+            res.json({ code: 0, settings });
+        } catch (error) {
+            if (error.code === 'ENOENT') {
+                // File doesn't exist yet, return empty settings
+                res.json({ code: 0, settings: null });
+            } else {
+                logger.error('❌ Failed to load settings:', error);
+                res.status(500).json({ code: 1, msg: 'Failed to load settings', error: error.message });
+            }
         }
     });
     
@@ -1009,7 +1050,13 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
 
     setInterval(() => {
         if (!globalSettings.isPaused) {
-            const userData = userDataManager.getAllUsersData();
+            // CRITICAL: Update realtime DPS/HPS before broadcasting
+            // This removes old entries from the 1-second sliding window
+            userDataManager.updateAllRealtimeDps();
+            
+            // PERFORMANCE: Only send top 30 players + local + party to reduce bandwidth
+            // Backend still tracks all 357+ for logs, but frontend only needs active players
+            const userData = userDataManager.getActiveUsersData(30);
             const data = {
                 code: 0,
                 user: userData,
@@ -1020,6 +1067,61 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
     
     console.log('⏱️ Data broadcast interval started');
     logger.info('⏱️ Data broadcast interval started');
+    
+    // ============================================================================
+    // MAPPING ENDPOINTS - Boss/Mob Detection
+    // ============================================================================
+    
+    if (mappingManager) {
+        // Get mapping statistics
+        app.get('/api/mappings/stats', (req, res) => {
+            try {
+                const stats = mappingManager.getStats();
+                res.json({ code: 0, stats });
+            } catch (err) {
+                logger.error('Failed to get mapping stats:', err);
+                res.status(500).json({ code: -1, msg: 'Failed to get stats' });
+            }
+        });
+        
+        // Get unknown IDs for contribution
+        app.get('/api/mappings/unknown', (req, res) => {
+            try {
+                const unknownIds = mappingManager.getUnknownIds();
+                res.json({ code: 0, unknownIds });
+            } catch (err) {
+                logger.error('Failed to get unknown IDs:', err);
+                res.status(500).json({ code: -1, msg: 'Failed to get unknown IDs' });
+            }
+        });
+        
+        // Clear unknown IDs (after contribution)
+        app.post('/api/mappings/unknown/clear', (req, res) => {
+            try {
+                mappingManager.clearUnknownIds();
+                res.json({ code: 0, msg: 'Unknown IDs cleared' });
+            } catch (err) {
+                logger.error('Failed to clear unknown IDs:', err);
+                res.status(500).json({ code: -1, msg: 'Failed to clear unknown IDs' });
+            }
+        });
+        
+        // Force update from GitHub
+        app.post('/api/mappings/update', async (req, res) => {
+            try {
+                await mappingManager.updateFromGitHub();
+                await mappingManager.loadMappings();
+                const stats = mappingManager.getStats();
+                res.json({ code: 0, msg: 'Mappings updated', stats });
+            } catch (err) {
+                logger.error('Failed to update mappings:', err);
+                res.status(500).json({ code: -1, msg: 'Failed to update mappings' });
+            }
+        });
+        
+        logger.info('📊 Mapping endpoints registered');
+    }
+    
     console.log('✅ API endpoints registered successfully');
     logger.info('✅ API endpoints registered successfully');
     console.log('📍 Session endpoint /api/sessions/all should be available');

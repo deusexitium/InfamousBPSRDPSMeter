@@ -108,6 +108,7 @@ const STATE = {
     startTime: null,
     lastUpdate: 0,
     refreshTimer: null,
+    showingAllPlayers: false, // Track Show More state
     skillsRefreshTimer: null,
     durationTimer: null,
     viewMode: 'detailed', // 'compact' or 'detailed'
@@ -129,14 +130,24 @@ const SETTINGS = {
     version: CONFIG_VERSION,
     highlightLocal: true,
     showGS: true,
-    refreshInterval: 1.5, // 1500ms - prevents excessive renders (was 0.5s)
+    refreshInterval: 0.3, // 300ms - faster updates for responsive DPS/HPS (was 1.5s)
     rememberNames: true,
     autoClearOnZoneChange: true, // Clear data when entering combat after zone change
     keepDataAfterDungeon: true, // Don't clear immediately on zone exit
     overlayOpacity: 0.95, // PHASE 3: Overlay transparency (0.0-1.0)
     compactMode: false, // Persist compact vs full mode
+    compactHealerMode: false, // Show healing metrics in compact mode
+    fullHealerMode: false, // Show healing metrics in full mode (NEW)
+    compactScale: 100, // Compact mode scale percentage (70-150%) - ONLY for compact mode
+    fullModeScale: 100, // Full mode scale percentage (70-150%) - ONLY for full mode
     windowOpacity: 100, // Window opacity percentage (0-100)
     defaultSort: 'totalDmg', // Default column for ranking (totalDmg, dps, maxDps, avgDps, hps)
+    
+    // AUTO-UPDATER SETTINGS
+    autoUpdate: 'notify', // 'disable', 'notify' (default), 'auto'
+    // - disable: No update checks
+    // - notify: Check and show notification (default)
+    // - auto: Automatically download and install updates
     
     // Column visibility for COMPACT mode
     columnsCompact: {
@@ -145,7 +156,7 @@ const SETTINGS = {
         avgDps: false,
         totalDmg: true,
         hps: true,
-        dmgTaken: false,
+        dmgTaken: true,  // NOW ENABLED by default - essential metric
         gs: false
     },
     
@@ -160,59 +171,88 @@ const SETTINGS = {
         gs: true,
     },
     
-    load() {
+    async load() {
         try {
+            // PRIORITY 1: Load from AppData settings.json (permanent storage)
+            try {
+                const res = await fetch('/api/settings/load');
+                const data = await res.json();
+                if (data.code === 0 && data.settings) {
+                    const savedSettings = data.settings;
+                    this.mergeSettings(savedSettings);
+                    console.log('✅ Settings loaded from AppData (permanent storage)');
+                    return; // Successfully loaded from permanent storage
+                }
+            } catch (err) {
+                console.warn('Could not load from AppData, falling back to localStorage:', err);
+            }
+            
+            // FALLBACK: Load from localStorage (can be cleared)
             const saved = localStorage.getItem('bpsr-settings');
             if (saved) {
                 const savedSettings = JSON.parse(saved);
-                if (savedSettings.version < CONFIG_VERSION) {
-                    // Perform migration if version is outdated
-                    // Migrating settings...
-                    // Add migration logic here if needed
-                }
-                // Merge top-level settings
-                Object.keys(savedSettings).forEach(key => {
-                    if (key === 'columnsCompact' && typeof savedSettings.columnsCompact === 'object') {
-                        // Deep merge columnsCompact object
-                        Object.assign(this.columnsCompact, savedSettings.columnsCompact);
-                    } else if (key === 'columnsFull' && typeof savedSettings.columnsFull === 'object') {
-                        // Deep merge columnsFull object
-                        Object.assign(this.columnsFull, savedSettings.columnsFull);
-                    } else if (key === 'columns' && typeof savedSettings.columns === 'object') {
-                        // Backward compatibility: migrate old 'columns' to both compact and full
-                        Object.assign(this.columnsCompact, savedSettings.columns);
-                        Object.assign(this.columnsFull, savedSettings.columns);
-                    } else if (key !== 'load' && key !== 'save') {
-                        this[key] = savedSettings[key];
-                    }
-                });
-                // Settings loaded
+                this.mergeSettings(savedSettings);
+                console.log('⚠️ Settings loaded from localStorage (not permanent)');
             }
         } catch (e) {
             console.error('Failed to load settings:', e);
         }
     },
     
+    mergeSettings(savedSettings) {
+        if (savedSettings.version < CONFIG_VERSION) {
+            // Perform migration if version is outdated
+        }
+        // Merge top-level settings
+        Object.keys(savedSettings).forEach(key => {
+            if (key === 'columnsCompact' && typeof savedSettings.columnsCompact === 'object') {
+                Object.assign(this.columnsCompact, savedSettings.columnsCompact);
+            } else if (key === 'columnsFull' && typeof savedSettings.columnsFull === 'object') {
+                Object.assign(this.columnsFull, savedSettings.columnsFull);
+            } else if (key === 'columns' && typeof savedSettings.columns === 'object') {
+                // Backward compatibility
+                Object.assign(this.columnsCompact, savedSettings.columns);
+                Object.assign(this.columnsFull, savedSettings.columns);
+            } else if (key !== 'load' && key !== 'save' && key !== 'mergeSettings') {
+                this[key] = savedSettings[key];
+            }
+        });
+    },
+    
     save() {
         try {
-            const { load, save, ...settings } = this;
+            const { load, save, mergeSettings, ...settings } = this;
+            
+            // Save to localStorage (quick access)
             localStorage.setItem('bpsr-settings', JSON.stringify(settings));
             
-            // CRITICAL: Also send to backend so globalSettings stay in sync
+            // CRITICAL: Save to AppData settings.json (PERMANENT - survives cache clear)
+            fetch('/api/settings/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings)
+            }).then(res => res.json())
+              .then(data => {
+                  if (data.code === 0) {
+                      console.log('✅ Settings saved to AppData');
+                  }
+              })
+              .catch(err => console.error('❌ Failed to save settings to AppData:', err));
+            
+            // Also sync relevant settings to globalSettings
             fetch('/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     autoClearOnZoneChange: settings.autoClearOnZoneChange,
-                    keepDataAfterDungeon: settings.keepDataAfterDungeon
+                    keepDataAfterDungeon: settings.keepDataAfterDungeon,
+                    autoUpdate: settings.autoUpdate
                 })
-            }).catch(err => console.error('Failed to sync settings to backend:', err));
-            
-            // Settings saved
+            }).catch(err => console.error('Failed to sync globalSettings:', err));
         } catch (e) {
             console.error('Failed to save settings:', e);
         }
-    }
+    },
 };
 
 // ============================================================================
@@ -278,7 +318,7 @@ const PROFESSIONS = {
     '青岚骑士': { name: 'Wind Knight', role: 'tank' },
     '森语者': { name: 'Verdant Oracle', role: 'heal' },
     '雷霆一闪·手炮': { name: 'Gunner', role: 'dps' },
-    '巨刃守护者': { name: 'Heavy Guardian', role: 'tank' },
+    '巨刃守护者': { name: 'Heavy Sword', role: 'dps' },
     '暗灵祈舞·仪刀/仪仗': { name: 'Spirit Dancer', role: 'dps' },
     '神射手': { name: 'Marksman', role: 'dps' },
     '神盾骑士': { name: 'Shield Knight', role: 'tank' },
@@ -298,7 +338,7 @@ const PROFESSIONS = {
     '协奏': { name: 'Concerto', role: 'heal' },
     '狂音': { name: 'Dissonance', role: 'heal' },
     '空枪': { name: 'Empty Gun', role: 'dps' },
-    '重装': { name: 'Heavy Armor', role: 'tank' },
+    '重装': { name: 'Vanguard Spec', role: 'dps' },
     '未知': { name: 'Unknown', role: 'unknown' },  // Undetected profession
     '': { name: 'Unknown', role: 'unknown' },       // Empty profession
 };
@@ -400,9 +440,12 @@ async function fetchPlayerData() {
         
         const payload = await res.json();
         
+        // API returns { code: 0, players: [...] } not { data: [...] }
+        const playerData = payload.players || [];
+        
         // Detect combat start (new data appearing)
-        const hasActivePlayers = payload.data && payload.data.length > 0 && 
-            payload.data.some(p => (p.total_damage?.total || 0) > 0 || (p.total_healing?.total || 0) > 0);
+        const hasActivePlayers = playerData.length > 0 && 
+            playerData.some(p => (p.total_damage?.total || 0) > 0 || (p.total_healing?.total || 0) > 0);
         
         // CRITICAL FIX: Handle zone change BEFORE updating combat state
         // Two modes:
@@ -426,7 +469,7 @@ async function fetchPlayerData() {
                     // Reset: all damage/healing stats
                     player.total_damage = { total: 0 };
                     player.total_healing = { total: 0 };
-                    player.total_damage_taken = { total: 0 };
+                    player.taken_damage = 0; // FIX: Should be taken_damage, not total_damage_taken
                     player.current_dps = 0;
                     player.max_dps = 0;
                     player.realtime_dps = 0;
@@ -455,7 +498,7 @@ async function fetchPlayerData() {
         // User complaint: "everyone is showing up as Unknown, sessions are missing"
         // This was TOO AGGRESSIVE and cleared data when it shouldn't
         // Only update local player UID, DON'T clear data
-        const newLocalPlayerUid = payload.data.find(p => p.isLocalPlayer)?.uid;
+        const newLocalPlayerUid = playerData.find(p => p.isLocalPlayer)?.uid;
         
         // Update local player UID if we have a local player
         if (newLocalPlayerUid) {
@@ -463,8 +506,8 @@ async function fetchPlayerData() {
         }
         
         // Merge player data (preserve accumulated stats)
-        if (payload.data && Array.isArray(payload.data)) {
-            payload.data.forEach(player => {
+        if (playerData && Array.isArray(playerData)) {
+            playerData.forEach(player => {
                 const uid = player.uid;
                 const existing = STATE.players.get(uid);
                 
@@ -506,7 +549,7 @@ async function fetchPlayerData() {
             STATE.lastUpdate = Date.now();
         }
         
-        STATE.lastPlayerCount = payload.data ? payload.data.length : 0;
+        STATE.lastPlayerCount = playerData.length;
         
         return Array.from(STATE.players.values());
     } catch (error) {
@@ -519,9 +562,28 @@ async function fetchPlayerData() {
 // RENDERING
 // ============================================================================
 
+// PERFORMANCE: Cache for role badges to avoid recalculation
+const ROLE_BADGE_CACHE = {
+    heal: { color: '#22c55e', text: 'H' },
+    tank: { color: '#3b82f6', text: 'T' },
+    dps: { color: '#ef4444', text: 'D' }
+};
+
 function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
     const prof = getProfession(player.profession, player);
-    const name = player.name || PLAYER_DB.get(player.uid) || `Unknown_${player.uid}`;
+    
+    // CRITICAL FIX: Detect and save local player UID when we see Unknown_UID pattern
+    const savedName = PLAYER_DB.get(player.uid);
+    let name = player.name || savedName || `Unknown_${player.uid}`;
+    
+    // If this is the local player (detected by Unknown_ pattern and no saved name), remember the UID
+    if (!savedName && name.startsWith('Unknown_') && (player.isLocalPlayer || player.uid === STATE.localPlayerUid)) {
+        // This is local player - save UID for future sessions
+        if (!STATE.localPlayerUid) {
+            STATE.localPlayerUid = player.uid;
+            console.log(`🎯 Detected local player UID: ${player.uid}`);
+        }
+    }
     
     const hp = player.hp || 0;
     const maxHp = player.max_hp || 1;
@@ -552,23 +614,89 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
     if (document.body.classList.contains('compact-mode')) {
         // Compact mode: Simple 6-column grid (rank + name + 4 stats)
         // Grid: 25px | minmax(80px,120px) | 65px | 65px | 65px | 65px
-        // DMG TAKEN: show "-" for 0, null, or undefined
-        const dmgTakenValue = player.total_damage_taken?.total || player.taken_damage || 0;
-        const dmgTakenDisplay = (dmgTakenValue && dmgTakenValue > 0) ? formatNumber(dmgTakenValue) : '-';
-        return `
-            <div class="player-row ${isLocal ? 'local-player' : ''} ${isIdle ? 'idle' : ''}" data-uid="${player.uid}">
-                <div class="cell-rank">${rank}</div>
-                <div class="cell-name">
-                    <span class="${prof.class}">${name}</span>
+        
+        // PERFORMANCE: Use cached role badge values
+        const badge = ROLE_BADGE_CACHE[prof.role] || ROLE_BADGE_CACHE.dps;
+        const roleBadge = `<span class="role-badge-compact" style="background: ${badge.color}">${badge.text}</span>`;
+        
+        if (SETTINGS.compactHealerMode) {
+            // HEALER MODE: Show HPS, MAX HPS, TOTAL HEAL, OVERHEAL
+            // Use real backend values if available, otherwise estimate
+            const effectiveHealing = player.total_healing?.effective ?? (totalHealing * 0.75);
+            const overheal = player.total_healing?.overheal ?? (totalHealing - effectiveHealing);
+            const overhealDisplay = overheal > 0 ? formatNumber(overheal) : '-';
+            
+            return `
+                <div class="player-row ${isLocal ? 'local-player' : ''} ${isIdle ? 'idle' : ''}" data-uid="${player.uid}">
+                    <div class="cell-rank">${rank}</div>
+                    <div class="cell-name">
+                        ${roleBadge}
+                        <span class="${prof.class}">${name}</span>
+                    </div>
+                    <div class="cell-value">${formatNumber(hps)}</div>
+                    <div class="cell-value">${formatNumber(maxHps)}</div>
+                    <div class="cell-value">${formatNumber(totalHealing)}</div>
+                    <div class="cell-value">${overhealDisplay}</div>
                 </div>
-                <div class="cell-value">${formatNumber(currentDps)}</div>
-                <div class="cell-value">${formatNumber(maxDps)}</div>
-                <div class="cell-value">${formatNumber(totalDmg)}</div>
-                <div class="cell-value">${dmgTakenDisplay}</div>
+            `;
+        } else {
+            // DPS MODE: Show DPS, MAX DPS, TOTAL DMG, DMG TAKEN
+            // Always show values, use 0 instead of dash
+            const dmgTakenDisplay = formatNumber(dmgTaken);
+            
+            return `
+                <div class="player-row ${isLocal ? 'local-player' : ''} ${isIdle ? 'idle' : ''}" data-uid="${player.uid}">
+                    <div class="cell-rank">${rank}</div>
+                    <div class="cell-name">
+                        ${roleBadge}
+                        <span class="${prof.class}">${name}</span>
+                    </div>
+                    <div class="cell-value">${formatNumber(currentDps)}</div>
+                    <div class="cell-value">${formatNumber(maxDps)}</div>
+                    <div class="cell-value">${formatNumber(totalDmg)}</div>
+                    <div class="cell-value">${dmgTakenDisplay}</div>
+                </div>
+            `;
+        }
+    }
+    
+    // CRITICAL FIX: Full mode needs to respect fullHealerMode setting
+    if (SETTINGS.fullHealerMode) {
+        // HEALER MODE: Show HPS, MAX HPS, TOTAL HEAL, OVERHEAL instead of DPS columns
+        const effectiveHealing = player.total_healing?.effective ?? (totalHealing * 0.75);
+        const overheal = player.total_healing?.overheal ?? (totalHealing - effectiveHealing);
+        
+        return `
+            <div class="player-row-wrapper">
+                <div class="player-row ${isLocal ? 'local' : ''} ${isExpanded ? 'expanded' : ''} ${isIdle ? 'idle' : ''}" 
+                     style="--dmg-percent: ${dmgBarPercent}%"
+                     data-uid="${player.uid}"
+                     title="${isIdle ? 'IDLE - No activity for 30+ seconds' : ''}">
+                    <div class="rank ${rankClass}">${rank}</div>
+                    <div class="player-name-col">
+                        <div class="name-line">
+                            ${isLocal && (player.isLocalPlayer || player.uid === STATE.localPlayerUid) ? '<span class="local-star">★</span>' : ''}
+                            <span class="name">${name}${isIdle ? ' <span style="opacity:0.5">(IDLE)</span>' : ''}</span>
+                            <span class="role-badge ${prof.role}">${prof.role.toUpperCase()}</span>
+                        </div>
+                        <div class="hp-bar-mini">
+                            <div class="hp-fill" style="width: ${hpPercent}%; background: ${getHPColor(hpPercent)}"></div>
+                        </div>
+                    </div>
+                    <div class="cell-value">${formatNumber(hps)}</div>
+                    <div class="cell-value">${formatNumber(maxHps)}</div>
+                    <div class="cell-value">${formatNumber(totalHealing)}</div>
+                    <div class="cell-value">${formatNumber(overheal)}</div>
+                    <div class="cell-value">${formatNumber(hps)}${maxHps > 0 ? ` / ${formatNumber(maxHps)}` : ''}</div>
+                    <div class="cell-value">${formatNumber(dmgTaken)}</div>
+                    <div class="cell-value">${gs > 0 ? formatNumber(gs) : '-'}</div>
+                </div>
+                ${isExpanded ? renderPlayerDetails(player) : ''}
             </div>
         `;
     }
     
+    // DPS MODE (default): Show DPS columns
     return `
         <div class="player-row-wrapper">
             <div class="player-row ${isLocal ? 'local' : ''} ${isExpanded ? 'expanded' : ''} ${isIdle ? 'idle' : ''}" 
@@ -672,8 +800,11 @@ function updateStatusBar(activeNonIdlePlayers = []) {
     if (dpsEl) {
         const localPlayer = activeNonIdlePlayers.find(p => p.isLocalPlayer || p.uid === STATE.localPlayerUid);
         const myDPS = localPlayer ? (localPlayer.current_dps || localPlayer.realtime_dps || 0) : 0;
-        dpsEl.textContent = `My DPS: ${formatNumber(myDPS)}`;
+        dpsEl.textContent = `${formatNumber(myDPS)} DPS`;
     }
+    
+    // Update "Current Session" dropdown text with live stats
+    updateCurrentSessionText();
 }
 
 const dirtyPlayers = new Set();
@@ -754,10 +885,38 @@ function renderPlayers() {
     }
     
     // Show top 10 by default, rest behind "Show More"
-    const isCompactView = document.body.classList.contains('compact-mode');
-    const defaultShowCount = isCompactView ? 6 : 10;
-    const showingAll = list.classList.contains('show-all');
-    const playersToShow = showingAll ? sorted : sorted.slice(0, defaultShowCount);
+    const isCompact = document.body.classList.contains('compact-mode');
+    
+    // Compact mode: Local always first, then top 5 others (max 6 total)
+    let playersToShow;
+    if (isCompact) {
+        const localPlayer = sorted.find(p => p.isLocalPlayer || p.uid === STATE.localPlayerUid);
+        const otherPlayers = sorted.filter(p => !(p.isLocalPlayer || p.uid === STATE.localPlayerUid));
+        
+        if (localPlayer) {
+            // Local exists: Show local + top 5 others = max 6
+            playersToShow = [localPlayer, ...otherPlayers.slice(0, 5)];
+        } else {
+            // No local: Show top 5
+            playersToShow = sorted.slice(0, 5);
+        }
+    } else {
+        // Full mode: Local player always at top (if not already in top positions), then top players
+        const defaultShowCount = 10;
+        const showingAll = STATE.showingAllPlayers || false;
+        const baseList = showingAll ? sorted : sorted.slice(0, defaultShowCount);
+        
+        const localPlayer = sorted.find(p => p.isLocalPlayer || p.uid === STATE.localPlayerUid);
+        const localInTopPositions = localPlayer && baseList.includes(localPlayer);
+        
+        if (localPlayer && !localInTopPositions) {
+            // Local exists but not in top list - add them at position after rank display
+            const othersWithoutLocal = baseList.filter(p => p.uid !== localPlayer.uid);
+            playersToShow = [localPlayer, ...othersWithoutLocal];
+        } else {
+            playersToShow = baseList;
+        }
+    }
     
     if (sorted.length === 0) {
         const connectionStatus = STATE.lastUpdate > 0 
@@ -813,20 +972,70 @@ function renderPlayers() {
         }
     }
     
-    // Add compact mode headers if in compact mode
-    const isCompact = document.body.classList.contains('compact-mode');
+    // Update column headers based on mode (compact or full) and healer toggle
+    // isCompact already defined earlier in this function
+    const healerMode = isCompact ? SETTINGS.compactHealerMode : SETTINGS.fullHealerMode;
+    
+    // Update full mode column headers dynamically
+    const columnHeaders = document.querySelector('.column-headers');
+    if (columnHeaders && !isCompact) {
+        if (SETTINGS.fullHealerMode) {
+            columnHeaders.innerHTML = `
+                <div class="col-rank" data-sort="rank">#</div>
+                <div class="col-name" data-sort="name">NAME</div>
+                <div class="col-dps" data-sort="hps">HPS <i class="fa-solid fa-sort"></i></div>
+                <div class="col-max-dps" data-sort="maxHps">MAX HPS <i class="fa-solid fa-sort"></i></div>
+                <div class="col-avg-dps" data-sort="totalHealing">TOTAL HEAL <i class="fa-solid fa-sort"></i></div>
+                <div class="col-total-dmg" data-sort="overheal">OVERHEAL <i class="fa-solid fa-sort"></i></div>
+                <div class="col-hps" data-sort="hps">HPS / MAX <i class="fa-solid fa-sort"></i></div>
+                <div class="col-dmg-taken" data-sort="dmgTaken">DMG TAKEN <i class="fa-solid fa-sort"></i></div>
+                <div class="col-gs" data-sort="gs">GS <i class="fa-solid fa-sort"></i></div>
+            `;
+        } else {
+            columnHeaders.innerHTML = `
+                <div class="col-rank" data-sort="rank">#</div>
+                <div class="col-name" data-sort="name">NAME</div>
+                <div class="col-dps" data-sort="dps">DPS <i class="fa-solid fa-sort"></i></div>
+                <div class="col-max-dps" data-sort="maxDps">MAX DPS <i class="fa-solid fa-sort"></i></div>
+                <div class="col-avg-dps" data-sort="avgDps">AVG DPS <i class="fa-solid fa-sort"></i></div>
+                <div class="col-total-dmg" data-sort="totalDmg">TOTAL DMG <i class="fa-solid fa-sort"></i></div>
+                <div class="col-hps" data-sort="hps">HPS / MAX <i class="fa-solid fa-sort"></i></div>
+                <div class="col-dmg-taken" data-sort="dmgTaken">DMG TAKEN <i class="fa-solid fa-sort"></i></div>
+                <div class="col-gs" data-sort="gs">GS <i class="fa-solid fa-sort"></i></div>
+            `;
+        }
+        // Re-attach sort handlers after updating innerHTML
+        attachColumnSortHandlers();
+    }
+    
+    // Add compact mode headers
     let compactHeadersHTML = '';
     if (isCompact) {
-        compactHeadersHTML = `
-            <div class="compact-headers">
-                <div>#</div>
-                <div>PLAYER</div>
-                <div>DPS</div>
-                <div>MAX DPS</div>
-                <div>TOTAL DMG</div>
-                <div>DMG TAKEN</div>
-            </div>
-        `;
+        if (SETTINGS.compactHealerMode) {
+            // Healer mode: Show healing metrics
+            compactHeadersHTML = `
+                <div class="compact-headers">
+                    <div>#</div>
+                    <div>PLAYER</div>
+                    <div>HPS</div>
+                    <div>MAX HPS</div>
+                    <div>TOTAL HEAL</div>
+                    <div>OVERHEAL</div>
+                </div>
+            `;
+        } else {
+            // DPS mode: Show damage metrics
+            compactHeadersHTML = `
+                <div class="compact-headers">
+                    <div>#</div>
+                    <div>PLAYER</div>
+                    <div>DPS</div>
+                    <div>MAX DPS</div>
+                    <div>TOTAL DMG</div>
+                    <div>DMG TAKEN</div>
+                </div>
+            `;
+        }
     }
     
     // Generate player rows HTML
@@ -835,21 +1044,33 @@ function renderPlayers() {
         playerRowsHTML += renderPlayerRow(player, index + 1, teamTotalDamage, teamTotalHealing);
     });
     
-    // Show More button - always visible when there are hidden players
-    const showMoreButton = (sorted.length > defaultShowCount) ? `
-        <div class="show-more-container">
-            <button class="show-more-btn" id="show-more-toggle">
-                ${!showingAll ? 
-                    `<i class="fa-solid fa-chevron-down"></i> Show ${sorted.length - defaultShowCount} More Players` : 
-                    `<i class="fa-solid fa-chevron-up"></i> Show Less`
-                }
-            </button>
-        </div>
-    ` : '';
+    // Show More button - hidden in compact mode, visible in full mode when there are hidden players WITH DATA
+    // Update header Show More button visibility
+    const showMoreHeaderBtn = document.getElementById('btn-show-more');
+    const showMoreText = document.getElementById('show-more-text');
+    const hasData = sorted.some(p => (p.total_damage?.total || 0) > 0 || (p.total_healing?.total || 0) > 0);
+    if (!isCompact && sorted.length > 10 && hasData) {
+        if (showMoreHeaderBtn) showMoreHeaderBtn.style.display = 'flex';
+        if (showMoreText) {
+            showMoreText.textContent = STATE.showingAllPlayers ? 'Show Less' : `Show ${sorted.length - 10} More`;
+        }
+        const icon = showMoreHeaderBtn?.querySelector('i');
+        if (icon) {
+            icon.className = STATE.showingAllPlayers ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
+        }
+    } else {
+        if (showMoreHeaderBtn) showMoreHeaderBtn.style.display = 'none';
+    }
     
-    // Set the HTML - ONLY show playersToShow, not all sorted
-    // Pass maxDmg as 3rd param, NOT teamTotalDamage (renderPlayerRow signature is: player, rank, maxDmg, isLocal, teamTotalDamage)
-    const displayHTML = playersToShow.map((player, index) => renderPlayerRow(player, index + 1, maxDmg, false, teamTotalDamage)).join('');
+    let showMoreButton = ''; // No longer needed at bottom
+    
+    // Set the HTML - ONLY show playersToShow
+    // In compact mode, preserve actual rank from sorted list
+    const displayHTML = playersToShow.map((player, index) => {
+        const actualRank = sorted.findIndex(p => p.uid === player.uid) + 1;
+        const isLocal = player.isLocalPlayer || player.uid === STATE.localPlayerUid;
+        return renderPlayerRow(player, actualRank, maxDmg, isLocal, teamTotalDamage);
+    }).join('');
     list.innerHTML = compactHeadersHTML + displayHTML + showMoreButton;
     
     // Attach click handlers to player rows
@@ -863,27 +1084,6 @@ function renderPlayers() {
             togglePlayerDetails(uid, e);
         });
     });
-    
-    // Restore expanded player details from cache
-    expandedPlayerIds.forEach(uid => {
-        if (skillsCache.has(uid)) {
-            renderSkillsFromCache(uid);
-        }
-    });
-    
-    // Attach Show More button handler
-    const showMoreBtn = document.getElementById('show-more-toggle');
-    if (showMoreBtn) {
-        showMoreBtn.addEventListener('click', () => {
-            const list = document.getElementById('player-list');
-            if (list.classList.contains('show-all')) {
-                list.classList.remove('show-all');
-            } else {
-                list.classList.add('show-all');
-            }
-            renderPlayers();
-        });
-    }
     
     // Auto-resize window after rendering (single RAF, not nested)
     requestAnimationFrame(() => autoResizeWindow());
@@ -1499,6 +1699,13 @@ function setupEventListeners() {
             e.preventDefault();
             e.stopPropagation();
             
+            // CRITICAL: Use popup window if available (v3.1.128+)
+            if (window.electronAPI?.openSettingsWindow) {
+                window.electronAPI.openSettingsWindow();
+                return; // Exit - popup window handles it
+            }
+            
+            // FALLBACK: Use modal (for web/old versions)
             // If in compact mode, temporarily expand window for settings
             const isCompact = document.body.classList.contains('compact-mode');
             if (isCompact && window.electronAPI?.setWindowSize) {
@@ -1515,6 +1722,7 @@ function setupEventListeners() {
             document.getElementById('setting-auto-clear-zone').checked = SETTINGS.autoClearOnZoneChange;
             document.getElementById('setting-keep-after-dungeon').checked = SETTINGS.keepDataAfterDungeon;
             document.getElementById('setting-default-sort').value = SETTINGS.defaultSort || 'totalDmg';
+            document.getElementById('setting-auto-update').value = SETTINGS.autoUpdate || 'notify';
             
             // Load opacity slider value
             const opacitySlider = document.getElementById('setting-overlay-opacity');
@@ -1623,7 +1831,7 @@ function setupEventListeners() {
     });
     
     // Compact Mode (Overlay Mode) toggle
-    document.getElementById('btn-compact-mode')?.addEventListener('click', () => {
+    document.getElementById('btn-compact-mode')?.addEventListener('click', async () => {
         const compactMode = document.body.classList.toggle('compact-mode');
         const btn = document.getElementById('btn-compact-mode');
         
@@ -1636,11 +1844,19 @@ function setupEventListeners() {
         SETTINGS.compactMode = compactMode;
         SETTINGS.save();
         
+        // CRITICAL: Resize Electron window to match compact/full mode
+        if (window.electronAPI?.setCompactMode) {
+            await window.electronAPI.setCompactMode(compactMode);
+        }
+        
         // Force immediate re-render to update DOM
         renderPlayers();
         
-        // Single resize call (debounced internally)
-        setTimeout(() => autoResizeWindow(), 200);
+        // Apply or remove scale
+        setTimeout(() => {
+            applyWindowZoom();
+            autoResizeWindow();
+        }, 200);
         
         showToast(
             compactMode 
@@ -1772,20 +1988,35 @@ function setupEventListeners() {
         });
     });
     
-    // Expand/Collapse player list in compact mode (Show More/Less)
+    // Expand/Collapse player list in compact mode (Show All in compact)
     document.getElementById('btn-expand-list')?.addEventListener('click', () => {
-        const playerList = document.getElementById('player-list');
-        const button = document.getElementById('btn-expand-list');
+        STATE.showingAllPlayers = !STATE.showingAllPlayers;
+        renderPlayers();
+        showToast(STATE.showingAllPlayers ? 'Showing All Players' : 'Showing Top Players', 'info', 1000);
+    });
+    
+    // Show More button in header (for full mode)
+    document.getElementById('btn-show-more')?.addEventListener('click', () => {
+        STATE.showingAllPlayers = !STATE.showingAllPlayers;
+        renderPlayers();
+    });
+    
+    // Full mode healer toggle
+    document.getElementById('btn-healer-mode')?.addEventListener('click', () => {
+        SETTINGS.fullHealerMode = !SETTINGS.fullHealerMode;
+        SETTINGS.save();
         
-        if (playerList && button) {
-            playerList.classList.toggle('expanded');
-            
-            // Re-render to update display
-            renderPlayers();
-            
-            // Trigger resize after animation
-            setTimeout(() => autoResizeWindow(), 250);
+        const btn = document.getElementById('btn-healer-mode');
+        if (btn) {
+            const activeStyle = SETTINGS.fullHealerMode ? 'rgba(34, 197, 94, 0.2)' : '';
+            const borderStyle = SETTINGS.fullHealerMode ? 'var(--accent-healing)' : '';
+            btn.style.background = activeStyle;
+            btn.style.borderColor = borderStyle;
+            btn.title = SETTINGS.fullHealerMode ? 'Switch to DPS Mode' : 'Switch to Healer Mode (Show HPS/Healing)';
         }
+        
+        renderPlayers();
+        showToast(SETTINGS.fullHealerMode ? 'Healer Mode: Showing HPS/Healing' : 'DPS Mode: Showing DPS/Damage', 'info', 2000);
     });
     
     // Compact mode button handlers (mirror main buttons)
@@ -1799,6 +2030,40 @@ function setupEventListeners() {
     
     document.getElementById('btn-compact-copy')?.addEventListener('click', () => {
         copyToClipboard();
+    });
+    
+    // Compact mode healer toggle
+    document.getElementById('btn-compact-healer')?.addEventListener('click', () => {
+        SETTINGS.compactHealerMode = !SETTINGS.compactHealerMode;
+        SETTINGS.save();
+        
+        const btn = document.getElementById('btn-compact-healer');
+        const activeStyle = SETTINGS.compactHealerMode ? 'rgba(34, 197, 94, 0.2)' : '';
+        const borderStyle = SETTINGS.compactHealerMode ? 'var(--accent-healing)' : '';
+        
+        if (btn) {
+            btn.style.background = activeStyle;
+            btn.style.borderColor = borderStyle;
+            btn.title = SETTINGS.compactHealerMode ? 'Switch to DPS Mode' : 'Switch to Healer Mode (Show HPS/Healing)';
+        }
+        
+        renderPlayers();
+        showToast(SETTINGS.compactHealerMode ? 'Healer Mode: Showing HPS/Healing' : 'DPS Mode: Showing DPS/Damage', 'info', 2000);
+    });
+    
+    // Compact mode zoom in/out (now uses window zoom, not CSS transform)
+    document.getElementById('btn-compact-zoom-in')?.addEventListener('click', () => {
+        SETTINGS.compactScale = Math.min(150, SETTINGS.compactScale + 10);
+        SETTINGS.save();
+        applyWindowZoom();
+        showToast(`Zoom: ${SETTINGS.compactScale}%`, 'info', 1000);
+    });
+    
+    document.getElementById('btn-compact-zoom-out')?.addEventListener('click', () => {
+        SETTINGS.compactScale = Math.max(70, SETTINGS.compactScale - 10);
+        SETTINGS.save();
+        applyWindowZoom();
+        showToast(`Zoom: ${SETTINGS.compactScale}%`, 'info', 1000);
     });
     
     // Minimize button
@@ -1902,6 +2167,10 @@ function setupEventListeners() {
         const refreshVal = document.getElementById('setting-refresh').value;
         SETTINGS.refreshInterval = parseFloat(refreshVal) || 1.5;
         
+        // Auto-update setting
+        const autoUpdateVal = document.getElementById('setting-auto-update').value;
+        SETTINGS.autoUpdate = autoUpdateVal;
+        
         // Default ranking metric
         const defaultSortVal = document.getElementById('setting-default-sort').value;
         SETTINGS.defaultSort = defaultSortVal;
@@ -1958,6 +2227,31 @@ function setupEventListeners() {
     // PHASE 3: Initialize opacity from settings
     if (SETTINGS.overlayOpacity && window.electronAPI?.setOverlayOpacity) {
         window.electronAPI.setOverlayOpacity(SETTINGS.overlayOpacity);
+    }
+}
+
+// ============================================================================
+// WINDOW ZOOM - GLOBAL FUNCTION
+// ============================================================================
+
+// CRITICAL FIX: Apply window zoom by RESIZING window, not zooming content
+function applyWindowZoom() {
+    const isCompactMode = document.body.classList.contains('compact-mode');
+    const zoomLevel = isCompactMode ? SETTINGS.compactScale : SETTINGS.fullModeScale;
+    
+    // FIXED: Resize the window instead of zooming content
+    if (window.electronAPI?.resizeWindow) {
+        const baseWidth = isCompactMode ? 450 : 1000;
+        const baseHeight = window.innerHeight;
+        
+        // Calculate scaled dimensions
+        const scaledWidth = Math.round(baseWidth * (zoomLevel / 100));
+        const scaledHeight = Math.round(baseHeight * (zoomLevel / 100));
+        
+        window.electronAPI.resizeWindow(scaledWidth, scaledHeight);
+        console.log(`🔍 Window resized to ${zoomLevel}%: ${scaledWidth}x${scaledHeight}`);
+    } else {
+        console.warn('⚠️ electronAPI.resizeWindow not available');
     }
 }
 
@@ -2226,18 +2520,94 @@ window.handleVPNAction = function(action) {
     }
 }
 
-// ============================================================================
 // INITIALIZATION
 // ============================================================================
 
+// CRITICAL: Detect popup mode from query parameters
+async function checkPopupMode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const popup = urlParams.get('popup');
+    
+    if (popup === 'settings') {
+        console.log('🪟 POPUP MODE: Settings window detected');
+        
+        // CRITICAL: Load settings first
+        await SETTINGS.load();
+        console.log('✅ Settings loaded for popup');
+        
+        // Hide main app container
+        document.querySelector('.meter-container').style.display = 'none';
+        
+        // Show settings modal
+        const settingsModal = document.getElementById('modal-settings');
+        if (settingsModal) {
+            // Remove modal overlay background
+            settingsModal.style.background = 'none';
+            settingsModal.style.display = 'flex';
+            settingsModal.style.alignItems = 'flex-start';
+            settingsModal.style.justifyContent = 'center';
+            settingsModal.style.padding = '0';
+            
+            // Show modal content directly
+            const modalContent = settingsModal.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.style.margin = '0';
+                modalContent.style.maxHeight = 'none';
+            }
+            
+            // Populate settings form fields
+            loadSettingsIntoForm();
+        }
+        return true;
+    }
+    
+    if (popup === 'session-manager') {
+        console.log('🪟 POPUP MODE: Session Manager window detected');
+        
+        // Hide main app container
+        document.querySelector('.meter-container').style.display = 'none';
+        
+        // Load session manager after a brief delay to ensure DOM is ready
+        setTimeout(() => {
+            openSessionManager();
+            
+            // Style the modal for popup display
+            const sessionModal = document.getElementById('modal-session-manager');
+            if (sessionModal) {
+                sessionModal.style.background = 'none';
+                sessionModal.style.display = 'flex';
+                sessionModal.style.alignItems = 'flex-start';
+                sessionModal.style.justifyContent = 'center';
+                sessionModal.style.padding = '0';
+                
+                const modalContent = sessionModal.querySelector('.modal-content');
+                if (modalContent) {
+                    modalContent.style.margin = '0';
+                    modalContent.style.maxHeight = 'none';
+                }
+            }
+        }, 100);
+        return true;
+    }
+    
+    return false;
+}
+
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.98 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.146 - Initializing...');
+    
+    // CRITICAL: Check if this is a popup window
+    const isPopup = await checkPopupMode();
+    if (isPopup) {
+        console.log('✅ Popup mode initialized, skipping main app setup');
+        return; // Don't initialize main app in popup mode
+    }
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
     
-    // Load persistent data
-    SETTINGS.load();
+    // Load persistent data (await settings from AppData)
+    await SETTINGS.load();
     PLAYER_DB.load();
     
     // Restore compact mode preference
@@ -2248,7 +2618,34 @@ async function initialize() {
         if (btn) {
             btn.title = 'Exit Overlay Mode (Full View)';
         }
+        // Resize window to compact mode on startup
+        if (window.electronAPI?.setCompactMode) {
+            await window.electronAPI.setCompactMode(true);
+        }
     }
+    
+    // Restore healer mode preference for compact view
+    if (SETTINGS.compactHealerMode) {
+        const healerBtn = document.getElementById('btn-compact-healer');
+        if (healerBtn) {
+            healerBtn.style.background = 'rgba(34, 197, 94, 0.2)';
+            healerBtn.style.borderColor = 'var(--accent-healing)';
+            healerBtn.title = 'Switch to DPS Mode';
+        }
+    }
+    
+    // Restore healer mode preference for full mode
+    if (SETTINGS.fullHealerMode) {
+        const healerBtn = document.getElementById('btn-healer-mode');
+        if (healerBtn) {
+            healerBtn.style.background = 'rgba(34, 197, 94, 0.2)';
+            healerBtn.style.borderColor = 'var(--accent-healing)';
+            healerBtn.title = 'Switch to DPS Mode';
+        }
+    }
+    
+    // Apply window zoom on startup
+    setTimeout(() => applyWindowZoom(), 100);
     
     // Sync pause state from backend - NO forced unpause (was causing startup delay)
     try {
@@ -2289,8 +2686,97 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.98 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.146 - Ready!');
 }
+
+// ============================================================================
+// AUTO-UPDATER EVENT HANDLERS
+// ============================================================================
+
+if (window.electronAPI) {
+    // Update available notification
+    window.electronAPI.onUpdateAvailable((info) => {
+        const notification = document.getElementById('update-notification');
+        const versionInfo = document.getElementById('update-version-info');
+        
+        if (notification && versionInfo) {
+            versionInfo.textContent = `Version ${info.newVersion} is available (current: ${info.currentVersion})`;
+            notification.style.display = 'block';
+        }
+    });
+    
+    // Download progress
+    window.electronAPI.onUpdateDownloadProgress((progress) => {
+        const progressModal = document.getElementById('download-progress');
+        const progressBar = document.getElementById('download-progress-bar');
+        const progressText = document.getElementById('download-progress-text');
+        
+        if (progressModal && progressBar && progressText) {
+            progressModal.style.display = 'block';
+            progressBar.style.width = progress.percent + '%';
+            progressText.textContent = Math.round(progress.percent) + '%';
+        }
+        
+        // Hide update notification once download starts
+        const notification = document.getElementById('update-notification');
+        if (notification) notification.style.display = 'none';
+    });
+    
+    // Update downloaded and ready
+    window.electronAPI.onUpdateDownloaded((info) => {
+        // Hide download progress
+        const progressModal = document.getElementById('download-progress');
+        if (progressModal) progressModal.style.display = 'none';
+        
+        // Show update ready modal
+        const readyModal = document.getElementById('update-ready');
+        if (readyModal) readyModal.style.display = 'block';
+    });
+    
+    // Update error
+    window.electronAPI.onUpdateError((error) => {
+        showToast(error.message, 'error', 5000);
+        
+        // Hide all update modals
+        const notification = document.getElementById('update-notification');
+        const progressModal = document.getElementById('download-progress');
+        if (notification) notification.style.display = 'none';
+        if (progressModal) progressModal.style.display = 'none';
+    });
+}
+
+// ============================================================================
+// AUTO-UPDATER BUTTON HANDLERS
+// ============================================================================
+
+document.getElementById('btn-download-update')?.addEventListener('click', () => {
+    if (window.electronAPI) {
+        window.electronAPI.downloadUpdate();
+    }
+});
+
+document.getElementById('btn-view-release')?.addEventListener('click', () => {
+    if (window.electronAPI) {
+        window.electronAPI.openReleasePage();
+    }
+});
+
+document.getElementById('btn-dismiss-update')?.addEventListener('click', () => {
+    const notification = document.getElementById('update-notification');
+    if (notification) notification.style.display = 'none';
+});
+
+document.getElementById('btn-install-now')?.addEventListener('click', () => {
+    if (window.electronAPI) {
+        window.electronAPI.installUpdate();
+    }
+});
+
+document.getElementById('btn-install-later')?.addEventListener('click', () => {
+    const readyModal = document.getElementById('update-ready');
+    if (readyModal) readyModal.style.display = 'none';
+    showToast('Update will be installed when you close the app', 'info', 3000);
+});
 
 // ============================================================================
 // TOAST NOTIFICATION SYSTEM - NO MORE BROWSER ALERTS!
@@ -2736,12 +3222,11 @@ window.openDataFolder = openDataFolder;
 // Initialize tabs after DOM is ready
 setTimeout(initializeSettingsTabs, 100);
 
-// Sortable Column Headers - Use setting for default
-let currentSort = { column: SETTINGS.defaultSort || 'totalDmg', direction: 'desc' };
-
-document.querySelectorAll('.column-headers > div[data-sort]').forEach(header => {
-    header.addEventListener('click', () => {
-        const column = header.dataset.sort;
+// Function to attach column sort handlers (called after dynamic header updates)
+function attachColumnSortHandlers() {
+    document.querySelectorAll('.column-headers > div[data-sort]').forEach(header => {
+        header.addEventListener('click', () => {
+            const column = header.dataset.sort;
         
         if (currentSort.column === column) {
             currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
@@ -2754,14 +3239,21 @@ document.querySelectorAll('.column-headers > div[data-sort]').forEach(header => 
         document.querySelectorAll('.column-headers > div').forEach(h => {
             h.classList.remove('sorted-asc', 'sorted-desc');
         });
-        header.classList.add(`sorted-${currentSort.direction}`);
+        header.classList.add('active', currentSort.direction);
         
         // Re-render with new sort
         renderPlayers();
         
         showToast(`Sorted by ${header.textContent.trim()}`, 'info', 1500);
+        });
     });
-});
+}
+
+// Sortable Column Headers - Use setting for default
+let currentSort = { column: SETTINGS.defaultSort || 'totalDmg', direction: 'desc' };
+
+// Initial attachment of column sort handlers
+attachColumnSortHandlers();
 
 // Enhanced sortPlayers to use currentSort
 const originalSortPlayers = sortPlayers;
@@ -2854,8 +3346,18 @@ function updateSessionDropdown() {
     const dropdown = document.getElementById('session-select');
     if (!dropdown) return;
 
-    // Clear existing options except the first one
-    dropdown.innerHTML = '<option value="">Current Session</option>';
+    // Save current selection
+    const currentValue = dropdown.value;
+
+    // Clear existing options
+    dropdown.innerHTML = '';
+    
+    // Add "Current Session" with live stats
+    const currentOption = document.createElement('option');
+    currentOption.value = '';
+    currentOption.id = 'current-session-option';
+    updateCurrentSessionText(); // Will update the text with live stats
+    dropdown.appendChild(currentOption);
 
     // Filter sessions by current character (if we know the character)
     let filteredSessions = savedSessions;
@@ -2882,8 +3384,32 @@ function updateSessionDropdown() {
         dropdown.appendChild(option);
     });
     
+    // Restore previous selection if it still exists
+    if (currentValue && Array.from(dropdown.options).some(opt => opt.value === currentValue)) {
+        dropdown.value = currentValue;
+    }
+    
     // Update session count display
     updateSessionCount();
+}
+
+// Update "Current Session" text with live stats
+function updateCurrentSessionText() {
+    const option = document.getElementById('current-session-option');
+    if (!option) return;
+    
+    // Calculate live stats from current players
+    const players = Array.from(STATE.players.values());
+    const activeCount = players.filter(p => (p.total_damage?.total || 0) > 0 || (p.total_healing?.total || 0) > 0).length;
+    const totalDPS = players.reduce((sum, p) => sum + (p.total_dps || 0), 0);
+    const duration = STATE.startTime ? Date.now() - STATE.startTime : 0;
+    const durationStr = formatDuration(duration);
+    
+    if (activeCount > 0) {
+        option.textContent = `⚡ Current Session - ${activeCount}p - ${formatNumber(totalDPS)} DPS - ${durationStr}`;
+    } else {
+        option.textContent = '⚡ Current Session (No data yet)';
+    }
 }
 
 // Update session count and add manage button
@@ -2910,7 +3436,14 @@ function updateSessionCount() {
         manageBtn.className = 'btn-secondary';
         manageBtn.style.cssText = 'font-size: 10px; padding: 4px 8px; margin-top: 4px;';
         manageBtn.innerHTML = '<i class="fa-solid fa-cog"></i> Manage Sessions';
-        manageBtn.onclick = () => openSessionManager();
+        manageBtn.onclick = () => {
+            // Use popup window if available (better UX)
+            if (window.electronAPI?.openSessionManagerWindow) {
+                window.electronAPI.openSessionManagerWindow();
+            } else {
+                openSessionManager(); // Fallback for non-Electron
+            }
+        };
         container.appendChild(manageBtn);
     }
 }
@@ -2926,9 +3459,9 @@ function showManageSessionsModal() {
     
     const modalHTML = `
         <div id="manage-sessions-modal" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-             background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; 
-             box-shadow: 0 4px 16px rgba(0,0,0,0.4); z-index: 999999; min-width: 500px; max-width: 700px; max-height: 80vh; overflow-y: auto; pointer-events: auto;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+             background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; 
+             box-shadow: 0 4px 16px rgba(0,0,0,0.4); z-index: 999999; width: 750px; max-width: 95vw; max-height: 75vh; overflow-y: auto; pointer-events: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <h3 style="margin: 0; font-size: 15px; color: var(--accent-gold);">Manage Saved Sessions</h3>
                 <button onclick="closeManageSessionsModal()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 18px;">&times;</button>
             </div>
@@ -3341,11 +3874,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// ============================================================================
-// START THE APP!
-// ============================================================================
-
-// Wait for DOM to be fully loaded before initializing
+// CRITICAL: Detect popup mode from query parameters before initializing
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initialize);
 } else {

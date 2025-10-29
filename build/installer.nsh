@@ -9,11 +9,12 @@
   
   ; Clear browser cache ONLY - preserve user data, logs, sessions, player mappings
   ; CRITICAL: DO NOT DELETE THESE FILES/FOLDERS
-  ; - user_data\sessions\* (DPS sessions)
-  ; - user_data\player_db.json (player name mappings)
-  ; - user_data\logs\* (application logs)
-  ; - user_data\settings.json (user settings)
-  ; Only 7-day cleanup happens at runtime, NOT during install
+  ; - sessions\* (DPS sessions) - PRESERVED
+  ; - player_map.json (player name mappings) - PRESERVED
+  ; - iniciar_log.txt (application log) - PRESERVED
+  ; - settings.json (user settings) - PRESERVED
+  ; - skill_translations.json, talent_table.json, conflicts.json - PRESERVED
+  ; Only Electron cache is removed during install
   
   ; Electron browser cache folders (safe to delete)
   RMDir /r "$APPDATA\infamous-bpsr-dps-meter\Cache"
@@ -37,9 +38,19 @@
 !macroend
 
 !macro customUnInstall
-  ; Only on UNINSTALL, remove all app data (including user data)
-  SetShellVarContext current
-  RMDir /r "$APPDATA\infamous-bpsr-dps-meter"
+  ; DISABLED: Do NOT delete user data on uninstall per user request
+  ; Users should be able to upgrade without losing:
+  ; - settings.json (user settings)
+  ; - player_map.json (player name cache)
+  ; - sessions/ (saved DPS charts)
   
-  DetailPrint "Removed all application data"
+  ; Only remove Electron cache folders (safe to delete)
+  SetShellVarContext current
+  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\Cache"
+  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\GPUCache"
+  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\Code Cache"
+  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\DawnGraphiteCache"
+  RMDir /r "$APPDATA\infamous-bpsr-dps-meter\DawnWebGPUCache"
+  
+  DetailPrint "Removed browser cache (user data preserved)"
 !macroend

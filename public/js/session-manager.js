@@ -3,6 +3,14 @@
 // Open Session Manager Modal
 async function openSessionManager() {
     console.log('🚀 Opening Session Manager...');
+    
+    // CRITICAL: Use popup window if available (v3.1.131+)
+    if (window.electronAPI?.openSessionManagerWindow) {
+        window.electronAPI.openSessionManagerWindow();
+        return; // Exit - popup window handles it
+    }
+    
+    // FALLBACK: Use modal (for web version)
     const sessions = await fetchAllSessions();
     console.log(`📋 Received ${sessions.length} sessions, showing modal...`);
     showSessionManagerModal(sessions);

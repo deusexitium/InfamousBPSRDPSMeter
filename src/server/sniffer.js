@@ -87,10 +87,11 @@ async function checkAndInstallNpcap(logger) {
 }
 
 class Sniffer {
-    constructor(logger, userDataManager, globalSettings) {
+    constructor(logger, userDataManager, globalSettings, mappingManager) {
         this.logger = logger;
         this.userDataManager = userDataManager;
         this.globalSettings = globalSettings; // Pass globalSettings to sniffer
+        this.mappingManager = mappingManager; // Boss/mob mapping manager
         this.current_server = '';
         this._data = Buffer.alloc(0);
         this.tcp_next_seq = -1;
@@ -110,6 +111,10 @@ class Sniffer {
         this.packetProcessor = null;
         this.isPaused = false; // Pause state for sniffer
         
+        // Zone change debounce - prevent false positives with VPNs like ExitLag
+        this.lastZoneChangeTime = 0;
+        this.ZONE_CHANGE_DEBOUNCE = 5000; // 5 seconds minimum between zone changes
+        
         // Performance optimization settings
         this.MAX_QUEUE_SIZE = 10000; // Prevent memory overflow
         this.BATCH_SIZE = 50; // Process packets in batches
@@ -120,6 +125,22 @@ class Sniffer {
 
     setPaused(paused) {
         this.isPaused = paused;
+    }
+
+    // Normalize server address to detect real game server (ignore VPN routing IPs)
+    normalizeServerAddress(serverAddr) {
+        // Extract just the port - game servers use consistent ports per zone
+        // VPN routing causes IP flips (192.168.x.x <-> 43.174.x.x) but port stays the same
+        const parts = serverAddr.split(':');
+        if (parts.length === 2) {
+            const port = parts[1];
+            // Only return port if it's a valid game server port range (10000-20000)
+            const portNum = parseInt(port);
+            if (portNum >= 10000 && portNum <= 20000) {
+                return `port:${port}`;
+            }
+        }
+        return serverAddr; // Fallback to full address
     }
 
     clearTcpCache() {
@@ -244,8 +265,18 @@ class Sniffer {
                                 const signature = Buffer.from([0x00, 0x63, 0x33, 0x53, 0x42, 0x00]);
                                 if (Buffer.compare(data1.subarray(5, 5 + signature.length), signature)) break;
                                 try {
-                                    if (this.current_server !== src_server) {
+                                    // CRITICAL FIX: Normalize server addresses to prevent VPN false positives
+                                    const normalizedCurrent = this.normalizeServerAddress(this.current_server);
+                                    const normalizedNew = this.normalizeServerAddress(src_server);
+                                    const now = Date.now();
+                                    const timeSinceLastChange = now - this.lastZoneChangeTime;
+                                    
+                                    // Only trigger zone change if:
+                                    // 1. Normalized server is different (port changed = real zone change)
+                                    // 2. Enough time has passed since last change (debounce VPN routing)
+                                    if (normalizedCurrent !== normalizedNew && timeSinceLastChange >= this.ZONE_CHANGE_DEBOUNCE) {
                                         this.current_server = src_server;
+                                        this.lastZoneChangeTime = now;
                                         this.clearTcpCache();
                                         this.tcp_next_seq = tcpPacket.info.seqno + buf.length;
                                         this.userDataManager.refreshEnemyCache();
@@ -281,15 +312,26 @@ class Sniffer {
                                         console.log(`🔗 Full: ${src_server}`);
                                         console.log('='.repeat(80));
                                         
-                                        if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
-                                            // Auto-save BEFORE clearing
+                                        // Auto-save and clear on zone change (respects keepDataAfterDungeon setting)
+                                        if (this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
+                                            // Auto-save current session BEFORE clearing
+                                            console.log('💾 Auto-saving current session before zone change...');
                                             if (typeof this.userDataManager.autoSaveSession === 'function') {
                                                 await this.userDataManager.autoSaveSession();
+                                                console.log('✅ Session auto-saved successfully');
                                             }
-                                            this.userDataManager.clearAll(this.globalSettings);
-                                            console.log('Server changed, statistics cleared!');
-                                        } else if (this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0) {
-                                            console.log('Server changed, but keeping data (keepDataAfterDungeon enabled)');
+                                            
+                                            // CRITICAL FIX: Respect keepDataAfterDungeon setting
+                                            if (!this.globalSettings.keepDataAfterDungeon) {
+                                                await this.userDataManager.clearAll(this.globalSettings);
+                                                console.log('🔄 Meter reset immediately (keepDataAfterDungeon: false)');
+                                            } else {
+                                                // Set flag: will clear on first damage/heal packet
+                                                this.userDataManager.waitingForNewCombat = true;
+                                                console.log('⏳ Keeping old data visible. Will reset on first damage.');
+                                            }
+                                        } else {
+                                            console.log('ℹ️ No combat data to clear - fresh start');
                                         }
                                         console.log('Game server detected. Measuring DPS...');
                                     }
@@ -310,8 +352,15 @@ class Sniffer {
                             Buffer.compare(buf.subarray(0, 10), signature.subarray(0, 10)) === 0 &&
                             Buffer.compare(buf.subarray(14, 14 + 6), signature.subarray(14, 14 + 6)) === 0
                         ) {
-                            if (this.current_server !== src_server) {
+                            // CRITICAL FIX: Same normalization and debouncing for login packets
+                            const normalizedCurrent = this.normalizeServerAddress(this.current_server);
+                            const normalizedNew = this.normalizeServerAddress(src_server);
+                            const now = Date.now();
+                            const timeSinceLastChange = now - this.lastZoneChangeTime;
+                            
+                            if (normalizedCurrent !== normalizedNew && timeSinceLastChange >= this.ZONE_CHANGE_DEBOUNCE) {
                                 this.current_server = src_server;
+                                this.lastZoneChangeTime = now;
                                 this.clearTcpCache();
                                 this.tcp_next_seq = tcpPacket.info.seqno + buf.length;
                                 this.userDataManager.refreshEnemyCache();
@@ -321,23 +370,28 @@ class Sniffer {
                                 
                                 // LOG ALL ZONE CHANGE DATA FOR DEBUGGING (LOGIN PACKET)
                                 console.log('='.repeat(80));
-                                console.log('🌍 ZONE/SERVER CHANGE DETECTED (LOGIN PACKET) - FULL PACKET DUMP:');
+                                console.log('🌍 ZONE/SERVER CHANGE DETECTED (LOGIN PACKET)');
                                 console.log(`Server: ${src_server}`);
-                                console.log(`Packet length: ${buf.length} bytes`);
-                                console.log(`Buffer hex (ALL bytes): ${buf.toString('hex')}`);
-                                console.log(`Buffer ascii: ${buf.toString('ascii').replace(/[^\x20-\x7E]/g, '.')}`);
-                                console.log(`Buffer utf8 (filtered): ${buf.toString('utf8').replace(/[^\x20-\x7E]/g, '')}`);
                                 console.log('='.repeat(80));
                                 
-                                if (this.globalSettings.autoClearOnServerChange && !this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
-                                    // Auto-save BEFORE clearing
+                                // ALWAYS auto-save on zone change
+                                if (this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
+                                    console.log('💾 Auto-saving current session before zone change...');
                                     if (typeof this.userDataManager.autoSaveSession === 'function') {
                                         await this.userDataManager.autoSaveSession();
+                                        console.log('✅ Session auto-saved successfully');
                                     }
-                                    this.userDataManager.clearAll(this.globalSettings);
-                                    console.log('Server changed, statistics cleared!');
-                                } else if (this.globalSettings.keepDataAfterDungeon && this.userDataManager.lastLogTime !== 0) {
-                                    console.log('Server changed, but keeping data (keepDataAfterDungeon enabled)');
+                                    
+                                    // If keepDataAfterDungeon is false, clear immediately
+                                    // If true, wait for first damage then clear
+                                    if (!this.globalSettings.keepDataAfterDungeon) {
+                                        this.userDataManager.clearAll(this.globalSettings);
+                                        console.log('🔄 Meter reset immediately (keepDataAfterDungeon: false)');
+                                    } else {
+                                        // Set flag: will clear on first damage/heal packet
+                                        this.userDataManager.waitingForNewCombat = true;
+                                        console.log('⏳ Keeping old data visible. Will reset on first damage.');
+                                    }
                                 }
                                 console.log('Game server detected by login packet. Measuring DPS...');
                             }
@@ -416,7 +470,11 @@ class Sniffer {
             throw new Error('Could not detect a valid network interface.');
         }
 
-        this.packetProcessor = new PacketProcessorClass({ logger: this.logger, userDataManager: this.userDataManager });
+        this.packetProcessor = new PacketProcessorClass({ 
+            logger: this.logger, 
+            userDataManager: this.userDataManager,
+            mappingManager: this.mappingManager 
+        });
 
         const device = devices[num].name;
         const filter = 'ip and tcp';

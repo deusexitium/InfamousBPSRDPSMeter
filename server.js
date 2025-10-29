@@ -11,9 +11,10 @@ const { UserDataManager } = require(path.join(__dirname, 'src', 'server', 'dataM
 const Sniffer = require(path.join(__dirname, 'src', 'server', 'sniffer'));
 const initializeApi = require(path.join(__dirname, 'src', 'server', 'api'));
 const PacketProcessor = require(path.join(__dirname, 'algo', 'packet'));
+const MappingManager = require(path.join(__dirname, 'src', 'mapping-manager'));
 
 // Read version from package.json (works in both dev and production)
-let VERSION = '3.1.103'; // No "v" prefix - will be added where displayed
+let VERSION = '3.1.146'; // No "v" prefix - will be added where displayed
 try {
     const packageJson = require(path.join(__dirname, 'package.json'));
     VERSION = packageJson.version; // package.json has no "v" prefix
@@ -89,15 +90,31 @@ async function main() {
     } catch (e) {
         if (e.code === 'ENOENT') {
             logger.info('No settings.json found, using defaults. Will create on first save.');
+        } else if (e instanceof SyntaxError) {
+            // CRITICAL FIX: Corrupted JSON - backup and reset to defaults
+            logger.error(`❌ Failed to load settings: ${e.message}`);
+            const backupPath = SETTINGS_PATH + '.backup.' + Date.now();
+            try {
+                await fsPromises.copyFile(SETTINGS_PATH, backupPath);
+                logger.warn(`⚠️  Corrupted settings.json backed up to: ${backupPath}`);
+                await fsPromises.unlink(SETTINGS_PATH);
+                logger.info('✅ Settings reset to defaults. Please reconfigure in app.');
+            } catch (backupErr) {
+                logger.error('Failed to backup corrupted settings:', backupErr.message);
+            }
         } else {
-            logger.error('Failed to load settings:', e);
+            logger.error('Failed to load settings:', e.message);
         }
     }
 
     const userDataManager = new UserDataManager(logger, globalSettings, VERSION, userDataPath);
     await userDataManager.initialize();
+    
+    // Initialize mapping manager for boss/mob detection
+    const mappingManager = new MappingManager(userDataPath, logger.info.bind(logger));
+    await mappingManager.initialize();
 
-    const sniffer = new Sniffer(logger, userDataManager, globalSettings); // Pass globalSettings to sniffer
+    const sniffer = new Sniffer(logger, userDataManager, globalSettings, mappingManager); // Pass mappingManager for boss detection
 
     // Parse command line arguments
     // Args format: [port, userDataPath, deviceNum (optional)]
@@ -164,7 +181,7 @@ async function main() {
     logger.info('🔧 About to initialize API...');
     
     try {
-        initializeApi(app, server, io, userDataManager, logger, globalSettings, VERSION, userDataPath); // Initialize API with globalSettings and userDataPath
+        initializeApi(app, server, io, userDataManager, logger, globalSettings, VERSION, userDataPath, mappingManager); // Initialize API with mappingManager
         console.log('✅ API initialization completed');
         logger.info('✅ API initialization completed');
     } catch (error) {

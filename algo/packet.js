@@ -257,9 +257,10 @@ const streamReadString = (reader) => {
 let currentUserUuid = Long.ZERO;
 
 class PacketProcessor {
-    constructor({ logger, userDataManager }) {
+    constructor({ logger, userDataManager, mappingManager }) {
         this.logger = logger;
         this.userDataManager = userDataManager;
+        this.mappingManager = mappingManager; // Boss/mob mapping manager
     }
 
     _decompressPayload(buffer) {
@@ -390,7 +391,10 @@ class PacketProcessor {
                 }
                 infoStr += `#${attackerUuid.toString()}(player)`;
             } else {
-                if (this.userDataManager.enemyCache.name.has(attackerUuid.toNumber())) {
+                // CRITICAL FIX: Add null safety checks before accessing enemyCache
+                if (this.userDataManager && this.userDataManager.enemyCache && 
+                    this.userDataManager.enemyCache.name && 
+                    this.userDataManager.enemyCache.name.has(attackerUuid.toNumber())) {
                     infoStr += this.userDataManager.enemyCache.name.get(attackerUuid.toNumber());
                 }
                 infoStr += `#${attackerUuid.toString()}(enemy)`;
@@ -404,7 +408,10 @@ class PacketProcessor {
                 }
                 targetName += `#${targetUuid.toString()}(player)`;
             } else {
-                if (this.userDataManager.enemyCache.name.has(targetUuid.toNumber())) {
+                // CRITICAL FIX: Add null safety checks before accessing enemyCache
+                if (this.userDataManager && this.userDataManager.enemyCache && 
+                    this.userDataManager.enemyCache.name && 
+                    this.userDataManager.enemyCache.name.has(targetUuid.toNumber())) {
                     targetName += this.userDataManager.enemyCache.name.get(targetUuid.toNumber());
                 }
                 targetName += `#${targetUuid.toString()}(enemy)`;
@@ -507,8 +514,15 @@ class PacketProcessor {
                 this.userDataManager.setProfession(playerUid, professionName);
             }
         } catch (err) {
-            fs.writeFileSync('./SyncContainerData.dat', payloadBuffer);
-            this.logger.warn(`Failed to decode SyncContainerData for player ${currentUserUuid.shiftRight(16)}. Please report to developer`);
+            // CRITICAL FIX: Write to temp directory, NOT Program Files (EPERM error)
+            const tempPath = require('os').tmpdir();
+            const debugFile = require('path').join(tempPath, 'SyncContainerData.dat');
+            try {
+                fs.writeFileSync(debugFile, payloadBuffer);
+                this.logger.warn(`Failed to decode SyncContainerData for player ${currentUserUuid.shiftRight(16)}. Debug data saved to: ${debugFile}`);
+            } catch (writeErr) {
+                this.logger.warn(`Failed to decode SyncContainerData for player ${currentUserUuid.shiftRight(16)}. Could not save debug data: ${writeErr.message}`);
+            }
             throw err;
         }
     }
@@ -665,6 +679,12 @@ class PacketProcessor {
     }
 
     _processEnemyAttrs(enemyUid, attrs) {
+        // CRITICAL FIX: Verify enemyCache exists before processing
+        if (!this.userDataManager || !this.userDataManager.enemyCache) {
+            this.logger.warn('enemyCache not initialized, skipping enemy attribute processing');
+            return;
+        }
+        
         for (const attr of attrs) {
             if (!attr.Id || !attr.RawData) continue;
             const reader = pbjs.Reader.create(attr.RawData);
@@ -672,24 +692,46 @@ class PacketProcessor {
             switch (attr.Id) {
                 case AttrType.AttrName:
                     const enemyName = reader.string();
-                    this.userDataManager.enemyCache.name.set(enemyUid, enemyName);
+                    if (this.userDataManager.enemyCache.name) {
+                        this.userDataManager.enemyCache.name.set(enemyUid, enemyName);
+                    }
                     this.logger.info(`Found monster name ${enemyName} for id ${enemyUid}`);
                     break;
                 case AttrType.AttrId:
                     const attrId = reader.int32();
-                    const name = monsterNames[attrId];
-                    if (name) {
-                        this.logger.info(`Found moster name ${name} for id ${enemyUid}`);
+                    
+                    // PRIORITY 1: Check mapping manager for boss/mob names
+                    let name = this.mappingManager ? this.mappingManager.getBossName(attrId) : null;
+                    
+                    // PRIORITY 2: Fallback to local monster names table
+                    if (!name) {
+                        name = monsterNames[attrId];
+                    }
+                    
+                    if (name && this.userDataManager.enemyCache.name) {
+                        const bossData = this.mappingManager ? this.mappingManager.getBossData(name) : null;
+                        const typeInfo = bossData ? ` [${bossData.type} - ${bossData.map}]` : '';
+                        this.logger.info(`Found monster name ${name} for id ${attrId} (UID: ${enemyUid})${typeInfo}`);
                         this.userDataManager.enemyCache.name.set(enemyUid, name);
+                    } else if (!name && this.mappingManager) {
+                        // Unknown ID - log for contribution
+                        this.mappingManager.logUnknownId(attrId, {
+                            type: 'monster_attr_id',
+                            enemyUid: enemyUid.toString()
+                        });
                     }
                     break;
                 case AttrType.AttrHp:
                     const enemyHp = reader.int32();
-                    this.userDataManager.enemyCache.hp.set(enemyUid, enemyHp);
+                    if (this.userDataManager.enemyCache.hp) {
+                        this.userDataManager.enemyCache.hp.set(enemyUid, enemyHp);
+                    }
                     break;
                 case AttrType.AttrMaxHp:
                     const enemyMaxHp = reader.int32();
-                    this.userDataManager.enemyCache.maxHp.set(enemyUid, enemyMaxHp);
+                    if (this.userDataManager.enemyCache.maxHp) {
+                        this.userDataManager.enemyCache.maxHp.set(enemyUid, enemyMaxHp);
+                    }
                     break;
                 default:
                     // this.logger.debug(`Found unknown attrId ${attr.Id} for E${enemyUid} ${attr.RawData.toString('base64')}`);
@@ -812,7 +854,8 @@ class PacketProcessor {
                 }
             } while (packetsReader.remaining() > 0);
         } catch (e) {
-            this.logger.error(`Fail while parsing data for player ${currentUserUuid.shiftRight(16)}.\nErr: ${e}`);
+            // CRITICAL: Log full stack trace to identify exact error location
+            this.logger.error(`Fail while parsing data for player ${currentUserUuid.shiftRight(16)}.\nErr: ${e}\nStack: ${e.stack}`);
         }
     }
 }

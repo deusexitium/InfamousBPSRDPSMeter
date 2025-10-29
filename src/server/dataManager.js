@@ -96,6 +96,10 @@ class StatisticData {
             crit_lucky: 0,
             hpLessen: 0, 
             total: 0,
+            // Healer metrics (only used when type === '治疗')
+            effective: 0,      // Healing that restored HP
+            overheal: 0,       // Healing wasted on full HP targets
+            deathsPrevented: 0 // Heals that saved someone from <30% HP
         };
         this.count = {
             normal: 0,
@@ -122,8 +126,11 @@ class StatisticData {
      * @param {boolean} isCrit - 是否为暴击
      * @param {boolean} isLucky - 是否为幸运
      * @param {number} hpLessenValue - 生命值减少量（仅伤害使用）
+     * @param {number} effectiveValue - 有效值（仅治疗使用）
+     * @param {number} overhealValue - 过量治疗（仅治疗使用）
+     * @param {boolean} isDeathPrevented - 是否拯救（仅治疗使用）
      */
-    addRecord(value, isCrit, isLucky, hpLessenValue = 0) {
+    addRecord(value, isCrit, isLucky, hpLessenValue = 0, effectiveValue = 0, overhealValue = 0, isDeathPrevented = false) {
         const now = Date.now();
 
 
@@ -140,6 +147,15 @@ class StatisticData {
         }
         this.stats.total += value;
         this.stats.hpLessen += hpLessenValue;
+        
+        // Track healer metrics (only when this is healing data)
+        if (this.type === '治疗') {
+            this.stats.effective += effectiveValue;
+            this.stats.overheal += overhealValue;
+            if (isDeathPrevented) {
+                this.stats.deathsPrevented++;
+            }
+        }
 
         if (isCrit) {
             this.count.critical++;
@@ -280,6 +296,9 @@ class UserData {
         this.combatStartTime = null;
         this.maxSkillSequence = 120;
         this.maxCombatLog = 1000;
+        
+        // PERFORMANCE: Only track detailed skills for top players
+        this.trackSkills = false; // Will be enabled for top 30 players
     }
 
     /** 添加伤害记录
@@ -292,15 +311,21 @@ class UserData {
      * @param {number} hpLessenValue - 生命值减少量
      */
     addDamage(skillId, element, damage, isCrit, isLucky, isCauseLucky, hpLessenValue = 0) {
+        // Always track total damage stats
         this.damageStats.addRecord(damage, isCrit, isLucky, hpLessenValue);
-        if (!this.skillUsage.has(skillId)) {
-            this.skillUsage.set(skillId, new StatisticData(this, '伤害', element));
+        
+        // PERFORMANCE: Only track detailed skills for top players
+        if (this.trackSkills) {
+            if (!this.skillUsage.has(skillId)) {
+                this.skillUsage.set(skillId, new StatisticData(this, '伤害', element));
+            }
+            this.skillUsage.get(skillId).addRecord(damage, isCrit, isCauseLucky, hpLessenValue);
+            this.skillUsage.get(skillId).realtimeWindow.length = 0;
+
+            this.logSkillSequence(skillId, element, damage, isCrit);
         }
-        this.skillUsage.get(skillId).addRecord(damage, isCrit, isCauseLucky, hpLessenValue);
-        this.skillUsage.get(skillId).realtimeWindow.length = 0;
 
-        this.logSkillSequence(skillId, element, damage, isCrit);
-
+        // Still detect profession (lightweight operation)
         const subProfession = getSubProfessionBySkillId(skillId);
         if (subProfession) {
             this.setSubProfession(subProfession);
@@ -314,20 +339,33 @@ class UserData {
      * @param {boolean} isCrit - 是否为暴击
      * @param {boolean} [isLucky] - 是否为幸运
      * @param {boolean} [isCauseLucky] - 是否造成幸运
+     * @param {number} targetUid - 目标玩家的UID
+     * @param {number} effectiveHealing - 有效治疗量（实际恢复的HP）
+     * @param {number} overheal - 过量治疗
+     * @param {boolean} isDeathPrevented - 是否拯救了低血量玩家
      */
-    addHealing(skillId, element, healing, isCrit, isLucky, isCauseLucky) {
-        this.healingStats.addRecord(healing, isCrit, isLucky);
-        // 记录技能使用情况
-        skillId = skillId + 1000000000;
-        if (!this.skillUsage.has(skillId)) {
-            this.skillUsage.set(skillId, new StatisticData(this, '治疗', element));
+    addHealing(skillId, element, healing, isCrit, isLucky, isCauseLucky, targetUid, effectiveHealing, overheal, isDeathPrevented) {
+        // Always track total healing stats
+        this.healingStats.addRecord(healing, isCrit, isLucky, 0, effectiveHealing, overheal, isDeathPrevented);
+        
+        // PERFORMANCE: Only track detailed skills for top players
+        if (this.trackSkills) {
+            // 记录技能使用情况
+            skillId = skillId + 1000000000;
+            if (!this.skillUsage.has(skillId)) {
+                this.skillUsage.set(skillId, new StatisticData(this, '治疗', element));
+            }
+            this.skillUsage.get(skillId).addRecord(healing, isCrit, isCauseLucky);
+            this.skillUsage.get(skillId).realtimeWindow.length = 0;
+
+            this.logSkillSequence(skillId, element, healing, isCrit);
+            
+            // Reset skillId for profession detection
+            skillId = skillId - 1000000000;
         }
-        this.skillUsage.get(skillId).addRecord(healing, isCrit, isCauseLucky);
-        this.skillUsage.get(skillId).realtimeWindow.length = 0;
 
-        this.logSkillSequence(skillId, element, healing, isCrit);
-
-        const subProfession = getSubProfessionBySkillId(skillId - 1000000000);
+        // Still detect profession (lightweight operation)
+        const subProfession = getSubProfessionBySkillId(skillId < 1000000000 ? skillId : skillId - 1000000000);
         if (subProfession) {
             this.setSubProfession(subProfession);
         }
@@ -366,6 +404,11 @@ class UserData {
     }
 
     getSummary() {
+        // Calculate healing efficiency
+        const totalHealing = this.healingStats.stats.total;
+        const effectiveHealing = this.healingStats.stats.effective;
+        const healingEfficiency = totalHealing > 0 ? (effectiveHealing / totalHealing) * 100 : 0;
+        
         return {
             realtime_dps: this.damageStats.realtimeStats.value,
             realtime_dps_max: this.damageStats.realtimeStats.max,
@@ -377,7 +420,10 @@ class UserData {
             realtime_hps: this.healingStats.realtimeStats.value,
             realtime_hps_max: this.healingStats.realtimeStats.max,
             total_hps: this.getTotalHps(),
-            total_healing: { ...this.healingStats.stats },
+            total_healing: { 
+                ...this.healingStats.stats,
+                efficiency: healingEfficiency // Add efficiency percentage
+            },
             taken_damage: this.takenDamage,
             profession: this.profession + (this.subProfession ? `-${this.subProfession}` : ''),
             name: this.name,
@@ -627,20 +673,26 @@ class UserDataManager {
         
         this.users = new Map();
         this.enemies = new Map();
-        this.partyMembers = new Set();
-        this.raidGroups = new Map();
+        this.users = new Map();
+        this.logger = logger;
         this.startTime = Date.now();
-        this.lastAutoSaveTime = 0; // Track last periodic auto-save time
-        this.playerMap = new Map(); // UID -> Name cache (LRU, max 5000 entries)
-        this.playerMapMaxSize = 5000; // Limit cache to 5000 most recent players
-        this.playerMapDirty = false;
-        this.playerMapLock = new Lock();
-        this.userCache = new Map(); // UID -> cached user data (profession, fightPoint)
-        this.localPlayerUid = null;
-        this.lastPlayerCount = 0;
+        this.lastLogTime = 0;
+        this.isPaused = false;
+        this.playerMap = new Map(); // UID -> Name mapping
+        this.playerMapPath = path.join(userDataPath, 'player_map.json');
+        this.currentZone = null;
+        this.currentZoneId = null;
+        this.zoneChanged = false;
+        this.lastAutoSaveTime = 0; // Track last auto-save time
+        this.globalSettings = globalSettings;
+        this.sessionsDir = path.join(userDataPath, 'sessions');
+        this.waitingForNewCombat = false; // Flag: zone changed, waiting for first damage to reset
         this.zoneChangeDetected = false;
         
         this.hpCache = new Map();
+        
+        // CRITICAL FIX: Initialize userCache (was missing, causing TypeError on line 813)
+        this.userCache = new Map();
         
         // Initialize skill translation manager (will be loaded in initialize())
         this.skillTranslations = new SkillTranslationManager(logger, userDataPath);
@@ -648,6 +700,7 @@ class UserDataManager {
         this.logLock = new Lock();
         this.logDirExist = new Set();
 
+        // CRITICAL FIX: Only ONE enemyCache initialization (was duplicated causing undefined bugs)
         this.enemyCache = {
             name: new Map(),
             hp: new Map(),
@@ -666,8 +719,8 @@ class UserDataManager {
             this.logger.error('Failed to initialize skill translations:', err);
         }
         
-        // Load player_map.json for name caching (async, non-blocking)
-        this.loadPlayerMap(); // Don't await - load in background
+        // Load player_map.json for name caching (MUST await to prevent race condition)
+        await this.loadPlayerMap(); // Wait for cache to load before processing packets
         
         // Save player map periodically (every 30 seconds if dirty)
         setInterval(async () => {
@@ -718,10 +771,10 @@ class UserDataManager {
         }, 60000); // Check every 60 seconds
     }
     
-    /** Load player names from player_map.json (async, non-blocking) */
+    /** Load player names from player_map.json */
     async loadPlayerMap() {
         try {
-            this.logger.info(`⏳ Loading player cache in background...`);
+            this.logger.info(`⏳ Loading player name cache...`);
             const data = await fsPromises.readFile(this.playerMapPath, 'utf8');
             const playerMapObj = JSON.parse(data);
             const entries = Object.entries(playerMapObj);
@@ -815,6 +868,17 @@ class UserDataManager {
      * @param {number} targetUid - Target's ID
      */
     addDamage(uid, skillId, element, damage, isCrit, isLucky, isCauseLucky, hpLessenValue = 0, targetUid) {
+        // If waiting for new combat after zone change, clear old data now
+        if (this.waitingForNewCombat) {
+            console.log('🔄 First damage detected! Resetting meter for fresh tracking...');
+            // Clear synchronously to avoid race condition - don't await async clearAll
+            this.users = new Map();
+            this.startTime = Date.now();
+            this.lastAutoSaveTime = 0;
+            this.waitingForNewCombat = false;
+            this.resetZoneChangeFlag();
+        }
+        
         // isPaused and globalSettings.onlyRecordEliteDummy will be handled in the sniffer or entry point
         this.checkCombatTimeout();
         const user = this.getUser(uid);
@@ -832,11 +896,62 @@ class UserDataManager {
      * @param {number} targetUid - Target's ID
      */
     addHealing(uid, skillId, element, healing, isCrit, isLucky, isCauseLucky, targetUid) {
+        // If waiting for new combat after zone change, clear old data now
+        if (this.waitingForNewCombat) {
+            console.log('🔄 First healing detected! Resetting meter for fresh tracking...');
+            // Clear synchronously to avoid race condition - don't await async clearAll
+            this.users = new Map();
+            this.startTime = Date.now();
+            this.lastAutoSaveTime = 0;
+            this.waitingForNewCombat = false;
+            this.resetZoneChangeFlag();
+        }
+        
         // isPaused will be handled in the sniffer or entry point
         this.checkCombatTimeout();
         if (uid !== 0) {
             const user = this.getUser(uid);
-            user.addHealing(skillId, element, healing, isCrit, isLucky, isCauseLucky);
+            const target = this.getUser(targetUid);
+            
+            // Calculate effective healing and overheal
+            let effectiveHealing = healing;
+            let overheal = 0;
+            let isDeathPrevented = false;
+            
+            if (target && target.attr) {
+                const currentHP = target.attr.hp;
+                const maxHP = target.attr.max_hp;
+                
+                // CRITICAL FIX: Only calculate overheal if we have VALID HP data
+                // If HP data is missing/uninitialized, assume healing is effective
+                if (currentHP !== undefined && maxHP !== undefined && maxHP > 0) {
+                    // Calculate missing HP
+                    const missingHP = Math.max(0, maxHP - currentHP);
+                    
+                    // Effective healing = min(healing, missing HP)
+                    effectiveHealing = Math.min(healing, missingHP);
+                    
+                    // Overheal = healing - effective healing
+                    overheal = Math.max(0, healing - effectiveHealing);
+                    
+                    // Death prevented if target was below 30% HP before heal
+                    const hpPercentBefore = (currentHP / maxHP) * 100;
+                    if (hpPercentBefore < 30 && effectiveHealing > 0) {
+                        isDeathPrevented = true;
+                    }
+                    
+                    // Update target's HP after healing (capped at max HP)
+                    const newHP = Math.min(maxHP, currentHP + healing);
+                    target.setAttrKV('hp', newHP);
+                } else {
+                    // No valid HP data - assume all healing is effective (conservative approach)
+                    // This prevents false overheal reporting when HP tracking is incomplete
+                    effectiveHealing = healing;
+                    overheal = 0;
+                }
+            }
+            
+            user.addHealing(skillId, element, healing, isCrit, isLucky, isCauseLucky, targetUid, effectiveHealing, overheal, isDeathPrevented);
         }
     }
 
@@ -983,6 +1098,83 @@ class UserDataManager {
             summary.damagePercent = this.calculateDamagePercent(uid);
             result[uid] = summary;
         }
+        return result;
+    }
+
+    /** 
+     * Get only active top players for frontend (reduces bandwidth/memory)
+     * Returns top N players by damage + local player + party members
+     */
+    getActiveUsersData(limit = 30) {
+        const allUsers = [];
+        
+        // Collect all users with their data
+        for (const [uid, user] of this.users.entries()) {
+            const summary = user.getSummary();
+            summary.uid = uid;
+            summary.isPartyMember = this.isPartyMember(uid);
+            summary.raidGroup = this.getRaidGroup(uid);
+            summary.isLocalPlayer = (uid === this.localPlayerUid);
+            summary.damagePercent = this.calculateDamagePercent(uid);
+            
+            // FIXED v3.1.144: Send ALL detected players to frontend
+            // Frontend will handle displaying "waiting for combat" message
+            // This allows showing player count before combat starts
+            allUsers.push(summary);
+        }
+        
+        // Sort by total damage (descending)
+        allUsers.sort((a, b) => (b.total_damage?.total || 0) - (a.total_damage?.total || 0));
+        
+        // Always include: local player, party members, top N by damage
+        const result = {};
+        const included = new Set();
+        
+        // 1. Add local player (if exists)
+        const localPlayer = allUsers.find(u => u.isLocalPlayer);
+        if (localPlayer) {
+            result[localPlayer.uid] = localPlayer;
+            included.add(localPlayer.uid);
+        }
+        
+        // 2. Add all party/raid members
+        for (const user of allUsers) {
+            if (user.isPartyMember && !included.has(user.uid)) {
+                result[user.uid] = user;
+                included.add(user.uid);
+            }
+        }
+        
+        // 3. Fill remaining slots with top players
+        for (const user of allUsers) {
+            if (included.size >= limit) break;
+            if (!included.has(user.uid)) {
+                result[user.uid] = user;
+                included.add(user.uid);
+            }
+        }
+        
+        // PERFORMANCE: Enable skill tracking ONLY for included players
+        // Disable for everyone else to save memory
+        for (const [uid, user] of this.users.entries()) {
+            const shouldTrack = included.has(uid);
+            
+            if (shouldTrack && !user.trackSkills) {
+                // Enable tracking for this player
+                user.trackSkills = true;
+            } else if (!shouldTrack && user.trackSkills) {
+                // Disable tracking and clear skill data for this player
+                user.trackSkills = false;
+                user.skillUsage.clear(); // Free memory
+                user.skillSequence = []; // Clear sequence
+            }
+        }
+        
+        // Remove uid from summaries (was only used for sorting)
+        for (const uid in result) {
+            delete result[uid].uid;
+        }
+        
         return result;
     }
 
@@ -1345,6 +1537,7 @@ class UserDataManager {
         this.users = new Map();
         this.startTime = Date.now();
         this.lastAutoSaveTime = 0; // Reset auto-save timer
+        this.waitingForNewCombat = false; // Reset flag
         this.resetZoneChangeFlag();
     }
 

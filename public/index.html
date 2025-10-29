@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Infamous BPSR DPS Meter v3.1.103</title>
+    <title>Infamous BPSR DPS Meter v3.1.146</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=3.1.103">
-    <link rel="stylesheet" href="css/team-totals.css?v=3.1.103">
-    <link rel="stylesheet" href="css/show-more.css?v=3.1.103">
+    <link rel="stylesheet" href="css/color-scheme.css?v=3.1.146">
+    <link rel="stylesheet" href="css/style.css?v=3.1.146">
+    <link rel="stylesheet" href="css/team-totals.css?v=3.1.146">
+    <link rel="stylesheet" href="css/show-more.css?v=3.1.146">
 </head>
 <body>
     <!-- Toast Notification System -->
@@ -22,7 +23,7 @@
         <div class="title-bar">
             <div class="title-left">
                 <span class="logo">⚔️</span>
-                <span class="app-name">Infamous BPSR DPS Meter v3.1.103</span>
+                <span class="app-name">Infamous BPSR DPS Meter v3.1.146</span>
             </div>
             <div class="title-right">
                 <button class="header-btn" id="btn-compact-mode" title="Toggle Overlay Mode (In-Game)">
@@ -84,6 +85,14 @@
                 <i class="fa-solid fa-user"></i>
             </button>
             
+            <button class="header-btn" id="btn-healer-mode" title="Toggle Healer Mode (Show HPS/Healing)">
+                <i class="fa-solid fa-heart-pulse"></i>
+            </button>
+            
+            <button class="header-btn" id="btn-show-more" title="Show More Players" style="display:none;">
+                <i class="fa-solid fa-chevron-down"></i> <span id="show-more-text">Show More</span>
+            </button>
+            
             <span class="duration" id="duration">00:00</span>
         </header>
 
@@ -113,6 +122,15 @@
 
         <!-- Compact Mode Controls (only visible in compact mode) -->
         <div class="compact-controls">
+            <button class="compact-btn compact-btn-icon" id="btn-compact-zoom-out" title="Decrease Text Size">
+                <i class="fa-solid fa-minus"></i>
+            </button>
+            <button class="compact-btn compact-btn-icon" id="btn-compact-zoom-in" title="Increase Text Size">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+            <button class="compact-btn compact-btn-icon" id="btn-compact-healer" title="Toggle Healer Mode (Show HPS/Healing)">
+                <i class="fa-solid fa-heart-pulse"></i>
+            </button>
             <button class="compact-btn compact-btn-icon" id="btn-compact-pause" title="Pause">
                 <i class="fa-solid fa-pause"></i>
             </button>
@@ -126,8 +144,7 @@
                 <i class="fa-solid fa-rotate-right"></i>
             </button>
             <button class="compact-btn" id="btn-expand-list" title="Show All Players">
-                <i class="fa-solid fa-chevron-down"></i>
-                <span>Show More</span>
+                Expand
             </button>
             <span class="compact-duration" id="compact-duration">00:00</span>
         </div>
@@ -149,8 +166,6 @@
             </div>
             <div class="status-right">
                 <span id="status-dps">0 DPS</span>
-                <span class="status-separator">•</span>
-                <span>v3.1.52</span>
             </div>
         </footer>
     </div>
@@ -203,6 +218,22 @@
                         <label><input type="checkbox" id="setting-remember-names" checked> Remember Names</label>
                         <label><input type="checkbox" id="setting-auto-clear-zone" checked> Auto-Clear on Zone</label>
                         <label><input type="checkbox" id="setting-keep-after-dungeon" checked> Keep After Dungeon</label>
+                    </div>
+                    
+                    <!-- Auto-Update Setting -->
+                    <div style="margin-top:15px;">
+                        <label style="display:flex;align-items:center;gap:12px;font-size:12px;">
+                            <span style="color:#d1d5db;min-width:120px;">🔄 Auto-Update:</span>
+                            <select id="setting-auto-update" style="flex:1;padding:6px 12px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);border-radius:6px;font-size:12px;cursor:pointer;">
+                                <option value="disable">❌ Disabled (No checks)</option>
+                                <option value="notify" selected>🔔 Notify Only (Recommended)</option>
+                                <option value="auto">⚡ Auto-Download</option>
+                            </select>
+                        </label>
+                        <p style="font-size:10px;color:#6b7280;margin:6px 0 0 132px;font-style:italic;">
+                            Notify: Shows update notification when available<br>
+                            Auto-Download: Downloads updates automatically
+                        </p>
                     </div>
                     <div class="settings-inline">
                         <label>Refresh: <input type="number" id="setting-refresh" min="0.1" max="5" step="0.1" value="0.5" style="width:60px">s</label>
@@ -307,7 +338,7 @@
                             <span style="font-size:24px">⚔️</span>
                             <div>
                                 <strong>Infamous BPSR DPS Meter</strong>
-                                <span style="color:var(--accent-gold);font-size:11px">v3.1.52</span>
+                                <span style="color:var(--accent-gold);font-size:11px">v3.1.146</span>
                             </div>
                         </div>
                         
@@ -373,10 +404,54 @@
         </div>
     </div>
 
+    <!-- Update Notification Modal -->
+    <div id="update-notification" style="display:none;position:fixed;top:80px;right:20px;z-index:99999;background:linear-gradient(135deg,#1e293b 0%,#334155 100%);border:2px solid #f59e0b;border-radius:12px;padding:20px;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+        <div style="display:flex;align-items:start;gap:12px;">
+            <div style="font-size:32px;">🎉</div>
+            <div style="flex:1;">
+                <div style="font-size:16px;font-weight:700;color:#f59e0b;margin-bottom:8px;">Update Available!</div>
+                <div id="update-version-info" style="font-size:13px;color:#e2e8f0;margin-bottom:12px;"></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button id="btn-download-update" style="flex:1;padding:8px 16px;background:#10b981;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;min-width:100px;">
+                        Download
+                    </button>
+                    <button id="btn-view-release" style="flex:1;padding:8px 16px;background:#3b82f6;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;min-width:100px;">
+                        View Release
+                    </button>
+                    <button id="btn-dismiss-update" style="padding:8px 12px;background:rgba(255,255,255,0.1);color:#e2e8f0;border:none;border-radius:6px;cursor:pointer;">
+                        ✕
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Progress Modal -->
+    <div id="download-progress" style="display:none;position:fixed;top:80px;right:20px;z-index:99999;background:#1e293b;border:2px solid #3b82f6;border-radius:12px;padding:20px;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+        <div style="font-size:14px;color:#e2e8f0;margin-bottom:12px;font-weight:600;">📥 Downloading Update...</div>
+        <div style="width:100%;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;">
+            <div id="download-progress-bar" style="height:100%;background:linear-gradient(90deg,#3b82f6,#10b981);width:0%;transition:width 0.3s;"></div>
+        </div>
+        <div id="download-progress-text" style="font-size:12px;color:#94a3b8;margin-top:8px;text-align:center;">0%</div>
+    </div>
+
+    <!-- Update Ready Modal -->
+    <div id="update-ready" style="display:none;position:fixed;top:80px;right:20px;z-index:99999;background:linear-gradient(135deg,#10b981 0%,#059669 100%);border-radius:12px;padding:20px;max-width:400px;color:#fff;box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px;">✅ Update Downloaded!</div>
+        <div style="font-size:13px;margin-bottom:12px;opacity:0.9;">Restart the app to install the update.</div>
+        <div style="display:flex;gap:8px;">
+            <button id="btn-install-now" style="flex:1;padding:8px 16px;background:#fff;color:#10b981;border:none;border-radius:6px;font-weight:600;cursor:pointer;">
+                Restart Now
+            </button>
+            <button id="btn-install-later" style="flex:1;padding:8px 16px;background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;">
+                Later
+            </button>
+        </div>
+    </div>
+
     <!-- CRITICAL: Socket.IO client library for real-time data -->
     <script src="/socket.io/socket.io.js"></script>
-    <script src="js/auto-updater.js?v=3.1.102"></script>
-    <script src="js/main.js?v=3.1.102"></script>
-    <script src="js/session-manager.js?v=3.1.102"></script>
+    <script src="js/main.js?v=3.1.138"></script>
+    <script src="js/session-manager.js?v=3.1.138"></script>
 </body>
 </html>

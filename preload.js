@@ -17,9 +17,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getUserDataPath: () => ipcRenderer.invoke('get-user-data-path'),
     openFolder: (folderPath) => ipcRenderer.send('open-folder', folderPath),
     setWindowSize: (width, height) => ipcRenderer.invoke('set-window-size', width, height),
+    setCompactMode: (isCompact) => ipcRenderer.invoke('set-compact-mode', isCompact),
+    setZoomFactor: (factor) => ipcRenderer.send('set-zoom-factor', factor),
     // PHASE 3: Overlay control APIs
     setClickThrough: (enabled) => ipcRenderer.send('set-click-through', enabled),
     setOpacity: (opacity) => ipcRenderer.send('set-opacity', opacity),
+    // CRITICAL FIX: Popup window APIs
+    openSettingsWindow: () => ipcRenderer.send('open-settings-window'),
+    closeSettingsWindow: () => ipcRenderer.send('close-settings-window'),
+    openSessionManagerWindow: () => ipcRenderer.send('open-session-manager-window'),
+    closeSessionManagerWindow: () => ipcRenderer.send('close-session-manager-window'),
+    // Auto-updater APIs
+    checkForUpdates: () => ipcRenderer.send('check-for-updates-manual'),
+    downloadUpdate: () => ipcRenderer.send('download-update'),
+    installUpdate: () => ipcRenderer.send('install-update'),
+    openReleasePage: () => ipcRenderer.send('open-release-page'),
+    // Auto-updater event listeners
+    onUpdateAvailable: (callback) => ipcRenderer.on('update-available', (event, info) => callback(info)),
+    onUpdateDownloadProgress: (callback) => ipcRenderer.on('update-download-progress', (event, progress) => callback(progress)),
+    onUpdateDownloaded: (callback) => ipcRenderer.on('update-downloaded', (event, info) => callback(info)),
+    onUpdateError: (callback) => ipcRenderer.on('update-error', (event, error) => callback(error)),
 });
 
 window.addEventListener('DOMContentLoaded', () => {

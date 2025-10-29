@@ -1,10 +1,10 @@
 
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
-const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const { exec, fork } = require('child_process');
 const net = require('net'); // Required for checkPort
 const fs = require('fs');
+const AutoUpdaterManager = require('./src/auto-updater');
 
 // Function to log to file safely for packaged environment
 function logToFile(msg) {
@@ -40,34 +40,8 @@ let server_port = 8989; // Initial port
 let isLocked = false; // Initial lock state: unlocked
 logToFile('==== ELECTRON START ====');
 
-// Configure auto-updater - SIMPLIFIED: Just check and notify
-autoUpdater.autoDownload = false; // Never auto-download
-autoUpdater.autoInstallOnAppQuit = false; // Don't auto-install
-
-// Auto-updater event handlers - SIMPLIFIED
-autoUpdater.on('checking-for-update', () => {
-    logToFile('Checking for updates...');
-});
-
-autoUpdater.on('update-available', (info) => {
-    logToFile(`✨ Update available: v${info.version}`);
-    if (mainWindow && !mainWindow.isDestroyed()) {
-        // Send simplified update notification to frontend
-        mainWindow.webContents.send('update-available-simple', {
-            version: info.version,
-            releaseUrl: `https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest`
-        });
-    }
-});
-
-autoUpdater.on('update-not-available', (info) => {
-    logToFile('✅ App is up to date');
-});
-
-autoUpdater.on('error', (err) => {
-    // Silent fail - just log, don't bother user
-    logToFile(`Auto-update check failed (not critical): ${err.message}`);
-});
+// Initialize Auto-Updater Manager
+const updaterManager = new AutoUpdaterManager(app, logToFile);
 
     // Function to check if a port is in use
     const checkPort = (port) => {
@@ -261,6 +235,16 @@ autoUpdater.on('error', (err) => {
                 mainWindow.once('ready-to-show', () => {
                     logToFile('Window shown');
                     mainWindow.show();
+                    
+                    // Initialize auto-updater after window is shown
+                    updaterManager.setMainWindow(mainWindow);
+                    
+                    // Check for updates 5 seconds after launch (non-intrusive)
+                    setTimeout(() => {
+                        updaterManager.checkForUpdates().catch(err => {
+                            logToFile(`Auto-update check failed (non-critical): ${err.message}`);
+                        });
+                    }, 5000);
                 });
             }
         });
@@ -456,6 +440,35 @@ autoUpdater.on('error', (err) => {
         return { success: false };
     });
 
+    // IPC Handler: Set zoom factor (proper window zoom, not CSS transform)
+    ipcMain.on('set-zoom-factor', (event, factor) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.setZoomFactor(factor);
+            logToFile(`✨ Zoom factor set to: ${factor} (${factor * 100}%)`);
+        }
+    });
+
+    // IPC Handler: Set minimum/maximum size (for compact vs full mode)
+    ipcMain.handle('set-compact-mode', (event, isCompact) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            if (isCompact) {
+                // Compact mode: 450px width
+                mainWindow.setMinimumSize(450, 200);
+                mainWindow.setMaximumSize(450, 1200);
+                mainWindow.setSize(450, 400, true);
+                logToFile('Window set to compact mode: 450px');
+            } else {
+                // Full mode: 960px width
+                mainWindow.setMinimumSize(900, 300);
+                mainWindow.setMaximumSize(1600, 1200);
+                mainWindow.setSize(960, 500, true);
+                logToFile('Window set to full mode: 960px');
+            }
+            return { success: true };
+        }
+        return { success: false };
+    });
+
     // Open folder in file explorer
     ipcMain.on('open-folder', (event, folderPath) => {
         shell.openPath(folderPath);
@@ -476,25 +489,139 @@ autoUpdater.on('error', (err) => {
     mainWindow.webContents.on('did-finish-load', () => {
         mainWindow.webContents.send('lock-state-changed', isLocked);
         
-        // Check for updates 5 seconds after app loads (give time for UI to be ready)
-        setTimeout(() => {
-            autoUpdater.checkForUpdates().catch(err => {
-                logToFile('Failed to check for updates: ' + err);
-            });
-        }, 5000);
+        // DISABLED: Auto-update check disabled per user request to prevent data loss concerns
+        // Users can manually check via Settings > Check for Updates button
+        // setTimeout(() => {
+        //     autoUpdater.checkForUpdates().catch(err => {
+        //         logToFile('Failed to check for updates: ' + err);
+        //     });
+        // }, 5000);
     });
 
-    // IPC handlers for update actions - SIMPLIFIED
+    // IPC handlers for auto-updater with settings integration
     ipcMain.on('open-release-page', () => {
         logToFile('User opening releases page');
         shell.openExternal('https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest');
     });
 
-    ipcMain.on('check-for-updates', () => {
+    ipcMain.on('check-for-updates-manual', async () => {
         logToFile('User manually checking for updates');
-        autoUpdater.checkForUpdates().catch(err => {
+        try {
+            await updaterManager.checkForUpdates();
+        } catch (err) {
             logToFile(`Update check failed: ${err.message}`);
+        }
+    });
+
+    ipcMain.on('download-update', async () => {
+        logToFile('User initiated update download');
+        try {
+            await updaterManager.downloadUpdate();
+        } catch (err) {
+            logToFile(`Download failed: ${err.message}`);
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.send('update-error', {
+                    message: 'Failed to download update. Please try again later.'
+                });
+            }
+        }
+    });
+
+    ipcMain.on('install-update', () => {
+        logToFile('User initiated update install');
+        updaterManager.quitAndInstall();
+    });
+
+    // CRITICAL FIX: Create actual popup windows for Settings and Session Manager
+    let settingsWindow = null;
+    let sessionManagerWindow = null;
+
+    ipcMain.on('open-settings-window', () => {
+        if (settingsWindow && !settingsWindow.isDestroyed()) {
+            settingsWindow.focus();
+            return;
+        }
+
+        settingsWindow = new BrowserWindow({
+            width: 800,
+            height: 600,
+            minWidth: 750,
+            minHeight: 550,
+            frame: false,
+            parent: mainWindow,
+            modal: false,  // Not modal - can interact with main window
+            backgroundColor: '#1e212d',
+            webPreferences: {
+                preload: path.join(__dirname, 'preload.js'),
+                nodeIntegration: false,
+                contextIsolation: true,
+                enableRemoteModule: false,
+                cache: false
+            },
+            icon: path.join(__dirname, 'icon.ico'),
+            show: false  // Don't show until ready
         });
+
+        settingsWindow.loadURL(`http://localhost:${server_port}/settings-popup.html`);
+        
+        settingsWindow.once('ready-to-show', () => {
+            settingsWindow.show();
+            logToFile('Settings popup window opened');
+        });
+
+        settingsWindow.on('closed', () => {
+            settingsWindow = null;
+        });
+    });
+
+    ipcMain.on('close-settings-window', () => {
+        if (settingsWindow && !settingsWindow.isDestroyed()) {
+            settingsWindow.close();
+        }
+    });
+
+    ipcMain.on('open-session-manager-window', () => {
+        if (sessionManagerWindow && !sessionManagerWindow.isDestroyed()) {
+            sessionManagerWindow.focus();
+            return;
+        }
+
+        sessionManagerWindow = new BrowserWindow({
+            width: 850,
+            height: 650,
+            minWidth: 800,
+            minHeight: 600,
+            frame: false,
+            parent: mainWindow,
+            modal: false,
+            backgroundColor: '#1e212d',
+            webPreferences: {
+                preload: path.join(__dirname, 'preload.js'),
+                nodeIntegration: false,
+                contextIsolation: true,
+                enableRemoteModule: false,
+                cache: false
+            },
+            icon: path.join(__dirname, 'icon.ico'),
+            show: false
+        });
+
+        sessionManagerWindow.loadURL(`http://localhost:${server_port}/session-manager-popup.html`);
+        
+        sessionManagerWindow.once('ready-to-show', () => {
+            sessionManagerWindow.show();
+            logToFile('Session Manager popup window opened');
+        });
+
+        sessionManagerWindow.on('closed', () => {
+            sessionManagerWindow = null;
+        });
+    });
+
+    ipcMain.on('close-session-manager-window', () => {
+        if (sessionManagerWindow && !sessionManagerWindow.isDestroyed()) {
+            sessionManagerWindow.close();
+        }
     });
 }
 
