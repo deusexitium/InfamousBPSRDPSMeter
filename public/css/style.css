@@ -350,10 +350,16 @@ body.compact-mode .compact-headers {
     padding: 4px 6px;
     background: var(--bg-header);
     border-bottom: 1px solid var(--border);
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
     text-transform: uppercase;
     color: var(--text-secondary);
+    text-align: center;
+}
+
+body.compact-mode .compact-headers > div:nth-child(1),
+body.compact-mode .compact-headers > div:nth-child(2) {
+    text-align: left;
 }
 
 /* Column headers */
@@ -1615,6 +1621,15 @@ body.compact-mode .player-row {
     background: rgba(42, 45, 58, 0.5) !important;
     border-radius: 3px;
     border-left: 2px solid transparent;
+}
+
+body.compact-mode .cell-rank,
+body.compact-mode .cell-value {
+    text-align: center;
+}
+
+body.compact-mode .cell-name {
+    text-align: left;
 }
 
 /* Compact mode cell values - only show 3 columns */

@@ -542,9 +542,9 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
     if (document.body.classList.contains('compact-mode')) {
         // Compact mode: Simple 6-column grid (rank + name + 4 stats)
         // Grid: 25px | minmax(80px,120px) | 65px | 65px | 65px | 65px
-        // DMG TAKEN: show "-" instead of 0
+        // DMG TAKEN: show "-" for 0, null, or undefined
         const dmgTakenValue = player.total_damage_taken?.total || player.taken_damage || 0;
-        const dmgTakenDisplay = dmgTakenValue > 0 ? formatNumber(dmgTakenValue) : '-';
+        const dmgTakenDisplay = (dmgTakenValue && dmgTakenValue > 0) ? formatNumber(dmgTakenValue) : '-';
         return `
             <div class="player-row ${isLocal ? 'local-player' : ''} ${isIdle ? 'idle' : ''}" data-uid="${player.uid}">
                 <div class="cell-rank">${rank}</div>
@@ -2209,7 +2209,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.97 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.98 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2267,7 +2267,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.97 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.98 - Ready!');
 }
 
 // ============================================================================
