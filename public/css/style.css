@@ -1508,9 +1508,9 @@ input[type="range"]::-moz-range-thumb {
    ============================================================================ */
 
 body.compact-mode .meter-container {
-    width: auto !important;
-    min-width: 520px !important;
-    max-width: 580px !important;
+    width: fit-content !important;
+    min-width: unset !important;
+    max-width: unset !important;
     height: fit-content !important;
     background: rgba(20, 22, 26, 0.95);
     backdrop-filter: blur(8px);
@@ -1519,6 +1519,8 @@ body.compact-mode .meter-container {
     box-shadow: none;
     display: flex;
     flex-direction: column;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 /* Compact title bar - show ALL buttons */

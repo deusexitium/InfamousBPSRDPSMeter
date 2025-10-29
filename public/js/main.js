@@ -812,16 +812,24 @@ function renderPlayers() {
         playerRowsHTML += renderPlayerRow(player, index + 1, teamTotalDamage, teamTotalHealing);
     });
     
-    // Add "Show More" button if there are hidden players
+    // Show More button logic - BOTH buttons should work
     const showMoreButton = (!showingAll && sorted.length > defaultShowCount) ? `
         <div class="show-more-container">
-            <button class="show-more-btn" onclick="document.getElementById('player-list').classList.add('show-all'); renderPlayers();">
+            <button class="show-more-btn" onclick="
+                const list = document.getElementById('player-list');
+                list.classList.add('show-all');
+                renderPlayers();
+            ">
                 <i class="fa-solid fa-chevron-down"></i> Show ${sorted.length - defaultShowCount} More Players
             </button>
         </div>
     ` : (showingAll && sorted.length > defaultShowCount) ? `
         <div class="show-more-container">
-            <button class="show-more-btn" onclick="document.getElementById('player-list').classList.remove('show-all'); renderPlayers();">
+            <button class="show-more-btn" onclick="
+                const list = document.getElementById('player-list');
+                list.classList.remove('show-all');
+                renderPlayers();
+            ">
                 <i class="fa-solid fa-chevron-up"></i> Show Less
             </button>
         </div>
@@ -888,11 +896,11 @@ function autoResizeWindow() {
         let targetHeight, targetWidth, finalHeight, finalWidth;
         
         if (isCompact) {
-            // Compact mode: truly compact - size window to content
+            // Compact mode: FIT CONTENT EXACTLY - no min/max constraints causing black space
             targetHeight = actualHeight + 5;
-            targetWidth = actualWidth + 10;
-            finalHeight = Math.max(200, Math.min(targetHeight, 600));
-            finalWidth = Math.max(420, Math.min(targetWidth, 480)); // 420-480px - tighter fit
+            targetWidth = actualWidth + 5; // Minimal padding
+            finalHeight = Math.max(150, Math.min(targetHeight, 600));
+            finalWidth = Math.max(actualWidth, targetWidth); // Use actual width, no forced minimum
         } else {
             // Full mode: jump to max width immediately, no slow growth
             targetHeight = actualHeight + 10;
@@ -2198,7 +2206,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.94 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.95 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2256,7 +2264,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.94 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.95 - Ready!');
 }
 
 // ============================================================================
