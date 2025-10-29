@@ -541,9 +541,10 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
     
     if (document.body.classList.contains('compact-mode')) {
         // Compact mode: Simple 6-column grid (rank + name + 4 stats)
-        // Grid: 30px | minmax(120px,160px) | 85px | 85px | 85px | 85px
-        // Use total_damage_taken not taken_damage for DMG TAKEN
+        // Grid: 25px | minmax(80px,120px) | 65px | 65px | 65px | 65px
+        // DMG TAKEN: show "-" instead of 0
         const dmgTakenValue = player.total_damage_taken?.total || player.taken_damage || 0;
+        const dmgTakenDisplay = dmgTakenValue > 0 ? formatNumber(dmgTakenValue) : '-';
         return `
             <div class="player-row ${isLocal ? 'local-player' : ''} ${isIdle ? 'idle' : ''}" data-uid="${player.uid}">
                 <div class="cell-rank">${rank}</div>
@@ -553,7 +554,7 @@ function renderPlayerRow(player, rank, maxDmg, isLocal, teamTotalDamage = 1) {
                 <div class="cell-value">${formatNumber(currentDps)}</div>
                 <div class="cell-value">${formatNumber(maxDps)}</div>
                 <div class="cell-value">${formatNumber(totalDmg)}</div>
-                <div class="cell-value">${formatNumber(dmgTakenValue)}</div>
+                <div class="cell-value">${dmgTakenDisplay}</div>
             </div>
         `;
     }
@@ -2206,7 +2207,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.95 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.96 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2264,7 +2265,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.95 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.96 - Ready!');
 }
 
 // ============================================================================

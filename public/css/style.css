@@ -345,9 +345,9 @@ body {
 /* Compact mode headers - Match player row grid exactly */
 body.compact-mode .compact-headers {
     display: grid;
-    grid-template-columns: 30px minmax(120px, 160px) repeat(4, 85px);
-    gap: 5px;
-    padding: 5px 8px;
+    grid-template-columns: 25px minmax(80px, 120px) repeat(4, 65px);
+    gap: 4px;
+    padding: 4px 6px;
     background: var(--bg-header);
     border-bottom: 1px solid var(--border);
     font-size: 10px;
@@ -1642,13 +1642,13 @@ body.compact-mode .tab.active {
     border-bottom: 2px solid var(--accent-gold);
 }
 
-/* Compact player rows - 6 columns (rank + name + 4 stats: DPS, MAX DPS, TOTAL DMG, DMG TAKEN) */
+/* Compact player rows - ACTUALLY COMPACT: narrow columns */
 body.compact-mode .player-row {
     display: grid;
-    grid-template-columns: 30px minmax(120px, 160px) repeat(4, 85px);
-    gap: 5px;
-    padding: 5px 8px;
-    font-size: 11px;
+    grid-template-columns: 25px minmax(80px, 120px) repeat(4, 65px);
+    gap: 4px;
+    padding: 4px 6px;
+    font-size: 10px;
     min-height: 28px;
     background: rgba(42, 45, 58, 0.5) !important;
     border-radius: 3px;
