@@ -813,25 +813,14 @@ function renderPlayers() {
         playerRowsHTML += renderPlayerRow(player, index + 1, teamTotalDamage, teamTotalHealing);
     });
     
-    // Show More button logic - BOTH buttons should work
-    const showMoreButton = (!showingAll && sorted.length > defaultShowCount) ? `
+    // Show More button - always visible when there are hidden players
+    const showMoreButton = (sorted.length > defaultShowCount) ? `
         <div class="show-more-container">
-            <button class="show-more-btn" onclick="
-                const list = document.getElementById('player-list');
-                list.classList.add('show-all');
-                renderPlayers();
-            ">
-                <i class="fa-solid fa-chevron-down"></i> Show ${sorted.length - defaultShowCount} More Players
-            </button>
-        </div>
-    ` : (showingAll && sorted.length > defaultShowCount) ? `
-        <div class="show-more-container">
-            <button class="show-more-btn" onclick="
-                const list = document.getElementById('player-list');
-                list.classList.remove('show-all');
-                renderPlayers();
-            ">
-                <i class="fa-solid fa-chevron-up"></i> Show Less
+            <button class="show-more-btn" id="show-more-toggle">
+                ${!showingAll ? 
+                    `<i class="fa-solid fa-chevron-down"></i> Show ${sorted.length - defaultShowCount} More Players` : 
+                    `<i class="fa-solid fa-chevron-up"></i> Show Less`
+                }
             </button>
         </div>
     ` : '';
@@ -859,6 +848,20 @@ function renderPlayers() {
             renderSkillsFromCache(uid);
         }
     });
+    
+    // Attach Show More button handler
+    const showMoreBtn = document.getElementById('show-more-toggle');
+    if (showMoreBtn) {
+        showMoreBtn.addEventListener('click', () => {
+            const list = document.getElementById('player-list');
+            if (list.classList.contains('show-all')) {
+                list.classList.remove('show-all');
+            } else {
+                list.classList.add('show-all');
+            }
+            renderPlayers();
+        });
+    }
     
     // Auto-resize window after rendering (single RAF, not nested)
     requestAnimationFrame(() => autoResizeWindow());
@@ -897,11 +900,10 @@ function autoResizeWindow() {
         let targetHeight, targetWidth, finalHeight, finalWidth;
         
         if (isCompact) {
-            // Compact mode: FIT CONTENT EXACTLY - no min/max constraints causing black space
+            // Compact mode: FIXED 450px width
             targetHeight = actualHeight + 5;
-            targetWidth = actualWidth + 5; // Minimal padding
             finalHeight = Math.max(150, Math.min(targetHeight, 600));
-            finalWidth = Math.max(actualWidth, targetWidth); // Use actual width, no forced minimum
+            finalWidth = 450; // FIXED: Always 450px for compact mode
         } else {
             // Full mode: jump to max width immediately, no slow growth
             targetHeight = actualHeight + 10;
@@ -2207,7 +2209,7 @@ window.handleVPNAction = function(action) {
 // ============================================================================
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.96 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.97 - Initializing...');
     
     // Check VPN compatibility on startup
     checkVPNCompatibility();
@@ -2265,7 +2267,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.96 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.97 - Ready!');
 }
 
 // ============================================================================

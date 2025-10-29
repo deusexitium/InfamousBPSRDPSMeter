@@ -145,14 +145,14 @@ body {
     background: rgba(251, 191, 36, 0.1);
 }
 
-/* Player list - Dynamic height, no forced max */
+/* Player list - Dynamic height, no/* Player List Container */
 .player-list {
-    padding: 4px;
+    flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
+    max-height: 800px; /* Add max height to show scrollbar when many players */
     background: var(--bg-dark);
     position: relative;
-    /* No max-height - let content determine size */
     pointer-events: auto !important;
 }
 
@@ -1508,9 +1508,9 @@ input[type="range"]::-moz-range-thumb {
    ============================================================================ */
 
 body.compact-mode .meter-container {
-    width: fit-content !important;
-    min-width: unset !important;
-    max-width: unset !important;
+    width: 450px !important;
+    min-width: 450px !important;
+    max-width: 450px !important;
     height: fit-content !important;
     background: rgba(20, 22, 26, 0.95);
     backdrop-filter: blur(8px);
