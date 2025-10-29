@@ -704,8 +704,19 @@ function renderPlayers() {
     }
     
     players.forEach(p => {
-        if (p.name && p.name !== 'unknown') {
+        // Save ANY valid name we capture (not empty, not 'unknown', not 'Unknown_xxx')
+        if (p.name && 
+            p.name !== 'unknown' && 
+            p.name !== '' && 
+            !p.name.startsWith('Unknown_')) {
             PLAYER_DB.add(p.uid, p.name);
+            console.log(`💾 Saved player name: ${p.name} (UID: ${p.uid})`);
+        }
+        
+        // If player has no name but PLAYER_DB has one, use it
+        if ((!p.name || p.name === 'unknown' || p.name.startsWith('Unknown_')) && PLAYER_DB.has(p.uid)) {
+            p.name = PLAYER_DB.get(p.uid);
+            console.log(`📖 Restored player name from DB: ${p.name} (UID: ${p.uid})`);
         }
     });
     
