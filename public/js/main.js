@@ -461,18 +461,48 @@ async function fetchPlayerData() {
         
         const payload = await res.json();
         
-        // API returns { code: 0, players: [...] } not { data: [...] }
+        // API returns { code: 0, players: [...], serverChanged: bool }
         const playerData = payload.players || [];
+        const serverChanged = payload.serverChanged || false;
         
         // Detect combat start (new data appearing)
         const hasActivePlayers = playerData.length > 0 && 
             playerData.some(p => (p.total_damage?.total || 0) > 0 || (p.total_healing?.total || 0) > 0);
         
-        // CRITICAL FIX: Handle zone change BEFORE updating combat state
-        // Two modes:
-        // 1. Keep After Dungeon OFF: Clear immediately on any zone change
-        // 2. Keep After Dungeon ON: Only clear when new combat starts in new zone
-        if (payload.zoneChanged && SETTINGS.autoClearOnZoneChange && STATE.players.size > 0 && STATE.startTime) {
+        // CRITICAL FIX: FORCE CLEAR on zone/server change
+        // Backend tells us when server changed via serverChanged flag
+        if (serverChanged) {
+            console.log('🌍 ZONE/SERVER CHANGE DETECTED BY FRONTEND - Forcing display clear');
+            
+            // Save previous session if there was combat data
+            if (STATE.players.size > 0 && STATE.startTime) {
+                const duration = Math.floor((Date.now() - STATE.startTime) / 1000);
+                if (duration > 10) { // Only save if fight lasted more than 10 seconds
+                    console.log('💾 Auto-saving previous battle before zone clear...');
+                    // Fire and forget to avoid blocking
+                    autoSaveSession('Previous Battle (Auto-saved)').catch(err => {
+                        console.error('Failed to auto-save session:', err);
+                    });
+                }
+            }
+            
+            // FORCE CLEAR - Wipe everything
+            console.log('✨ FORCE CLEARING all data for zone change');
+            STATE.players.clear();
+            STATE.playerLastUpdate.clear();
+            STATE.startTime = null;
+            STATE.inCombat = false;
+            STATE.lastUpdate = Date.now();
+            
+            // Force UI update
+            renderPlayers();
+            updateStatusBar();
+            stopDurationCounter();
+        }
+        
+        // OLD LOGIC (deprecated by serverChanged flag)
+        // Keeping for backwards compatibility in case serverChanged is false
+        if (!serverChanged && payload.zoneChanged && SETTINGS.autoClearOnZoneChange && STATE.players.size > 0 && STATE.startTime) {
             const shouldClearNow = !SETTINGS.keepDataAfterDungeon || hasActivePlayers;
             
             if (shouldClearNow) {

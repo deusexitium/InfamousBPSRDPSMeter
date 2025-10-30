@@ -412,24 +412,53 @@ class Sniffer {
                                 console.log(`Server: ${src_server}`);
                                 console.log('='.repeat(80));
                                 
-                                // ALWAYS auto-save on zone change
-                                if (this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
-                                    console.log('💾 Auto-saving current session before zone change...');
-                                    if (typeof this.userDataManager.autoSaveSession === 'function') {
-                                        await this.userDataManager.autoSaveSession();
-                                        console.log('✅ Session auto-saved successfully');
+                                // Check if there's REAL combat data (same as regular zone change)
+                                const hasUsers = this.userDataManager.users.size > 0;
+                                const hasCombatData = hasUsers && Array.from(this.userDataManager.users.values()).some(user => 
+                                    (user.damageStats && user.damageStats.stats.total > 0) || 
+                                    (user.healingStats && user.healingStats.stats.total > 0)
+                                );
+                                const hasExistingData = this.userDataManager.lastLogTime !== 0 && hasCombatData;
+                                
+                                // Debug logging
+                                console.log(`📊 Data check: users=${this.userDataManager.users.size}, hasCombat=${hasCombatData}, willClear=${hasExistingData && this.globalSettings.autoClearOnZoneChange}`);
+                                
+                                // CRITICAL: Respect autoClearOnZoneChange setting (was missing!)
+                                if (this.globalSettings.autoClearOnZoneChange) {
+                                    if (hasExistingData) {
+                                        // Auto-save current session BEFORE clearing
+                                        console.log('💾 Auto-saving current session before zone change...');
+                                        if (typeof this.userDataManager.autoSaveSession === 'function') {
+                                            await this.userDataManager.autoSaveSession();
+                                            console.log('✅ Session auto-saved successfully');
+                                        }
                                     }
                                     
-                                    // If keepDataAfterDungeon is false, clear immediately
-                                    // If true, wait for first damage then clear
+                                    // Determine clear behavior based on keepDataAfterDungeon setting
                                     if (!this.globalSettings.keepDataAfterDungeon) {
-                                        this.userDataManager.clearAll(this.globalSettings);
-                                        console.log('🔄 Meter reset immediately (keepDataAfterDungeon: false)');
+                                        // Clear immediately
+                                        if (hasExistingData) {
+                                            await this.userDataManager.clearAll(this.globalSettings);
+                                            console.log('🔄 Meter reset immediately (LOGIN PACKET: auto-clear enabled, keep-after-dungeon disabled)');
+                                        } else {
+                                            // No data but ensure fresh state
+                                            this.userDataManager.waitingForNewCombat = false;
+                                            console.log('ℹ️ No data to clear - starting fresh (LOGIN PACKET: auto-clear enabled)');
+                                        }
                                     } else {
-                                        // Set flag: will clear on first damage/heal packet
-                                        this.userDataManager.waitingForNewCombat = true;
-                                        console.log('⏳ Keeping old data visible. Will reset on first damage.');
+                                        // Set flag only if there's existing data to clear
+                                        if (hasExistingData) {
+                                            this.userDataManager.waitingForNewCombat = true;
+                                            console.log('⏳ Keeping old data visible. Will reset on first damage (LOGIN PACKET: auto-clear + keep-after-dungeon enabled).');
+                                        } else {
+                                            this.userDataManager.waitingForNewCombat = false;
+                                            console.log('ℹ️ Fresh start. Will begin tracking immediately (LOGIN PACKET: auto-clear + keep-after-dungeon enabled).');
+                                        }
                                     }
+                                } else {
+                                    // Auto-clear on zone is disabled - do nothing
+                                    console.log('ℹ️ Auto-clear on zone disabled - keeping current state (LOGIN PACKET)');
+                                    this.userDataManager.waitingForNewCombat = false;
                                 }
                                 console.log('Game server detected by login packet. Measuring DPS...');
                             }

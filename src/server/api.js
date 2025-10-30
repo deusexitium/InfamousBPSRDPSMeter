@@ -49,7 +49,15 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
             uid: Number(uid),
             ...summary
         }));
-        res.json({ code: 0, players: payload });
+        
+        // CRITICAL: Check if server changed to force frontend clear
+        const serverChanged = userDataManager.checkAndResetServerChange();
+        
+        res.json({ 
+            code: 0, 
+            players: payload,
+            serverChanged: serverChanged  // Frontend uses this to clear display
+        });
     });
 
     app.get('/api/solo-user', (req, res) => {
