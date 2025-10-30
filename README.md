@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.161
+# ⚔️ Infamous BPSR DPS Meter v3.1.162
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.1.161-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-3.1.162-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -13,7 +13,73 @@
 > 
 > This enhanced edition builds upon excellent work from the Blue Protocol community with improved stability, performance, session management, and healer support.
 
-## 📋 What's New in v3.1.161
+## 📋 What's New in v3.1.162
+
+### 🐛 **CRITICAL FIX: Zone Change Spam + Auto-Clear Not Working**
+
+**User Report:** "Joined new dungeon and it didn't auto clear" + ExitLag causing spam every 5 seconds
+
+**Three Critical Bugs Fixed:**
+
+#### **Bug 1: Server Normalization Broken** ❌
+```javascript
+// BEFORE (broken):
+const parts = serverAddr.split(':');  // Gets ["IP", "PORT -> IP", "PORT"]
+if (parts.length === 2) {  // NEVER TRUE! (length is 3)
+```
+**Problem:** Parsed `"192.168.2.47:4375 -> 43.174.230.50:5333"` incorrectly
+- Split on `:` gives 3 parts, not 2
+- Condition `parts.length === 2` always false
+- Normalization never ran
+- Every IP flip seen as zone change
+
+**Fix:** Parse `" -> "` first, then extract destination port
+```javascript
+// AFTER (fixed):
+const parts = serverAddr.split(' -> ');  // ["192.168.2.47:4375", "43.174.230.50:5333"]
+const destParts = parts[1].split(':');   // ["43.174.230.50", "5333"]
+return `port:${destParts[1]}`;           // "port:5333" (ignores IP flips)
+```
+
+#### **Bug 2: Debounce Too Short** ⏱️
+```javascript
+// BEFORE: this.ZONE_CHANGE_DEBOUNCE = 5000;  // 5 seconds
+// AFTER:  this.ZONE_CHANGE_DEBOUNCE = 15000; // 15 seconds
+```
+**Problem:** ExitLag rotates IPs every 5 seconds, exactly matching debounce
+**Fix:** Increased to 15 seconds to ignore VPN routing
+
+#### **Bug 3: Data Detection Wrong** 📊
+```javascript
+// BEFORE (broken):
+const hasExistingData = lastLogTime !== 0 && users.size !== 0;
+```
+**Problem:** With spam every 5s, check runs before combat data arrives
+- `users.size > 0` but no damage/healing yet
+- Always says "No data to clear"
+- But UI shows active combat data!
+
+**Fix:** Check for ACTUAL combat data
+```javascript
+// AFTER (fixed):
+const hasCombatData = Array.from(users.values()).some(user => 
+    (user.damageStats?.stats.total > 0) || 
+    (user.healingStats?.stats.total > 0)
+);
+const hasExistingData = lastLogTime !== 0 && hasCombatData;
+```
+
+**Now shows:** `📊 Data check: users=5, hasCombat=true, willClear=true`
+
+### 🎯 **Result:**
+- ✅ No more zone change spam with ExitLag/VPNs
+- ✅ Auto-clear properly detects combat data
+- ✅ Saves session before clearing
+- ✅ Debug logs show exact data state
+
+---
+
+## 📋 Previous Updates (v3.1.161)
 
 ### 🎨 **UI FIX: Proper Credits & Compact About Tab**
 - **Fixed settings-popup.html** - Was showing old generic credits (not updated in v3.1.160)
@@ -123,7 +189,7 @@
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `InfamousBPSRDPSMeter-Setup-3.1.161.exe` (~90MB)
+- Get: `InfamousBPSRDPSMeter-Setup-3.1.162.exe` (~90MB)
 - 🆕 **Auto-Update:** Automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**

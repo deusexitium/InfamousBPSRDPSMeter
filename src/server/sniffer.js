@@ -113,7 +113,7 @@ class Sniffer {
         
         // Zone change debounce - prevent false positives with VPNs like ExitLag
         this.lastZoneChangeTime = 0;
-        this.ZONE_CHANGE_DEBOUNCE = 5000; // 5 seconds minimum between zone changes
+        this.ZONE_CHANGE_DEBOUNCE = 15000; // 15 seconds minimum between zone changes (ExitLag rotates every 5s)
         
         // Performance optimization settings
         this.MAX_QUEUE_SIZE = 10000; // Prevent memory overflow
@@ -129,16 +129,24 @@ class Sniffer {
 
     // Normalize server address to detect real game server (ignore VPN routing IPs)
     normalizeServerAddress(serverAddr) {
-        // Extract just the port - game servers use consistent ports per zone
-        // VPN routing causes IP flips (192.168.x.x <-> 43.174.x.x) but port stays the same
-        const parts = serverAddr.split(':');
-        if (parts.length === 2) {
-            const port = parts[1];
-            // Only return port if it's a valid game server port range (10000-20000)
-            const portNum = parseInt(port);
-            if (portNum >= 10000 && portNum <= 20000) {
-                return `port:${port}`;
+        // Extract destination port from "IP:PORT -> IP:PORT" format
+        // VPN routing causes IP flips but destination port indicates the game server/zone
+        try {
+            const parts = serverAddr.split(' -> ');
+            if (parts.length === 2) {
+                // Get destination port (second part after arrow)
+                const destParts = parts[1].split(':');
+                if (destParts.length === 2) {
+                    const port = destParts[1];
+                    const portNum = parseInt(port);
+                    // Game server ports are typically in range 4000-20000
+                    if (portNum >= 4000 && portNum <= 20000) {
+                        return `port:${port}`;
+                    }
+                }
             }
+        } catch (e) {
+            this.logger.debug(`Failed to normalize server address: ${e.message}`);
         }
         return serverAddr; // Fallback to full address
     }
@@ -313,7 +321,16 @@ class Sniffer {
                                         console.log('='.repeat(80));
                                         
                                         // Auto-save and clear on zone change (respects settings)
-                                        const hasExistingData = this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0;
+                                        // Check if there's REAL combat data (not just users list)
+                                        const hasUsers = this.userDataManager.users.size > 0;
+                                        const hasCombatData = hasUsers && Array.from(this.userDataManager.users.values()).some(user => 
+                                            (user.damageStats && user.damageStats.stats.total > 0) || 
+                                            (user.healingStats && user.healingStats.stats.total > 0)
+                                        );
+                                        const hasExistingData = this.userDataManager.lastLogTime !== 0 && hasCombatData;
+                                        
+                                        // Debug logging to understand data state
+                                        console.log(`📊 Data check: users=${this.userDataManager.users.size}, hasCombat=${hasCombatData}, willClear=${hasExistingData}`);
                                         
                                         // CRITICAL: Check if auto-clear on zone is enabled
                                         if (this.globalSettings.autoClearOnZoneChange) {
