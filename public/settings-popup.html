@@ -8,8 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/color-scheme.css?v=3.1.160">
-    <link rel="stylesheet" href="css/style.css?v=3.1.160">
+    <link rel="stylesheet" href="css/color-scheme.css?v=3.1.161">
+    <link rel="stylesheet" href="css/style.css?v=3.1.161">
     <style>
         body {
             margin: 0;
@@ -270,36 +270,46 @@
 
                 <!-- About Tab -->
                 <div class="settings-panel" data-panel="about">
-                    <div style="text-align:center; padding:12px 0;">
-                        <h2 style="color:#fbbf24; margin:0 0 4px 0; font-size:16px;">Infamous BPSR DPS Meter</h2>
-                        <p style="color:#9ca3af; font-size:11px; margin:0;">v3.1.132</p>
+                    <div style="text-align:center; padding:8px 0;">
+                        <h2 style="color:#fbbf24; margin:0 0 2px 0; font-size:15px;">⚔️ Infamous BPSR DPS Meter</h2>
+                        <p style="color:#9ca3af; font-size:10px; margin:0;">v3.1.161</p>
                     </div>
-                    <div style="padding:12px; background:rgba(251, 191, 36, 0.05); border-radius:6px; border:1px solid rgba(251, 191, 36, 0.2); margin-bottom:12px;">
-                        <p style="color:#d1d5db; font-size:11px; line-height:1.5; margin:0 0 8px 0;">
-                            Real-time damage and healing tracker for Blue Protocol Special Reconstruction.
-                        </p>
-                        <p style="color:#9ca3af; font-size:10px; margin:0;">
-                            <i class="fa-solid fa-code"></i> Open source project for the BPSR community
+                    
+                    <div style="padding:8px; background:rgba(251, 191, 36, 0.05); border-radius:4px; border:1px solid rgba(251, 191, 36, 0.2); margin:8px 0;">
+                        <p style="color:#d1d5db; font-size:10px; line-height:1.4; margin:0;">
+                            Real-time DPS/HPS tracker for Blue Protocol Special Reconstruction
                         </p>
                     </div>
                     
-                    <!-- Credits -->
-                    <div style="padding:12px; background:rgba(59, 130, 246, 0.05); border-radius:6px; border:1px solid rgba(59, 130, 246, 0.2);">
-                        <h4 style="color:#60a5fa; margin:0 0 8px 0; font-size:12px;">
+                    <!-- Credits - Compact -->
+                    <div style="padding:8px; background:rgba(59, 130, 246, 0.05); border-radius:4px; border:1px solid rgba(59, 130, 246, 0.2);">
+                        <h4 style="color:#60a5fa; margin:0 0 6px 0; font-size:11px;">
                             <i class="fa-solid fa-heart"></i> Credits
                         </h4>
-                        <div style="font-size:10px; color:#9ca3af; line-height:1.6;">
-                            <p style="margin:0 0 4px 0;"><strong style="color:#d1d5db;">Development:</strong> Infamous & Contributors</p>
-                            <p style="margin:0 0 4px 0;"><strong style="color:#d1d5db;">Packet Analysis:</strong> BPSR Community</p>
-                            <p style="margin:0 0 4px 0;"><strong style="color:#d1d5db;">Testing:</strong> BPSR Players</p>
-                            <p style="margin:0 0 4px 0;"><strong style="color:#d1d5db;">Special Thanks:</strong> Blue Protocol Private Server Team</p>
+                        <div style="font-size:9px; color:#9ca3af; line-height:1.5;">
+                            <p style="margin:0 0 3px 0;">
+                                🌟 Original: <a href="https://github.com/dmlgzs/StarResonanceDamageCounter" target="_blank" style="color:#60a5fa">StarResonanceDamageCounter</a> by dmlgzs
+                            </p>
+                            <p style="margin:0 0 3px 0;">
+                                🔱 Forked from: <a href="https://github.com/NeRooNx/BPSR-Meter" target="_blank" style="color:#60a5fa">NeRooNx/BPSR-Meter</a>
+                            </p>
+                            <p style="margin:0;">
+                                📊 BPSR Logs: <a href="https://github.com/winjwinj/bpsr-logs" target="_blank" style="color:#60a5fa">winjwinj/bpsr-logs</a>
+                            </p>
                         </div>
                     </div>
                     
-                    <!-- Support -->
-                    <div style="margin-top:12px; padding:10px; background:rgba(16, 185, 129, 0.05); border-radius:6px; border:1px solid rgba(16, 185, 129, 0.2);">
-                        <p style="font-size:10px; color:#9ca3af; margin:0; text-align:center;">
-                            <i class="fa-solid fa-circle-info"></i> For issues or suggestions, visit the project repository
+                    <!-- Check for Updates Button -->
+                    <div style="margin-top:10px;">
+                        <button onclick="checkForUpdates()" style="width:100%; padding:8px; background:#1e3a8a; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:10px;">
+                            <i class="fa-solid fa-sync"></i> Check for Updates
+                        </button>
+                    </div>
+                    
+                    <!-- License -->
+                    <div style="margin-top:8px; text-align:center;">
+                        <p style="font-size:9px; color:#6b7280; margin:0;">
+                            AGPL-3.0 License • Open Source
                         </p>
                     </div>
                 </div>
@@ -315,6 +325,6 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="js/settings-popup.js?v=3.1.132"></script>
+    <script src="js/settings-popup.js?v=3.1.161"></script>
 </body>
 </html>
