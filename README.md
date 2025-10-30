@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.163
+# ⚔️ Infamous BPSR DPS Meter v3.1.164
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.1.163-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-3.1.164-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -13,7 +13,86 @@
 > 
 > This enhanced edition builds upon excellent work from the Blue Protocol community with improved stability, performance, session management, and healer support.
 
-## 📋 What's New in v3.1.163
+## 📋 What's New in v3.1.164
+
+### 🎨 **UI/UX IMPROVEMENTS: Dragging, Buttons, Auto-Update**
+
+**User feedback:** "Dragging not working as well, buttons not good, golden ratio not followed, check for updates no feedback, auto-update settings missing"
+
+#### **Issue 1: Dragging Intermittently Breaking** 🖱️
+**Fix:** Enhanced drag region indicators
+```css
+.popup-header {
+    -webkit-app-region: drag;
+    cursor: move;           /* Visual feedback */
+    user-select: none;      /* Prevent text selection interference */
+}
+```
+- ✅ Cursor changes to "move" on header
+- ✅ Text selection doesn't interfere with dragging
+- ✅ Consistent across all popup windows
+
+#### **Issue 2: Session Manager Button Styling** 🎨
+**Fix:** Applied Golden Ratio (φ ≈ 1.618) for visual harmony
+```css
+.toolbar button {
+    padding: 8px 18px;     /* 18/11 ≈ 1.636 ≈ φ */
+    border-radius: 5px;    /* 8/5 = 1.6 ≈ φ */
+}
+
+/* Gradient primary buttons */
+.btn-primary {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+}
+```
+- ✅ Golden ratio proportions (padding, border-radius)
+- ✅ Gradient backgrounds for primary actions
+- ✅ Smooth hover effects with elevation
+- ✅ Better contrast for danger/secondary buttons
+
+#### **Issue 3: Check for Updates No Feedback** 🔄
+**Fix:** Created visual feedback system
+```javascript
+async function checkForUpdates() {
+    // States:
+    // 1. Checking → Spinner icon
+    // 2. Success → Checkmark, version comparison
+    // 3. Available → Confirm dialog with download link
+    // 4. Error → Warning icon, red background
+    // 5. Auto-reset after 2 seconds
+}
+```
+**Visual feedback:**
+- 🔄 **Checking:** Button shows spinner
+- ✅ **Success:** Checkmark + version info dialog
+- 🎉 **Update Available:** Confirm with download link
+- ❌ **Error:** Warning icon + red background + error alert
+
+#### **Issue 4: Auto-Update Settings Missing** ⚙️
+**Fix:** Added dropdown in Settings > General
+```html
+<select id="setting-auto-update">
+    <option value="auto">Auto Update (Download & Install)</option>
+    <option value="notify">Notify Only (Recommended)</option>
+    <option value="disable">Disable (No Checks)</option>
+</select>
+```
+- **Auto Update:** Downloads and installs automatically
+- **Notify Only:** Shows update notification (Recommended)
+- **Disable:** No update checks
+- Synced to backend via `/api/settings`
+
+### 🎯 **Result:**
+- ✅ Dragging works reliably with visual cursor feedback
+- ✅ Buttons follow golden ratio with better contrast
+- ✅ Check for Updates shows full visual feedback
+- ✅ Users control auto-update behavior (auto/notify/disable)
 
 ### 🐛 **LIFEGUARD FIXES: Critical Typo + Server Info Display**
 
@@ -229,7 +308,7 @@ const hasExistingData = lastLogTime !== 0 && hasCombatData;
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `InfamousBPSRDPSMeter-Setup-3.1.163.exe` (~90MB)
+- Get: `InfamousBPSRDPSMeter-Setup-3.1.164.exe` (~90MB)
 - 🆕 **Auto-Update:** Automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**

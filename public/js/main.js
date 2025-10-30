@@ -2703,7 +2703,7 @@ async function checkPopupMode() {
 }
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.163 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.164 - Initializing...');
     
     // CRITICAL: Check if this is a popup window
     const isPopup = await checkPopupMode();
@@ -2795,7 +2795,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.163 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.164 - Ready!');
 }
 
 // ============================================================================
