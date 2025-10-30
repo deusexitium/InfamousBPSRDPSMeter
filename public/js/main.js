@@ -1752,13 +1752,13 @@ function startAutoRefresh() {
         }
     }, interval);
     
-    // Refresh skills for expanded players every 5 seconds
+    // Refresh skills for expanded players every 1 second for real-time updates during combat
     if (STATE.skillsRefreshTimer) clearInterval(STATE.skillsRefreshTimer);
     STATE.skillsRefreshTimer = setInterval(() => {
         expandedPlayerIds.forEach(uid => {
             loadAndShowPlayerDetails(uid);
         });
-    }, 5000);
+    }, 1000);
 }
 
 function stopAutoRefresh() {

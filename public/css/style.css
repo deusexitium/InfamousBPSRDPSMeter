@@ -71,31 +71,26 @@ body {
     cursor: grabbing;
 }
 
-/* Make text elements draggable, but keep containers interactive */
+/* Container layout only - NO drag here to avoid conflicts */
 .title-bar .title-left,
 .title-bar .title-right {
-    -webkit-app-region: drag;
-    cursor: grab;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.title-bar:active .title-left,
-.title-bar:active .title-right {
-    cursor: grabbing;
-}
-
-/* Logo and text are draggable */
+/* Make specific text elements draggable */
 .title-bar .logo,
-.title-bar .app-name {
+.title-bar .app-name,
+.title-bar .duration {
     -webkit-app-region: drag;
     cursor: grab;
-    pointer-events: none; /* Let drag events pass through */
+    pointer-events: none; /* Let drag events pass through to parent */
 }
 
 .title-bar:active .logo,
-.title-bar:active .app-name {
+.title-bar:active .app-name,
+.title-bar:active .duration {
     cursor: grabbing;
 }
 
