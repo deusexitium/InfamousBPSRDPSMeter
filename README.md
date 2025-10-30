@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.103
+# ⚔️ Infamous BPSR DPS Meter v3.1.153
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.1.50-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-3.1.153-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -11,7 +11,39 @@
 > **🔱 Forked From:** [NeRooNx/BPSR-Meter](https://github.com/NeRooNx/BPSR-Meter)  
 > **📊 BPSR Logs:** [winjwinj/bpsr-logs](https://github.com/winjwinj/bpsr-logs)
 > 
-> This enhanced edition builds upon excellent work from the Blue Protocol community with improved stability, session management, and extended features.
+> This enhanced edition builds upon excellent work from the Blue Protocol community with improved stability, performance, session management, and healer support.
+
+## 📋 What's New in v3.1.153
+
+### 🚀 **Performance Improvements**
+- **Fixed data stream freezing** - Non-blocking auto-save prevents 100-500ms freezes
+- **30-50% better performance** when idle/out of combat  
+- **Smart rendering** - Only recalculates hash when data changes
+- **Reduced forced renders** from 1s to 3s for better CPU usage
+
+### 🐛 **Critical Bug Fixes**
+- **Dragging reliability** - Fixed compact mode header drag handling
+- **DMG TAKEN & OVERHEAL columns** - Now show data in compact mode
+- **Local player rank** - Shows real rank (not always #1) while staying at top
+- **Skill loading timeout** - No more infinite "Loading..." (5s timeout added)
+
+### 🎯 **Active Player Prioritization**
+- Players doing damage stay at top of list
+- Idle players (15s no damage) marked and pushed to bottom
+- Very idle players (60s) removed from list
+- Local player always visible regardless of activity
+
+### 💊 **Healer Support**
+- Backend healer metrics tracking (effective healing, overheal, efficiency)
+- Deaths prevented counter for clutch heals
+- Healer mode toggle for compact/full views
+- Separate column settings for DPS vs Healer modes
+
+### ⚙️ **Settings & UI**
+- Settings persist to AppData (survives reinstalls)
+- Separate scale settings for compact/full modes
+- Wider modals (750px) with more compact layouts
+- Column visibility toggles (Display tab in Settings)
 
 ---
 
@@ -21,8 +53,8 @@
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `InfamousBPSRDPSMeter-Setup-3.1.52.exe` (~90MB)
-- 🆕 **Auto-Update:** v3.1.52+ includes automatic update notifications from GitHub!
+- Get: `InfamousBPSRDPSMeter-Setup-3.1.153.exe` (~90MB)
+- 🆕 **Auto-Update:** Automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**
 - Download from: https://npcap.com/

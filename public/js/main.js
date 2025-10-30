@@ -2679,7 +2679,7 @@ async function checkPopupMode() {
 }
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.152 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.153 - Initializing...');
     
     // CRITICAL: Check if this is a popup window
     const isPopup = await checkPopupMode();
@@ -2771,7 +2771,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.152 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.153 - Ready!');
 }
 
 // ============================================================================
@@ -3074,7 +3074,13 @@ function renderSkillsFromCache(uid) {
 async function loadAndShowPlayerDetails(uid) {
     try {
         const apiUrl = `${CONFIG.apiSkill}/${uid}`;
-        const res = await fetch(apiUrl);
+        
+        // Add 5 second timeout to prevent infinite loading
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        const res = await fetch(apiUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
         
         if (!res.ok) {
             throw new Error(`Failed to fetch player details: ${res.status}`);
@@ -3130,8 +3136,11 @@ async function loadAndShowPlayerDetails(uid) {
         console.warn(`⚠️ Could not load skills for UID ${uid}:`, error.message);
         const skillsContainer = document.getElementById(`skills-${uid}`);
         if (skillsContainer) {
-            // Show silent message instead of error toast
-            skillsContainer.innerHTML = '<div class="no-data" style="padding:20px;text-align:center;color:#9ca3af;">Skill data unavailable</div>';
+            // Show appropriate message based on error type
+            const message = error.name === 'AbortError' 
+                ? 'Skill data loading timed out - try again' 
+                : 'Skill data unavailable';
+            skillsContainer.innerHTML = `<div class="no-data" style="padding:20px;text-align:center;color:#9ca3af;">${message}</div>`;
         }
         
         // Still resize even if skills failed to load
