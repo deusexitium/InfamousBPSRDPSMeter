@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.166
+# ⚔️ Infamous BPSR DPS Meter v3.1.167
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.1.166-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-3.1.167-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -13,7 +13,188 @@
 > 
 > This enhanced edition builds upon excellent work from the Blue Protocol community with improved stability, performance, session management, and healer support.
 
-## 📋 What's New in v3.1.166
+## 📋 What's New in v3.1.167
+
+### 🐛 **CRITICAL FIXES: CSP Blocking API, Popup Missing Content, Choppy UI**
+
+**User Reports:**
+- ❌ "Update check fails in app but works in browser"
+- ❌ "Two different about pages"  
+- ❌ "Open data folder doesn't work"
+- ❌ "UI is so choppy and slow"
+
+---
+
+#### **Issue 1: Update Check Fails in Popup** 🚨
+
+**Symptom:**
+```
+Browser (localhost:6969):  ✅ You're up to date! v3.1.167
+Electron Popup:            ❌ Failed to check for updates.
+```
+
+**Root Cause:** Content Security Policy (CSP) blocks GitHub API
+
+**Bad CSP:**
+```javascript
+connect-src 'self' ws://localhost:* http://localhost:*;
+// ❌ Missing https://api.github.com
+```
+
+**Why This Broke:**
+1. `checkForUpdates()` fetches `https://api.github.com/repos/.../releases/latest`
+2. CSP blocks all external HTTPS requests except allowed domains
+3. GitHub not in allowlist → **fetch blocked**
+4. Browser console: `net::ERR_BLOCKED_BY_CLIENT`
+
+**The Fix:**
+```javascript
+connect-src 'self' ws://localhost:* http://localhost:* https://api.github.com;
+// ✅ Added GitHub API to CSP allowlist
+```
+
+**Result:**
+- ✅ Update check now works in popup
+- ✅ Fetch to GitHub API allowed
+- ✅ No more "Failed to check for updates"
+
+---
+
+#### **Issue 2: Two Different About Pages** 🖼️
+
+**Symptom:**
+```
+Browser About Tab (index.html):     Electron Popup About Tab (settings-popup.html):
+✅ VPN Users warning                 ❌ Missing
+✅ Data Location + button            ❌ Missing  
+✅ Tech Stack badges                 ❌ Missing
+```
+
+**Root Cause:** `settings-popup.html` was missing sections that `index.html` had
+
+**What Was Missing:**
+1. **VPN Users Warning**
+   ```html
+   ⚠️ VPN Users
+   Packet capture may be delayed up to 2 minutes with VPNs.
+   For best results, disable VPN or view troubleshooting guide.
+   ```
+
+2. **Data Location Section**
+   ```html
+   📁 Data Location
+   C:\Users\sabir\AppData\Roaming\infamous-bpsr-dps-meter
+   [Open Data Folder] button
+   Sessions, settings, logs stored here
+   ```
+
+3. **Tech Stack Badges**
+   ```
+   [Electron] [Node.js] [Express] [Socket.IO] [Npcap] [Protobuf]
+   ```
+
+**The Fix:**
+
+**Added to `settings-popup.html`:**
+- VPN warning section with styling
+- Data Location with path display  
+- Open Data Folder button (functional)
+- Tech Stack badges with proper styling
+
+**Added to `settings-popup.js`:**
+```javascript
+// Open folder in file explorer
+function openDataFolder() {
+    const pathElement = document.getElementById('user-data-path');
+    const folderPath = pathElement?.dataset.path;
+    if (folderPath && window.electronAPI?.openPath) {
+        window.electronAPI.openPath(folderPath);
+    }
+}
+
+// Load user data path on popup open
+async function loadUserDataPath() {
+    const userDataPath = await window.electronAPI.getUserDataPath();
+    pathElement.textContent = userDataPath;
+    pathElement.dataset.path = userDataPath;
+}
+```
+
+**Result:**
+- ✅ Popup now matches browser About tab
+- ✅ Open Data Folder button works
+- ✅ Shows AppData path correctly
+- ✅ All sections visible
+
+---
+
+#### **Issue 3: Choppy and Slow UI** 🐌
+
+**Symptom:** "UI is so choppy and slow"
+
+**Root Cause:** Aggressive cache clearing on **EVERY startup** (added in v3.1.165)
+
+**Bad Code (v3.1.165-v3.1.166):**
+```javascript
+// Runs on EVERY app launch
+await mainWindow.webContents.session.clearCache();        // Heavy I/O
+await mainWindow.webContents.session.clearStorageData({   // VERY heavy I/O
+    storages: ['appcache', 'serviceworkers', 'cachestorage']
+});
+```
+
+**Why This Caused Slowness:**
+1. `clearCache()` deletes HTTP cache (moderate I/O)
+2. `clearStorageData()` deletes appcache + service workers + cache storage (heavy I/O)
+3. Runs synchronously on **every single launch**
+4. Disk I/O blocks rendering → choppy UI
+5. Service worker rebuild on every launch → slow startup
+
+**The Fix:**
+```javascript
+// Clear only HTTP cache (lighter operation)
+await mainWindow.webContents.session.clearCache();
+// REMOVED: clearStorageData (too aggressive)
+
+// webPreferences still has cache: false for fresh JS/CSS
+```
+
+**Trade-offs:**
+- ✅ **Much faster startup** (no service worker rebuild)
+- ✅ **Smoother UI** (less disk I/O)
+- ✅ **Fresh JS/CSS** still loaded (`cache: false` in webPreferences)
+- ⚠️ Service workers persist (acceptable, not used heavily)
+
+**Result:**
+- ✅ Faster app launch
+- ✅ Smoother, less choppy UI
+- ✅ Still gets version updates (HTTP cache cleared)
+
+---
+
+#### **Why User Saw Two Settings Windows** 🪟
+
+**Clarification:**
+1. **Browser at `localhost:6969`** - index.html modal (built-in settings)
+2. **Electron Popup** - settings-popup.html (dedicated popup window)
+
+User had **both open simultaneously**:
+- Browser window (for testing)
+- Electron app (production use)
+
+Both are now **fully functional and identical** after fixes.
+
+---
+
+### 🎯 **Result:**
+- ✅ **CSP Fixed:** Update check works in popup
+- ✅ **Content Parity:** Popup matches browser About tab
+- ✅ **Open Folder:** Button now functional
+- ✅ **Performance:** Reduced cache clearing, smoother UI
+
+---
+
+## 📋 Previous Updates (v3.1.166)
 
 ### 🐛 **FIX: About Tab Rendering Issue in Electron App**
 
@@ -543,7 +724,7 @@ const hasExistingData = lastLogTime !== 0 && hasCombatData;
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `InfamousBPSRDPSMeter-Setup-3.1.166.exe` (~90MB)
+- Get: `InfamousBPSRDPSMeter-Setup-3.1.167.exe` (~90MB)
 - 🆕 **Auto-Update:** Automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**
