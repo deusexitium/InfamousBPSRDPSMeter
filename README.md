@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.165
+# ⚔️ Infamous BPSR DPS Meter v3.1.166
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.1.165-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-3.1.166-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -13,7 +13,114 @@
 > 
 > This enhanced edition builds upon excellent work from the Blue Protocol community with improved stability, performance, session management, and healer support.
 
-## 📋 What's New in v3.1.165
+## 📋 What's New in v3.1.166
+
+### 🐛 **FIX: About Tab Rendering Issue in Electron App**
+
+**User Report:** "in browser it appears to work but not in the app and both about pages look different, theres a rending problem?"
+
+#### **The Problem** 🚨
+**Browser (Working):**
+- ✅ Full About tab content visible
+- ✅ VPN warning, Data Location, Credits, Tech Stack, Check for Updates
+- ✅ Everything renders correctly
+
+**Electron App (Broken):**
+- ❌ Large white blank area after Credits
+- ❌ Missing: Tech Stack, Check for Updates button
+- ❌ Content exists but not visible
+- ❌ Different rendering than browser
+
+**Visual Evidence:**
+```
+Browser:  [Credits] [Tech Stack] [Check for Updates] ✅
+Electron: [Credits] [   WHITE BLANK AREA   ]       ❌
+```
+
+---
+
+#### **Root Cause Analysis** 🔍
+
+**Triple Nested Overflow Containers:**
+```css
+.modal-content {
+    max-height: 90vh;
+    overflow-y: auto;  /* ← Level 1 scroll */
+}
+
+.modal-body {
+    overflow-y: auto;  /* ← Level 2 scroll */
+}
+
+.settings-panel {
+    max-height: calc(85vh - 120px); /* ← PROBLEM! */
+    overflow-y: auto;  /* ← Level 3 scroll */
+}
+```
+
+**Why This Breaks in Electron:**
+1. Three nested scroll containers conflict
+2. `.settings-panel` max-height cuts off content
+3. Electron's rendering engine handles nested overflow differently than browser
+4. Content rendered but pushed outside visible area
+5. White space visible but content not scrollable
+
+---
+
+#### **The Fix** ✅
+
+**Simplified Overflow Hierarchy:**
+```css
+.modal-body {
+    padding: 16px;
+    overflow-y: auto;  /* Single scroll container */
+    flex: 1;           /* Proper flex child */
+    min-height: 0;     /* Allow flex shrinking */
+}
+
+.settings-panel {
+    display: none;
+    padding: 12px;
+    /* ✅ Removed: max-height constraint */
+    overflow-y: visible; /* Let parent handle scrolling */
+    overflow-x: hidden;
+}
+```
+
+**Changes:**
+1. **Removed** `max-height: calc(85vh - 120px)` from `.settings-panel`
+2. **Changed** `overflow-y: auto` → `overflow-y: visible`
+3. **Added** `flex: 1` and `min-height: 0` to `.modal-body`
+4. **Result:** Single scroll container at modal-body level
+
+---
+
+#### **Why Browser Worked But Electron Didn't** 🤔
+
+**Browser Rendering:**
+- More forgiving with nested overflow
+- Automatically adjusts scroll behavior
+- Renders content even with conflicts
+
+**Electron/Chromium Rendering:**
+- Stricter overflow handling
+- Nested scroll containers cause issues
+- Content can be pushed outside viewport
+- White space rendered but content not visible
+
+**Solution:** Use single overflow container + flex layout
+
+---
+
+### 🎯 **Result:**
+- ✅ **Electron app:** Full About tab content now visible
+- ✅ **Browser:** Continues to work (no regression)
+- ✅ **Rendering:** Matches across platforms
+- ✅ **Scrolling:** Single, predictable scroll container
+
+---
+
+## 📋 Previous Updates (v3.1.165)
 
 ### 🐛 **CRITICAL FIXES: Update Check, Icon, Cache, Auto-Clear**
 
@@ -436,7 +543,7 @@ const hasExistingData = lastLogTime !== 0 && hasCombatData;
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `InfamousBPSRDPSMeter-Setup-3.1.165.exe` (~90MB)
+- Get: `InfamousBPSRDPSMeter-Setup-3.1.166.exe` (~90MB)
 - 🆕 **Auto-Update:** Automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**
