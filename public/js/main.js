@@ -465,6 +465,11 @@ async function fetchPlayerData() {
         const playerData = payload.players || [];
         const serverChanged = payload.serverChanged || false;
         
+        // DEBUG: Log server change detection
+        if (serverChanged) {
+            console.log(`🚨 SERVER CHANGE FLAG RECEIVED: serverChanged=${serverChanged}, autoClearOnZoneChange=${SETTINGS.autoClearOnZoneChange}, players in STATE=${STATE.players.size}, new players=${playerData.length}`);
+        }
+        
         // Detect combat start (new data appearing)
         const hasActivePlayers = playerData.length > 0 && 
             playerData.some(p => (p.total_damage?.total || 0) > 0 || (p.total_healing?.total || 0) > 0);

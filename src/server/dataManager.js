@@ -28,7 +28,8 @@ class Lock {
 }
 
 // Server change tracking - set by sniffer when server changes
-let serverChangeDetected = false;
+// Using timestamp so multiple frontend requests can see the flag (stays active for 3 seconds)
+let serverChangeDetected = 0; // Timestamp when server changed, 0 = no change
 
 function getSubProfessionBySkillId(skillId) {
     switch (skillId) {
@@ -1369,18 +1370,28 @@ class UserDataManager {
     
     /** Mark that server changed (called by sniffer) */
     markServerChanged() {
-        serverChangeDetected = true;
-        this.logger.info('🌐 Server change marked for frontend notification');
+        serverChangeDetected = Date.now();
+        this.logger.info('🌐 Server change marked for frontend notification (will stay active for 3 seconds)');
     }
     
-    /** Check if server changed and reset flag */
+    /** Check if server changed (stays true for 3 seconds after change) */
     checkAndResetServerChange() {
-        const changed = serverChangeDetected;
-        if (changed) {
-            serverChangeDetected = false;
-            this.logger.info('✅ Server change flag sent to frontend and reset');
+        if (serverChangeDetected === 0) {
+            return false; // No server change
         }
-        return changed;
+        
+        const now = Date.now();
+        const elapsed = now - serverChangeDetected;
+        
+        // Keep flag active for 3 seconds so multiple frontend requests can see it
+        if (elapsed < 3000) {
+            return true; // Server changed recently
+        }
+        
+        // After 3 seconds, reset the flag
+        serverChangeDetected = 0;
+        this.logger.info('⏱️ Server change flag expired (3 seconds passed)');
+        return false;
     }
 
     /** Detect zone/boss from enemy data */
