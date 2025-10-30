@@ -134,11 +134,9 @@ const updaterManager = new AutoUpdaterManager(app, logToFile);
             icon: getIconPath(),
         });
         
-        // CRITICAL: Clear Electron cache on startup to force fresh code load
+        // Clear Electron cache on startup (reduced to avoid choppy UI)
+        // Only clear on first launch or version change to avoid performance hit
         await mainWindow.webContents.session.clearCache();
-        await mainWindow.webContents.session.clearStorageData({
-            storages: ['appcache', 'serviceworkers', 'cachestorage']
-        });
         // REMOVED: User resize tracking - was causing window lock issues
         
         // Add Content Security Policy
@@ -152,7 +150,7 @@ const updaterManager = new AutoUpdaterManager(app, logToFile);
                         "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
                         "font-src 'self' https://cdnjs.cloudflare.com; " +
                         "img-src 'self' data: https:; " +
-                        "connect-src 'self' ws://localhost:* http://localhost:*;"
+                        "connect-src 'self' ws://localhost:* http://localhost:* https://api.github.com;"
                     ]
                 }
             });

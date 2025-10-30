@@ -307,6 +307,35 @@ async function checkForUpdates() {
     }
 }
 
+// Open data folder in file explorer
+function openDataFolder() {
+    const pathElement = document.getElementById('user-data-path');
+    const folderPath = pathElement?.dataset.path;
+    
+    if (folderPath && window.electronAPI?.openPath) {
+        window.electronAPI.openPath(folderPath);
+    }
+}
+
+// Load user data path
+async function loadUserDataPath() {
+    try {
+        const userDataPath = await window.electronAPI.getUserDataPath();
+        const pathElement = document.getElementById('user-data-path');
+        if (pathElement) {
+            pathElement.textContent = userDataPath;
+            pathElement.dataset.path = userDataPath; // Store for openDataFolder
+        }
+    } catch (error) {
+        console.error('Failed to get user data path:', error);
+    }
+}
+
+// Load path when popup opens
+if (window.electronAPI?.getUserDataPath) {
+    loadUserDataPath();
+}
+
 // Add CSS animation
 const style = document.createElement('style');
 style.textContent = `

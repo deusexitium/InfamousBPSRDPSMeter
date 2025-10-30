@@ -300,6 +300,28 @@
                         </p>
                     </div>
                     
+                    <!-- VPN Users Warning -->
+                    <div style="padding:8px; background:rgba(251, 191, 36, 0.05); border-radius:4px; border:1px solid rgba(251, 191, 36, 0.3); margin:8px 0;">
+                        <h4 style="color:#fbbf24; margin:0 0 6px 0; font-size:11px;">
+                            ⚠️ VPN Users
+                        </h4>
+                        <p style="font-size:9px; color:#d1d5db; margin:0; line-height:1.4;">
+                            Packet capture may be delayed up to 2 minutes with VPNs. For best results, disable VPN or view troubleshooting guide.
+                        </p>
+                    </div>
+                    
+                    <!-- Data Location -->
+                    <div style="padding:8px; background:rgba(59, 130, 246, 0.05); border-radius:4px; border:1px solid rgba(59, 130, 246, 0.2); margin:8px 0;">
+                        <h4 style="color:#60a5fa; margin:0 0 6px 0; font-size:11px;">
+                            📁 Data Location
+                        </h4>
+                        <p id="user-data-path" style="font-size:9px; color:#9ca3af; margin:0 0 6px 0; word-break:break-all;">Loading...</p>
+                        <button onclick="openDataFolder()" style="width:100%; padding:6px; background:#1e40af; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:9px;">
+                            <i class="fa-solid fa-folder-open"></i> Open Data Folder
+                        </button>
+                        <p style="font-size:8px; color:#6b7280; margin:6px 0 0 0;">Sessions, settings, logs stored here</p>
+                    </div>
+                    
                     <!-- Credits - Compact -->
                     <div style="padding:8px; background:rgba(59, 130, 246, 0.05); border-radius:4px; border:1px solid rgba(59, 130, 246, 0.2);">
                         <h4 style="color:#60a5fa; margin:0 0 6px 0; font-size:11px;">
@@ -315,6 +337,21 @@
                             <p style="margin:0;">
                                 📊 BPSR Logs: <a href="https://github.com/winjwinj/bpsr-logs" target="_blank" style="color:#60a5fa">winjwinj/bpsr-logs</a>
                             </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Tech Stack -->
+                    <div style="padding:8px; background:rgba(59, 130, 246, 0.05); border-radius:4px; border:1px solid rgba(59, 130, 246, 0.2); margin:8px 0;">
+                        <h4 style="color:#60a5fa; margin:0 0 6px 0; font-size:11px;">
+                            🛠️ Tech Stack
+                        </h4>
+                        <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                            <span style="padding:3px 8px; background:rgba(96, 165, 250, 0.2); border-radius:3px; font-size:8px; color:#93c5fd;">Electron</span>
+                            <span style="padding:3px 8px; background:rgba(96, 165, 250, 0.2); border-radius:3px; font-size:8px; color:#93c5fd;">Node.js</span>
+                            <span style="padding:3px 8px; background:rgba(96, 165, 250, 0.2); border-radius:3px; font-size:8px; color:#93c5fd;">Express</span>
+                            <span style="padding:3px 8px; background:rgba(96, 165, 250, 0.2); border-radius:3px; font-size:8px; color:#93c5fd;">Socket.IO</span>
+                            <span style="padding:3px 8px; background:rgba(96, 165, 250, 0.2); border-radius:3px; font-size:8px; color:#93c5fd;">Npcap</span>
+                            <span style="padding:3px 8px; background:rgba(96, 165, 250, 0.2); border-radius:3px; font-size:8px; color:#93c5fd;">Protobuf</span>
                         </div>
                     </div>
                     
