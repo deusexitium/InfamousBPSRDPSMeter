@@ -471,7 +471,8 @@ async function fetchPlayerData() {
         
         // CRITICAL FIX: FORCE CLEAR on zone/server change
         // Backend tells us when server changed via serverChanged flag
-        if (serverChanged) {
+        // MUST also check SETTINGS.autoClearOnZoneChange to respect user preference
+        if (serverChanged && SETTINGS.autoClearOnZoneChange) {
             console.log('🌍 ZONE/SERVER CHANGE DETECTED BY FRONTEND - Forcing display clear');
             
             // Save previous session if there was combat data
@@ -498,6 +499,8 @@ async function fetchPlayerData() {
             renderPlayers();
             updateStatusBar();
             stopDurationCounter();
+        } else if (serverChanged && !SETTINGS.autoClearOnZoneChange) {
+            console.log('ℹ️ Zone changed but auto-clear disabled - keeping current data');
         }
         
         // OLD LOGIC (deprecated by serverChanged flag)
