@@ -323,16 +323,12 @@ class Sniffer {
                                         console.log('='.repeat(80));
                                         
                                         // Auto-save and clear on zone change (respects settings)
-                                        // Check if there's REAL combat data (not just users list)
+                                        // SIMPLIFIED: Check if ANY data exists (don't wait for combat stats - too slow!)
                                         const hasUsers = this.userDataManager.users.size > 0;
-                                        const hasCombatData = hasUsers && Array.from(this.userDataManager.users.values()).some(user => 
-                                            (user.damageStats && user.damageStats.stats.total > 0) || 
-                                            (user.healingStats && user.healingStats.stats.total > 0)
-                                        );
-                                        const hasExistingData = this.userDataManager.lastLogTime !== 0 && hasCombatData;
+                                        const hasExistingData = this.userDataManager.lastLogTime !== 0 || hasUsers;
                                         
                                         // Debug logging to understand data state
-                                        console.log(`📊 Data check: users=${this.userDataManager.users.size}, hasCombat=${hasCombatData}, willClear=${hasExistingData}`);
+                                        console.log(`📊 Data check: users=${this.userDataManager.users.size}, lastLogTime=${this.userDataManager.lastLogTime}, willClear=${hasExistingData && this.globalSettings.autoClearOnZoneChange}`);
                                         
                                         // CRITICAL: Check if auto-clear on zone is enabled
                                         if (this.globalSettings.autoClearOnZoneChange) {
@@ -412,16 +408,12 @@ class Sniffer {
                                 console.log(`Server: ${src_server}`);
                                 console.log('='.repeat(80));
                                 
-                                // Check if there's REAL combat data (same as regular zone change)
+                                // SIMPLIFIED: Check if ANY data exists (don't wait for combat stats - too slow!)
                                 const hasUsers = this.userDataManager.users.size > 0;
-                                const hasCombatData = hasUsers && Array.from(this.userDataManager.users.values()).some(user => 
-                                    (user.damageStats && user.damageStats.stats.total > 0) || 
-                                    (user.healingStats && user.healingStats.stats.total > 0)
-                                );
-                                const hasExistingData = this.userDataManager.lastLogTime !== 0 && hasCombatData;
+                                const hasExistingData = this.userDataManager.lastLogTime !== 0 || hasUsers;
                                 
                                 // Debug logging
-                                console.log(`📊 Data check: users=${this.userDataManager.users.size}, hasCombat=${hasCombatData}, willClear=${hasExistingData && this.globalSettings.autoClearOnZoneChange}`);
+                                console.log(`📊 Data check: users=${this.userDataManager.users.size}, lastLogTime=${this.userDataManager.lastLogTime}, willClear=${hasExistingData && this.globalSettings.autoClearOnZoneChange}`);
                                 
                                 // CRITICAL: Respect autoClearOnZoneChange setting (was missing!)
                                 if (this.globalSettings.autoClearOnZoneChange) {
