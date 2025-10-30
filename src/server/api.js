@@ -209,16 +209,40 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
         }
     });
     
-    // Load settings from AppData settings.json
+    // Load settings from AppData settings.json with migration support
     app.get('/api/settings/load', async (req, res) => {
         try {
             const data = await fsPromises.readFile(SETTINGS_PATH, 'utf8');
-            const settings = JSON.parse(data);
+            let settings = JSON.parse(data);
+            
+            // MIGRATION: Add new settings with defaults if they don't exist
+            // This preserves existing settings while adding new ones from updates
+            const defaultSettings = {
+                maxSessions: 20,
+                autoUpdate: 'notify',
+                // Add other new settings here as we add features
+            };
+            
+            let needsMigration = false;
+            for (const [key, defaultValue] of Object.entries(defaultSettings)) {
+                if (settings[key] === undefined) {
+                    settings[key] = defaultValue;
+                    needsMigration = true;
+                }
+            }
+            
+            // Save migrated settings back to file
+            if (needsMigration) {
+                await fsPromises.writeFile(SETTINGS_PATH, JSON.stringify(settings, null, 2), 'utf8');
+                logger.info('✅ Settings migrated with new defaults:', SETTINGS_PATH);
+            }
+            
             logger.info('✅ Settings loaded from:', SETTINGS_PATH);
             res.json({ code: 0, settings });
         } catch (error) {
             if (error.code === 'ENOENT') {
                 // File doesn't exist yet, return empty settings
+                logger.info('ℹ️ No settings.json found, using defaults. Will create on first save.');
                 res.json({ code: 0, settings: null });
             } else {
                 logger.error('❌ Failed to load settings:', error);
@@ -528,8 +552,27 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
 
     app.post('/api/settings', async (req, res) => {
         const newSettings = req.body;
-        Object.assign(globalSettings, newSettings); // Actualizar globalSettings directamente
-        await fsPromises.writeFile(SETTINGS_PATH, JSON.stringify(globalSettings, null, 2), 'utf8');
+        Object.assign(globalSettings, newSettings); // Update globalSettings directly
+        
+        // CRITICAL FIX: MERGE with existing settings.json instead of overwriting
+        // This preserves user preferences that aren't part of globalSettings
+        try {
+            let existingSettings = {};
+            try {
+                const data = await fsPromises.readFile(SETTINGS_PATH, 'utf8');
+                existingSettings = JSON.parse(data);
+            } catch (error) {
+                // File doesn't exist yet, use empty object
+            }
+            
+            // Merge: existing settings + new settings (new settings take priority)
+            const mergedSettings = { ...existingSettings, ...newSettings };
+            await fsPromises.writeFile(SETTINGS_PATH, JSON.stringify(mergedSettings, null, 2), 'utf8');
+            logger.info('✅ Settings merged and saved to:', SETTINGS_PATH);
+        } catch (error) {
+            logger.error('❌ Failed to merge settings:', error);
+        }
+        
         res.json({ code: 0, data: globalSettings });
     });
 
