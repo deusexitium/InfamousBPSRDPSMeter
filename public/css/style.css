@@ -63,16 +63,31 @@ body {
     width: 100%;
     max-width: 1000px;
     box-sizing: border-box;
+    position: relative;
+    z-index: 10;
 }
 
 .title-bar:active {
     cursor: grabbing;
 }
 
-/* Buttons in title bar should NOT be draggable */
-.title-bar button {
+/* ALL CHILDREN are draggable by default */
+.title-bar *:not(button):not(button *) {
+    -webkit-app-region: drag;
+    cursor: grab;
+    pointer-events: none; /* Let drag events pass through */
+}
+
+.title-bar:active *:not(button):not(button *) {
+    cursor: grabbing;
+}
+
+/* Buttons and their children should NOT be draggable */
+.title-bar button,
+.title-bar button * {
     -webkit-app-region: no-drag !important;
     cursor: pointer !important;
+    pointer-events: auto !important; /* Buttons must be clickable */
 }
 
 .header-btn {
@@ -1019,25 +1034,41 @@ body.compact-mode .modal {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
-    padding: 6px 10px;
+    gap: 8px;
+    padding: 8px 12px;
     background: var(--bg-header);
     border-bottom: 1px solid var(--border);
-    -webkit-app-region: drag; /* CRITICAL: Allow dragging from empty space */
-    pointer-events: auto !important; /* CRITICAL: Ensure all buttons clickable */
-    min-height: 34px;
+    position: relative;
     flex-wrap: wrap;
+    -webkit-app-region: drag; /* Allow dragging from empty space */
+    cursor: grab;
 }
 
-.meter-header > * {
-    pointer-events: auto !important; /* Ensure all children can receive clicks */
+.meter-header:active {
+    cursor: grabbing;
 }
 
-/* Ensure buttons are not draggable */
+/* Make non-interactive elements draggable */
+.meter-header *:not(button):not(select):not(input):not(button *):not(select *):not(input *) {
+    -webkit-app-region: drag;
+    cursor: grab;
+    pointer-events: none; /* Let drag events pass through */
+}
+
+.meter-header:active *:not(button):not(select):not(input):not(button *):not(select *):not(input *) {
+    cursor: grabbing;
+}
+
+/* Ensure buttons and interactive elements are not draggable */
 .meter-header button,
-.meter-header button * {
+.meter-header select,
+.meter-header input,
+.meter-header button *,
+.meter-header select *,
+.meter-header input * {
     -webkit-app-region: no-drag !important;
     cursor: pointer !important;
+    pointer-events: auto !important; /* Interactive elements must be clickable */
 }
 
 .meter-header .duration {
