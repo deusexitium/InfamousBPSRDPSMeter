@@ -705,7 +705,8 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
             await fsPromises.writeFile(filePath, JSON.stringify(sessionData, null, 2));
             logger.info(`✅ Session saved successfully!`);
 
-            // Clean up old sessions (keep only 20 auto-saved, unlimited manual)
+            // Clean up old sessions (keep configured max auto-saved, unlimited manual)
+            const maxSessions = globalSettings.maxSessions || 20;
             const files = await fsPromises.readdir(SESSIONS_PATH);
             const sessionFiles = files
                 .filter(file => file.endsWith('.json'))
@@ -725,15 +726,15 @@ function initializeApi(app, server, io, userDataManager, logger, globalSettings,
                 .filter(file => file !== null)
                 .sort((a, b) => b.timestamp - a.timestamp);
 
-            // Keep all manual saves (unlimited), but only last 20 auto-saved
+            // Keep all manual saves (unlimited), but only last N auto-saved
             const autoSaves = sessionFiles.filter(f => f.autoSaved);
 
-            if (autoSaves.length > 20) {
-                const autoFilesToDelete = autoSaves.slice(20);
+            if (autoSaves.length > maxSessions) {
+                const autoFilesToDelete = autoSaves.slice(maxSessions);
                 for (const file of autoFilesToDelete) {
                     await fsPromises.unlink(path.join(SESSIONS_PATH, file.name));
                 }
-                logger.info(`🗑️ Cleaned up ${autoFilesToDelete.length} old auto-saved sessions (keeping last 20)`);
+                logger.info(`🗑️ Cleaned up ${autoFilesToDelete.length} old auto-saved sessions (keeping last ${maxSessions})`);
             }
 
             res.json({

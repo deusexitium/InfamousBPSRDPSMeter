@@ -33,6 +33,7 @@ let globalSettings = {
     isPaused: false, // CRITICAL: Must be false for data to flow on startup
     keepDataAfterDungeon: true, // Prevent premature clearing
     networkAdapter: 'auto', // 'auto' for automatic detection, or adapter index number
+    maxSessions: 20, // Maximum number of auto-saved sessions to keep
 };
 
 let server_port;

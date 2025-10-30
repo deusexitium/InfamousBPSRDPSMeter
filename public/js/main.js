@@ -149,6 +149,9 @@ const SETTINGS = {
     // - notify: Check and show notification (default)
     // - auto: Automatically download and install updates
     
+    // SESSION MANAGEMENT
+    maxSessions: 20, // Maximum number of auto-saved sessions to keep (default: 20)
+    
     // Column visibility for COMPACT mode (DPS Mode)
     columnsCompact: {
         dps: true,
@@ -263,7 +266,8 @@ const SETTINGS = {
                 body: JSON.stringify({
                     autoClearOnZoneChange: settings.autoClearOnZoneChange,
                     keepDataAfterDungeon: settings.keepDataAfterDungeon,
-                    autoUpdate: settings.autoUpdate
+                    autoUpdate: settings.autoUpdate,
+                    maxSessions: settings.maxSessions || 20
                 })
             }).catch(err => console.error('Failed to sync globalSettings:', err));
         } catch (e) {
@@ -1823,6 +1827,7 @@ function setupEventListeners() {
             document.getElementById('setting-keep-after-dungeon').checked = SETTINGS.keepDataAfterDungeon;
             document.getElementById('setting-default-sort').value = SETTINGS.defaultSort || 'totalDmg';
             document.getElementById('setting-auto-update').value = SETTINGS.autoUpdate || 'notify';
+            document.getElementById('setting-max-sessions').value = SETTINGS.maxSessions || 20;
             
             // Load opacity slider value
             const opacitySlider = document.getElementById('setting-overlay-opacity');
@@ -2270,6 +2275,10 @@ function setupEventListeners() {
         // Auto-update setting
         const autoUpdateVal = document.getElementById('setting-auto-update').value;
         SETTINGS.autoUpdate = autoUpdateVal;
+        
+        // Max sessions setting
+        const maxSessionsVal = parseInt(document.getElementById('setting-max-sessions').value);
+        SETTINGS.maxSessions = Math.max(10, Math.min(100, maxSessionsVal || 20)); // Clamp between 10-100
         
         // Default ranking metric
         const defaultSortVal = document.getElementById('setting-default-sort').value;

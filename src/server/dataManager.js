@@ -1480,11 +1480,14 @@ class UserDataManager {
         }
     }
 
-    /** Clean up old auto-saved sessions, keeping only the last 20 */
+    /** Clean up old auto-saved sessions, keeping only the configured max */
     async cleanupOldSessions() {
         try {
             const sessionsDir = path.join(this.userDataPath, 'sessions');
             const files = await fsPromises.readdir(sessionsDir);
+            
+            // Get max sessions from settings (default 20)
+            const maxSessions = this.globalSettings.maxSessions || 20;
             
             // Read all session files and separate auto-saved from manual
             const sessionFiles = [];
@@ -1505,17 +1508,17 @@ class UserDataManager {
                 }
             }
             
-            // Only cleanup auto-saved sessions (keep last 20)
+            // Only cleanup auto-saved sessions (keep last N)
             const autoSavedSessions = sessionFiles
                 .filter(f => f.autoSaved)
                 .sort((a, b) => b.timestamp - a.timestamp);
 
-            if (autoSavedSessions.length > 20) {
-                const filesToDelete = autoSavedSessions.slice(20);
+            if (autoSavedSessions.length > maxSessions) {
+                const filesToDelete = autoSavedSessions.slice(maxSessions);
                 for (const file of filesToDelete) {
                     await fsPromises.unlink(path.join(sessionsDir, file.name));
                 }
-                this.logger.debug(`Cleaned up ${filesToDelete.length} old auto-saved sessions (keeping last 20)`);
+                this.logger.debug(`Cleaned up ${filesToDelete.length} old auto-saved sessions (keeping last ${maxSessions})`);
             }
         } catch (error) {
             this.logger.warn('Failed to cleanup old sessions:', error);
