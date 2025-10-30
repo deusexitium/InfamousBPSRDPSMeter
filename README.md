@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.159
+# ⚔️ Infamous BPSR DPS Meter v3.1.160
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.1.159-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-3.1.160-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -13,23 +13,37 @@
 > 
 > This enhanced edition builds upon excellent work from the Blue Protocol community with improved stability, performance, session management, and healer support.
 
-## 📋 What's New in v3.1.159
+## 📋 What's New in v3.1.160
 
-### 🔧 **CRITICAL FIX: Settings Migration**
-- **Settings preserved on upgrade** - No more losing preferences when updating!
-- **Automatic migration** - New settings added with defaults, existing settings kept
-- **Merge instead of overwrite** - Backend now merges settings instead of replacing entire file
-- **Zero data loss** - Your column visibility, opacity, scales, etc. all preserved
+### 🐛 **CRITICAL FIX: Auto-Clear on Zone Actually Works Now**
+- **Auto-Clear setting was being ignored!** - Backend never checked the master toggle
+- **Zone change detected but nothing happened** - Users had to manually clear after zone changes
+- **Logic error fixed** - `waitingForNewCombat` flag only set when there's data to clear
 
-### 💾 **Session Management**
+### 🔧 **What Was Fixed:**
+
+**Problem:** User settings showed Auto-Clear ✅ + Keep After Dungeon ❌ (clear immediately), but zone change → nothing happened
+
+**Root Cause:** Backend only checked `keepDataAfterDungeon`, completely ignored `autoClearOnZoneChange` setting!
+
+**The Fix:**
+- ✅ Now checks `autoClearOnZoneChange` FIRST before any clear logic
+- ✅ Three modes work correctly:
+  - Auto-Clear OFF → No clear at all (keep data across zones)
+  - Auto-Clear ON + Immediate → Clear right away on zone change
+  - Auto-Clear ON + Keep Until Combat → Clear on first damage in new zone
+- ✅ Proper logging shows what's happening (no more mystery)
+
+### 💾 **Session Management (v3.1.159)**
 - **Configurable session limit** - Set max auto-saved sessions (10-100, default 20)
 - **Manual saves unlimited** - Only auto-saves are cleaned up
 - **Setting persists** - Limit saved to AppData and survives restarts
 
-### 🎯 **How Settings Migration Works**
-- **On load:** Missing settings are added with defaults
-- **On save:** Existing settings are merged, not replaced
-- **Result:** Smooth upgrades without losing your preferences!
+### 🔧 **Settings Migration (v3.1.159)**
+- **Settings preserved on upgrade** - No more losing preferences when updating!
+- **Automatic migration** - New settings added with defaults, existing settings kept
+- **Merge instead of overwrite** - Backend now merges settings instead of replacing entire file
+- **Zero data loss** - Your column visibility, opacity, scales, etc. all preserved
 
 ---
 
@@ -102,7 +116,7 @@
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `InfamousBPSRDPSMeter-Setup-3.1.159.exe` (~90MB)
+- Get: `InfamousBPSRDPSMeter-Setup-3.1.160.exe` (~90MB)
 - 🆕 **Auto-Update:** Automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**
