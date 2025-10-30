@@ -27,10 +27,10 @@ class BossHpTracker {
     setEnabled(enabled) {
         this.enabled = enabled;
         if (!enabled) {
-            this.logger('[HP Tracker] ⏸️ HP tracking disabled');
+            this.logger.info('[HP Tracker] ⏸️ HP tracking disabled');
             this.tracking.clear();
         } else {
-            this.logger('[HP Tracker] ▶️ HP tracking enabled');
+            this.logger.info('[HP Tracker] ▶️ HP tracking enabled');
         }
     }
     
@@ -116,7 +116,7 @@ class BossHpTracker {
     async sendHpUpdate(entry, hpPercent) {
         try {
             // Log for debugging
-            this.logger(`[HP Tracker] 📊 ${entry.bossName} (ID: ${entry.bossId}, Line: ${entry.lineNumber}) → ${hpPercent}%`);
+            this.logger.info(`[HP Tracker] 📊 ${entry.bossName} (ID: ${entry.bossId}, Line: ${entry.lineNumber}) → ${hpPercent}%`);
             
             // Send to API (fire and forget)
             await this.apiClient.sendHpUpdate(
@@ -130,7 +130,7 @@ class BossHpTracker {
             
         } catch (err) {
             // Fail silently - don't spam logs
-            this.logger(`[HP Tracker] ⚠️ API send failed: ${err.message}`);
+            this.logger.error(`[HP Tracker] ⚠️ API send failed: ${err.message}`);
         }
     }
     
@@ -141,7 +141,7 @@ class BossHpTracker {
         const key = `boss_${bossId}_line_${lineNumber}`;
         if (this.tracking.has(key)) {
             this.tracking.delete(key);
-            this.logger(`[HP Tracker] 🗑️ Cleared tracking for boss ${bossId} line ${lineNumber}`);
+            this.logger.info(`[HP Tracker] 🗑️ Cleared tracking for boss ${bossId} line ${lineNumber}`);
         }
     }
     
@@ -152,7 +152,7 @@ class BossHpTracker {
         const count = this.tracking.size;
         this.tracking.clear();
         if (count > 0) {
-            this.logger(`[HP Tracker] 🗑️ Cleared ${count} tracked boss instances`);
+            this.logger.info(`[HP Tracker] 🗑️ Cleared ${count} tracked boss instances`);
         }
     }
     

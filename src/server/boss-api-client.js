@@ -34,7 +34,7 @@ class BossApiClient {
     configure(apiUrl, apiKey) {
         this.apiUrl = apiUrl;
         this.apiKey = this.obfuscateApiKey(apiKey);
-        this.logger(`[Boss API] ✅ Configured endpoint: ${apiUrl ? apiUrl.substring(0, 30) + '...' : 'NOT SET'}`);
+        this.logger.info(`[Boss API] ✅ Configured endpoint: ${apiUrl ? apiUrl.substring(0, 30) + '...' : 'NOT SET'}`);
     }
     
     /**
@@ -60,14 +60,14 @@ class BossApiClient {
     async sendHpUpdate(bossId, lineNumber, hpPercent) {
         // Check if configured
         if (!this.apiUrl || !this.apiKey) {
-            this.logger('[Boss API] ⚠️ API not configured, skipping send');
+            this.logger.warn('[Boss API] ⚠️ API not configured, skipping send');
             return;
         }
         
         // Rate limiting - don't spam API
         const now = Date.now();
         if (this.lastCallTime && (now - this.lastCallTime) < this.minCallInterval) {
-            this.logger('[Boss API] ⏱️ Rate limited, skipping send');
+            this.logger.warn('[Boss API] ⏱️ Rate limited, skipping send');
             return;
         }
         
@@ -91,7 +91,7 @@ class BossApiClient {
             this.lastCallSuccess = false;
             
             // Log error but don't throw - fail silently
-            this.logger(`[Boss API] ❌ Call failed: ${err.message}`);
+            this.logger.error(`[Boss API] ❌ Call failed: ${err.message}`);
         }
     }
     
