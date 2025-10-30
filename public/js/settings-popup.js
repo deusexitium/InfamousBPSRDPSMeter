@@ -9,6 +9,7 @@ const SETTINGS = {
     autoClearOnZoneChange: true,
     keepDataAfterDungeon: true,
     defaultSort: 'totalDmg',
+    autoUpdate: 'notify', // auto | notify | disable
     overlayOpacity: 1.0,
     columnsCompact: {
         dps: true,
@@ -188,6 +189,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         SETTINGS.autoClearOnZoneChange = document.getElementById('setting-auto-clear-zone').checked;
         SETTINGS.keepDataAfterDungeon = document.getElementById('setting-keep-after-dungeon').checked;
         SETTINGS.defaultSort = document.getElementById('setting-default-sort').value;
+        SETTINGS.autoUpdate = document.getElementById('setting-auto-update').value;
         SETTINGS.overlayOpacity = parseFloat(document.getElementById('setting-overlay-opacity').value);
         
         // Compact columns
@@ -242,8 +244,68 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     
+    // Load auto-update setting
+    const autoUpdateSelect = document.getElementById('setting-auto-update');
+    if (autoUpdateSelect) {
+        autoUpdateSelect.value = SETTINGS.autoUpdate || 'notify';
+    }
+    
     console.log('✅ Settings popup ready');
 });
+
+// Check for Updates Function with Visual Feedback
+async function checkForUpdates() {
+    const button = event?.target?.closest('button');
+    if (button) {
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+    }
+    
+    try {
+        const response = await fetch('https://api.github.com/repos/ssalihsrz/InfamousBPSRDPSMeter/releases/latest');
+        const data = await response.json();
+        
+        const latestVersion = data.tag_name.replace('v', '');
+        const currentVersion = '3.1.163';
+        
+        if (button) {
+            button.innerHTML = '<i class="fa-solid fa-check"></i> Check Complete';
+            setTimeout(() => {
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+            }, 2000);
+        }
+        
+        if (latestVersion > currentVersion) {
+            const downloadUrl = `https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/download/${data.tag_name}/InfamousBPSRDPSMeter-Setup-${latestVersion}.exe`;
+            
+            const result = confirm(
+                `🎉 Update Available!\n\n` +
+                `Current: v${currentVersion}\n` +
+                `Latest: v${latestVersion}\n\n` +
+                `Would you like to download the update?`
+            );
+            
+            if (result) {
+                window.open(downloadUrl, '_blank');
+            }
+        } else {
+            alert(`✅ You're up to date!\n\nCurrent version: v${currentVersion}\nLatest version: v${latestVersion}`);
+        }
+    } catch (error) {
+        console.error('Update check failed:', error);
+        if (button) {
+            button.innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> Check Failed';
+            button.style.background = 'rgba(239, 68, 68, 0.3)';
+            setTimeout(() => {
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+                button.style.background = '';
+            }, 2000);
+        }
+        alert('❌ Failed to check for updates.\n\nPlease check your internet connection and try again.');
+    }
+}
 
 // Add CSS animation
 const style = document.createElement('style');
