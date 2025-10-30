@@ -24,7 +24,7 @@ try {
 }
 
 let globalSettings = {
-    autoClearOnServerChange: true, // Keep enabled - needed for actual server changes
+    autoClearOnZoneChange: true, // FIXED TYPO: Was autoClearOnServerChange
     autoClearOnTimeout: false,
     onlyRecordEliteDummy: false,
     enableFightLog: false,

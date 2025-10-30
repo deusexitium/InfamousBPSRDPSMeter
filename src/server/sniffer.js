@@ -298,11 +298,13 @@ class Sniffer {
                                         let serverInfo = '';
                                         
                                         try {
-                                            // Extract server IP/port for identification
-                                            const [serverIp, serverPort] = src_server.split(':')[0].split('.');
-                                            const portNum = parseInt(src_server.split(':')[1]);
+                                            // Parse "IP:PORT -> IP:PORT" format
+                                            const parts = src_server.split(' -> ');
+                                            const destServer = parts[1] || parts[0]; // Get destination server
+                                            const [destIp, destPort] = destServer.split(':');
+                                            const portNum = parseInt(destPort);
                                             zoneId = portNum; // Use port as zone identifier
-                                            serverInfo = `Server ${serverIp}.${serverPort}:${portNum}`;
+                                            serverInfo = `Server ${destIp}:${portNum}`;
                                             zoneName = `${serverInfo}`;
                                         } catch (e) {
                                             zoneName = 'Zone Change';
