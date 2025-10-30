@@ -88,7 +88,7 @@ startPerformanceMonitoring();
 // ============================================================================
 
 const CONFIG = {
-    refreshInterval: 1500, // 1500ms balanced performance (was 500ms - TOO FAST!)
+    refreshInterval: 500, // 500ms balanced for smooth real-time updates
     apiBase: '/api',
     apiData: '/api/data',
     apiSkill: '/api/skill',
@@ -130,7 +130,7 @@ const SETTINGS = {
     version: CONFIG_VERSION,
     highlightLocal: true,
     showGS: true,
-    refreshInterval: 0.3, // 300ms - faster updates for responsive DPS/HPS (was 1.5s)
+    refreshInterval: 0.5, // 500ms - balanced for smooth updates without stuttering (was 0.3s)
     rememberNames: true,
     autoClearOnZoneChange: true, // Clear data when entering combat after zone change
     keepDataAfterDungeon: true, // Don't clear immediately on zone exit
@@ -1752,9 +1752,15 @@ function startAutoRefresh() {
             const players = await fetchPlayerData();
             const currentCount = players?.length || 0;
             
-            // Only recalculate hash if player count changed or in combat
-            let shouldRender = false;
-            if (currentCount !== lastPlayerCount || STATE.inCombat) {
+            // Check if force render needed (every 2 seconds in combat, 5 seconds idle)
+            const timeSinceLastUpdate = Date.now() - STATE.lastUpdate;
+            const forceRenderInterval = STATE.inCombat ? 2000 : 5000;
+            const forceRender = timeSinceLastUpdate > forceRenderInterval;
+            
+            let shouldRender = forceRender;
+            
+            // Only calculate hash if player count changed OR force render
+            if (!shouldRender && (currentCount !== lastPlayerCount || STATE.inCombat)) {
                 // OPTIMIZED: Simplified hash - just sum total damage (much faster)
                 const totalDamageSum = Array.from(STATE.players.values())
                     .reduce((sum, p) => sum + (p.total_damage?.total || 0), 0);
@@ -1768,14 +1774,9 @@ function startAutoRefresh() {
                 }
             }
             
-            // Force render every 3 seconds as failsafe (reduced from 1s)
-            const timeSinceLastUpdate = Date.now() - STATE.lastUpdate;
-            if (!shouldRender && timeSinceLastUpdate > 3000) {
-                shouldRender = true;
-            }
-            
             if (shouldRender) {
                 STATE.lastUpdate = Date.now();
+                lastPlayerCount = currentCount;
                 renderPlayers();
             }
         } catch (error) {
