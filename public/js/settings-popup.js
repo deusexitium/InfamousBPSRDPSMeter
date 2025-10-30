@@ -115,6 +115,12 @@ function loadSettingsIntoForm() {
     document.getElementById('setting-keep-after-dungeon').checked = SETTINGS.keepDataAfterDungeon;
     document.getElementById('setting-default-sort').value = SETTINGS.defaultSort || 'totalDmg';
     
+    // Auto-update setting
+    const autoUpdateElement = document.getElementById('setting-auto-update');
+    if (autoUpdateElement) {
+        autoUpdateElement.value = SETTINGS.autoUpdate || 'notify';
+    }
+    
     // Opacity slider
     const opacitySlider = document.getElementById('setting-overlay-opacity');
     const opacityValue = document.getElementById('opacity-value');
@@ -250,6 +256,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         autoUpdateSelect.value = SETTINGS.autoUpdate || 'notify';
     }
     
+    // Setup electron-updater event listeners (if in Electron)
+    if (window.electronAPI?.onUpdateDownloaded) {
+        window.electronAPI.onUpdateDownloaded((info) => {
+            console.log('✅ Update downloaded:', info.version);
+            const result = confirm(
+                `✅ Update Downloaded!\n\n` +
+                `Version ${info.version} is ready to install.\n\n` +
+                `Install now? (App will restart)`
+            );
+            
+            if (result) {
+                window.electronAPI.installUpdate();
+            }
+        });
+        
+        window.electronAPI.onUpdateDownloadProgress((progress) => {
+            console.log(`📥 Downloading update: ${progress.percent}%`);
+            // Could add a progress bar here in the future
+        });
+    }
+    
     console.log('✅ Settings popup ready');
 });
 
@@ -261,6 +288,71 @@ async function checkForUpdates() {
         button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
     }
     
+    // ELECTRON MODE: Use electron-updater (proper auto-update)
+    if (window.electronAPI?.checkForUpdates) {
+        console.log('🔄 Using electron-updater for update check');
+        
+        // Register one-time listeners for this manual check
+        const updateAvailableHandler = (info) => {
+            console.log('✨ Update available:', info);
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+            }
+            
+            const result = confirm(
+                `🎉 Update Available!\n\n` +
+                `Current: v${info.currentVersion}\n` +
+                `Latest: v${info.newVersion}\n\n` +
+                `Would you like to download and install the update?`
+            );
+            
+            if (result) {
+                window.electronAPI.downloadUpdate();
+                alert('⬇️ Download started! You\'ll be notified when it\'s ready to install.');
+            }
+        };
+        
+        const updateNotAvailableHandler = () => {
+            console.log('✅ App is up to date');
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+            }
+            alert(`✅ You're up to date!\n\nYou're running the latest version.`);
+        };
+        
+        const updateErrorHandler = (error) => {
+            console.error('❌ Update check failed:', error);
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+            }
+            alert('❌ Failed to check for updates.\n\nPlease check your internet connection and try again.');
+        };
+        
+        // Setup listeners
+        window.electronAPI.onUpdateAvailable(updateAvailableHandler);
+        // Note: electron-updater doesn't expose update-not-available via IPC by default
+        // We'll rely on timeout
+        
+        // Trigger check
+        window.electronAPI.checkForUpdates();
+        
+        // Timeout fallback
+        setTimeout(() => {
+            if (button && button.disabled) {
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+                // Don't show "up to date" message - electron-updater handles it silently
+            }
+        }, 5000);
+        
+        return;
+    }
+    
+    // BROWSER MODE: Fallback to GitHub API (no auto-install)
+    console.log('🌐 Using GitHub API for update check (browser mode)');
     try {
         const response = await fetch('https://api.github.com/repos/ssalihsrz/InfamousBPSRDPSMeter/releases/latest');
         const data = await response.json();
