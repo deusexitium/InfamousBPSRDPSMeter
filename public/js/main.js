@@ -149,7 +149,7 @@ const SETTINGS = {
     // - notify: Check and show notification (default)
     // - auto: Automatically download and install updates
     
-    // Column visibility for COMPACT mode
+    // Column visibility for COMPACT mode (DPS Mode)
     columnsCompact: {
         dps: true,
         maxDps: true,
@@ -160,7 +160,15 @@ const SETTINGS = {
         gs: false
     },
     
-    // Column visibility for FULL mode
+    // Column visibility for COMPACT mode (HEALER Mode)
+    columnsCompactHealer: {
+        hps: true,
+        maxHps: true,
+        totalHeal: true,
+        overheal: true
+    },
+    
+    // Column visibility for FULL mode (DPS Mode)
     columnsFull: {
         dps: true,
         maxDps: true,
@@ -169,6 +177,15 @@ const SETTINGS = {
         hps: true,
         dmgTaken: true,
         gs: true,
+    },
+    
+    // Column visibility for FULL mode (HEALER Mode)
+    columnsFullHealer: {
+        hps: true,
+        maxHps: true,
+        totalHeal: true,
+        overheal: true,
+        efficiency: false // Not yet implemented in backend
     },
     
     async load() {
@@ -459,7 +476,10 @@ async function fetchPlayerData() {
                 if (duration > 10) { // Only save if fight lasted more than 10 seconds
                     const mode = SETTINGS.keepDataAfterDungeon ? 'keep mode' : 'immediate clear mode';
                     console.log(`🔄 Zone changed (${mode}) - Auto-saving previous battle...`);
-                    await autoSaveSession('Previous Battle (Auto-saved)');
+                    // CRITICAL: Don't await - fire and forget to avoid blocking refresh
+                    autoSaveSession('Previous Battle (Auto-saved)').catch(err => {
+                        console.error('Failed to auto-save session:', err);
+                    });
                 }
                 
                 // Reset DPS stats but PRESERVE player names to prevent "Unknown" players
@@ -862,12 +882,60 @@ function renderPlayers() {
     }
     
     const now = Date.now();
-    const IDLE_THRESHOLD = 30000; // 30 seconds
+    const IDLE_THRESHOLD = 15000; // 15 seconds - mark as idle (greyed out)
+    const REMOVE_THRESHOLD = 60000; // 60 seconds - remove from list completely
+    
+    // Mark idle players and remove very old idle players (except local)
     filtered.forEach(p => {
         const lastUpdate = STATE.playerLastUpdate.get(p.uid) || now;
-        p.isIdle = (now - lastUpdate) > IDLE_THRESHOLD;
+        const idleTime = now - lastUpdate;
+        p.isIdle = idleTime > IDLE_THRESHOLD;
     });
     
+    // Remove players idle for 60+ seconds (keep local player always)
+    filtered = filtered.filter(p => {
+        const isLocal = p.isLocalPlayer || p.uid === STATE.localPlayerUid;
+        if (isLocal) return true; // Always keep local player
+        
+        const lastUpdate = STATE.playerLastUpdate.get(p.uid) || now;
+        const idleTime = now - lastUpdate;
+        return idleTime < REMOVE_THRESHOLD; // Remove if idle too long
+    });
+    
+    // CRITICAL FIX: Calculate REAL ranks based on current sort metric BEFORE priority sorting
+    // Get the value function from current sort settings
+    const getValueForRanking = (p) => {
+        switch (currentSort.column) {
+            case 'name': return (p.name || PLAYER_DB.get(p.uid) || `Unknown_${p.uid}`).toLowerCase();
+            case 'dps': return p.total_dps || p.current_dps || 0;
+            case 'maxDps': return p.max_dps || 0;
+            case 'avgDps': return p.total_dps || 0;
+            case 'totalDmg': return p.total_damage?.total || 0;
+            case 'hps': return p.total_hps || 0;
+            case 'dmgTaken': return p.taken_damage || 0;
+            case 'gs': return p.fightPoint || 0;
+            default: return p.total_damage?.total || 0;
+        }
+    };
+    
+    // Sort by metric ONLY (no local player priority) to get true ranks
+    const sortedByMetricOnly = [...filtered].sort((a, b) => {
+        const aVal = getValueForRanking(a);
+        const bVal = getValueForRanking(b);
+        
+        if (currentSort.column === 'name') {
+            return currentSort.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        }
+        
+        return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
+    });
+    
+    // Store actual rank on each player
+    sortedByMetricOnly.forEach((p, index) => {
+        p.actualRank = index + 1; // 1-based rank
+    });
+    
+    // NOW apply full sorting with local player priority for display order
     const sorted = sortPlayers(filtered);
     
     const activeNonIdlePlayers = sorted.filter(p => !p.isIdle);
@@ -1065,9 +1133,9 @@ function renderPlayers() {
     let showMoreButton = ''; // No longer needed at bottom
     
     // Set the HTML - ONLY show playersToShow
-    // In compact mode, preserve actual rank from sorted list
+    // Use pre-calculated actualRank that was stored before priority sorting
     const displayHTML = playersToShow.map((player, index) => {
-        const actualRank = sorted.findIndex(p => p.uid === player.uid) + 1;
+        const actualRank = player.actualRank || (index + 1); // Use stored rank or fallback to position
         const isLocal = player.isLocalPlayer || player.uid === STATE.localPlayerUid;
         return renderPlayerRow(player, actualRank, maxDmg, isLocal, teamTotalDamage);
     }).join('');
@@ -1632,12 +1700,29 @@ function startAutoRefresh() {
             const players = await fetchPlayerData();
             const currentCount = players?.length || 0;
             
-            // Only render if data actually changed
-            const currentHash = STATE.players.size + ':' + Array.from(STATE.players.values()).map(p => p.total_damage?.total || 0).join(',');
+            // Only recalculate hash if player count changed or in combat
+            let shouldRender = false;
+            if (currentCount !== lastPlayerCount || STATE.inCombat) {
+                // OPTIMIZED: Simplified hash - just sum total damage (much faster)
+                const totalDamageSum = Array.from(STATE.players.values())
+                    .reduce((sum, p) => sum + (p.total_damage?.total || 0), 0);
+                const currentHash = `${STATE.players.size}:${totalDamageSum}`;
+                
+                shouldRender = currentHash !== lastRenderHash;
+                
+                if (shouldRender) {
+                    lastPlayerCount = currentCount;
+                    lastRenderHash = currentHash;
+                }
+            }
             
-            if (currentHash !== lastRenderHash || currentCount !== lastPlayerCount) {
-                lastPlayerCount = currentCount;
-                lastRenderHash = currentHash;
+            // Force render every 3 seconds as failsafe (reduced from 1s)
+            const timeSinceLastUpdate = Date.now() - STATE.lastUpdate;
+            if (!shouldRender && timeSinceLastUpdate > 3000) {
+                shouldRender = true;
+            }
+            
+            if (shouldRender) {
                 STATE.lastUpdate = Date.now();
                 renderPlayers();
             }
@@ -2594,7 +2679,7 @@ async function checkPopupMode() {
 }
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.146 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.152 - Initializing...');
     
     // CRITICAL: Check if this is a popup window
     const isPopup = await checkPopupMode();
@@ -2686,7 +2771,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.146 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.152 - Ready!');
 }
 
 // ============================================================================
@@ -3274,6 +3359,21 @@ function sortPlayers(players) {
     };
     
     const sorted = [...players].sort((a, b) => {
+        // PRIORITY 1: Local player ALWAYS first (highest priority)
+        const aIsLocal = a.isLocalPlayer || a.uid === STATE.localPlayerUid;
+        const bIsLocal = b.isLocalPlayer || b.uid === STATE.localPlayerUid;
+        
+        if (aIsLocal && !bIsLocal) return -1;  // a is local, goes first
+        if (!aIsLocal && bIsLocal) return 1;   // b is local, goes first
+        
+        // PRIORITY 2: Active players before idle players
+        const aIsIdle = a.isIdle || false;
+        const bIsIdle = b.isIdle || false;
+        
+        if (!aIsIdle && bIsIdle) return -1;  // a is active, goes first
+        if (aIsIdle && !bIsIdle) return 1;   // b is active, goes first
+        
+        // PRIORITY 3: Sort by column (both active or both idle)
         const aVal = getValueForSort(a, currentSort.column);
         const bVal = getValueForSort(b, currentSort.column);
         

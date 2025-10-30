@@ -345,7 +345,7 @@ body {
 /* CRITICAL FIX: Compact mode headers - Match player row grid exactly */
 body.compact-mode .compact-headers {
     display: grid;
-    grid-template-columns: 24px minmax(80px, 105px) 58px 58px 58px 58px; /* Tighter fit for 450px window */
+    grid-template-columns: 24px minmax(60px, 85px) 58px 58px 58px 58px; /* Shrink names to prevent overlap */
     gap: 4px;
     padding: 6px 8px;
     background: rgba(42, 45, 58, 0.8);
@@ -1023,7 +1023,7 @@ body.compact-mode .modal {
     padding: 6px 10px;
     background: var(--bg-header);
     border-bottom: 1px solid var(--border);
-    -webkit-app-region: no-drag; /* Allow all button clicks */
+    -webkit-app-region: drag; /* CRITICAL: Allow dragging from empty space */
     pointer-events: auto !important; /* CRITICAL: Ensure all buttons clickable */
     min-height: 34px;
     flex-wrap: wrap;
@@ -1031,6 +1031,13 @@ body.compact-mode .modal {
 
 .meter-header > * {
     pointer-events: auto !important; /* Ensure all children can receive clicks */
+}
+
+/* Ensure buttons are not draggable */
+.meter-header button,
+.meter-header button * {
+    -webkit-app-region: no-drag !important;
+    cursor: pointer !important;
 }
 
 .meter-header .duration {
@@ -1621,8 +1628,9 @@ body.compact-mode .tab.active {
 /* CRITICAL FIX: Compact mode player rows - better alignment and spacing */
 body.compact-mode .player-row {
     display: grid;
-    grid-template-columns: 24px minmax(80px, 105px) 58px 58px 58px 58px; /* Tighter fit for 450px window */
+    grid-template-columns: 24px minmax(60px, 85px) 58px 58px 58px 58px; /* Shrink names to prevent overlap */
     gap: 4px; /* Tight gap to fit all columns */
+    font-size: 11px; /* Consistent font size across all columns */
     align-items: center;
     padding: 6px 8px;
     background: rgba(42, 45, 58, 0.6);
@@ -1675,18 +1683,8 @@ body.compact-mode .cell-value {
     font-weight: 600;
 }
 
-/* Hide selective columns in compact mode - show DPS, MAX DPS, TOTAL DMG, DMG TAKEN */
-body.compact-mode .cell-value:nth-child(5) {
-    display: none !important; /* Hide AVG DPS */
-}
-
-body.compact-mode .cell-value:nth-child(7) {
-    display: none !important; /* Hide HPS */
-}
-
-body.compact-mode .cell-value:nth-child(9) {
-    display: none !important; /* Hide GS */
-}
+/* NOTE: Compact mode uses simple 6-column grid, no need to hide columns */
+/* Full mode handles column visibility separately */
 
 body.compact-mode .player-row:hover {
     background: rgba(42, 45, 58, 0.75) !important;
