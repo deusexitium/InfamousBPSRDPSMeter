@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.153
+# ⚔️ Infamous BPSR DPS Meter v3.1.157
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.1.153-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-3.1.157-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -13,7 +13,21 @@
 > 
 > This enhanced edition builds upon excellent work from the Blue Protocol community with improved stability, performance, session management, and healer support.
 
-## 📋 What's New in v3.1.153
+## 📋 What's New in v3.1.157
+
+### 🐛 **Critical Bug Fixes**
+- **Session dropdown fixed** - Now shows all 60 saved sessions (was broken since v3.1.153)
+- **Button clicks restored** - Fixed dragging CSS that was blocking button interactions
+- **Drag reliability improved** - 100% reliable dragging from logo/text areas without breaking buttons
+
+### 🎯 **What Changed**
+- **Session Dropdown:** Element was being updated before being added to DOM, causing dropdown to stay empty
+- **Dragging CSS:** Simplified selectors - only target specific elements (.logo, .app-name) instead of broad wildcards
+- **Button Containers:** Keep `.title-left` and `.title-right` interactive instead of blocking pointer events
+
+---
+
+## 📋 Previous Updates (v3.1.153)
 
 ### 🚀 **Performance Improvements**
 - **Fixed data stream freezing** - Non-blocking auto-save prevents 100-500ms freezes
@@ -53,7 +67,7 @@
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `InfamousBPSRDPSMeter-Setup-3.1.153.exe` (~90MB)
+- Get: `InfamousBPSRDPSMeter-Setup-3.1.157.exe` (~90MB)
 - 🆕 **Auto-Update:** Automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**
