@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.162
+# ⚔️ Infamous BPSR DPS Meter v3.1.163
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.1.162-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-3.1.163-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -13,7 +13,47 @@
 > 
 > This enhanced edition builds upon excellent work from the Blue Protocol community with improved stability, performance, session management, and healer support.
 
-## 📋 What's New in v3.1.162
+## 📋 What's New in v3.1.163
+
+### 🐛 **LIFEGUARD FIXES: Critical Typo + Server Info Display**
+
+**Two issues caught by Lifeguard static analysis:**
+
+#### **Issue 1: CRITICAL - Setting Name Typo** 🚨
+```javascript
+// BEFORE (server.js line 27):
+autoClearOnServerChange: true,  // ❌ WRONG NAME!
+
+// AFTER:
+autoClearOnZoneChange: true,    // ✅ Correct!
+```
+
+**Impact:**
+- Frontend sends: `autoClearOnZoneChange`
+- Backend expected: `autoClearOnServerChange` ← **TYPO!**
+- **Result:** Setting never saved to backend!
+- **Auto-clear feature broken since v3.1.160!**
+
+This was masking the v3.1.162 fixes - even with correct logic, the setting wasn't being saved at all!
+
+#### **Issue 2: Server Info Display (Minor)**
+```javascript
+// BEFORE (sniffer.js line 302):
+const [serverIp, serverPort] = src_server.split(':')[0].split('.');
+// From "192.168.2.47:4375" only gets ["192", "168"]
+// Showed: "Server 192.168:4375" ❌
+
+// AFTER:
+const parts = src_server.split(' -> ');
+const destServer = parts[1] || parts[0];
+const [destIp, destPort] = destServer.split(':');
+// Showed: "Server 43.174.230.50:5333" ✅
+```
+
+### 🎯 **Result:**
+- ✅ Auto-clear setting now actually works!
+- ✅ Full destination server shown in logs
+- ✅ All v3.1.162 fixes now properly functional
 
 ### 🐛 **CRITICAL FIX: Zone Change Spam + Auto-Clear Not Working**
 
@@ -189,7 +229,7 @@ const hasExistingData = lastLogTime !== 0 && hasCombatData;
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `InfamousBPSRDPSMeter-Setup-3.1.162.exe` (~90MB)
+- Get: `InfamousBPSRDPSMeter-Setup-3.1.163.exe` (~90MB)
 - 🆕 **Auto-Update:** Automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**
