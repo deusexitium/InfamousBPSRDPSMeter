@@ -338,12 +338,13 @@ class Sniffer {
                                                     console.log('ℹ️ No data to clear - starting fresh (auto-clear enabled)');
                                                 }
                                             } else {
-                                                // Set flag: will clear on first damage/heal packet
-                                                this.userDataManager.waitingForNewCombat = true;
+                                                // Set flag only if there's existing data to clear
                                                 if (hasExistingData) {
+                                                    this.userDataManager.waitingForNewCombat = true;
                                                     console.log('⏳ Keeping old data visible. Will reset on first damage (auto-clear + keep-after-dungeon enabled).');
                                                 } else {
-                                                    console.log('⏳ Fresh start. Will begin tracking on first damage (auto-clear + keep-after-dungeon enabled).');
+                                                    this.userDataManager.waitingForNewCombat = false;
+                                                    console.log('ℹ️ Fresh start. Will begin tracking immediately (auto-clear + keep-after-dungeon enabled).');
                                                 }
                                             }
                                         } else {
