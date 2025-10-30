@@ -312,26 +312,44 @@ class Sniffer {
                                         console.log(`🔗 Full: ${src_server}`);
                                         console.log('='.repeat(80));
                                         
-                                        // Auto-save and clear on zone change (respects keepDataAfterDungeon setting)
-                                        if (this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0) {
-                                            // Auto-save current session BEFORE clearing
-                                            console.log('💾 Auto-saving current session before zone change...');
-                                            if (typeof this.userDataManager.autoSaveSession === 'function') {
-                                                await this.userDataManager.autoSaveSession();
-                                                console.log('✅ Session auto-saved successfully');
+                                        // Auto-save and clear on zone change (respects settings)
+                                        const hasExistingData = this.userDataManager.lastLogTime !== 0 && this.userDataManager.users.size !== 0;
+                                        
+                                        // CRITICAL: Check if auto-clear on zone is enabled
+                                        if (this.globalSettings.autoClearOnZoneChange) {
+                                            if (hasExistingData) {
+                                                // Auto-save current session BEFORE clearing
+                                                console.log('💾 Auto-saving current session before zone change...');
+                                                if (typeof this.userDataManager.autoSaveSession === 'function') {
+                                                    await this.userDataManager.autoSaveSession();
+                                                    console.log('✅ Session auto-saved successfully');
+                                                }
                                             }
                                             
-                                            // CRITICAL FIX: Respect keepDataAfterDungeon setting
+                                            // Determine clear behavior based on keepDataAfterDungeon setting
                                             if (!this.globalSettings.keepDataAfterDungeon) {
-                                                await this.userDataManager.clearAll(this.globalSettings);
-                                                console.log('🔄 Meter reset immediately (keepDataAfterDungeon: false)');
+                                                // Clear immediately
+                                                if (hasExistingData) {
+                                                    await this.userDataManager.clearAll(this.globalSettings);
+                                                    console.log('🔄 Meter reset immediately (auto-clear enabled, keep-after-dungeon disabled)');
+                                                } else {
+                                                    // No data but ensure fresh state
+                                                    this.userDataManager.waitingForNewCombat = false;
+                                                    console.log('ℹ️ No data to clear - starting fresh (auto-clear enabled)');
+                                                }
                                             } else {
                                                 // Set flag: will clear on first damage/heal packet
                                                 this.userDataManager.waitingForNewCombat = true;
-                                                console.log('⏳ Keeping old data visible. Will reset on first damage.');
+                                                if (hasExistingData) {
+                                                    console.log('⏳ Keeping old data visible. Will reset on first damage (auto-clear + keep-after-dungeon enabled).');
+                                                } else {
+                                                    console.log('⏳ Fresh start. Will begin tracking on first damage (auto-clear + keep-after-dungeon enabled).');
+                                                }
                                             }
                                         } else {
-                                            console.log('ℹ️ No combat data to clear - fresh start');
+                                            // Auto-clear on zone is disabled - do nothing
+                                            console.log('ℹ️ Auto-clear on zone disabled - keeping current state');
+                                            this.userDataManager.waitingForNewCombat = false;
                                         }
                                         console.log('Game server detected. Measuring DPS...');
                                     }
