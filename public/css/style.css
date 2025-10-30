@@ -71,14 +71,31 @@ body {
     cursor: grabbing;
 }
 
-/* ALL CHILDREN are draggable by default */
-.title-bar *:not(button):not(button *) {
+/* Make text elements draggable, but keep containers interactive */
+.title-bar .title-left,
+.title-bar .title-right {
+    -webkit-app-region: drag;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.title-bar:active .title-left,
+.title-bar:active .title-right {
+    cursor: grabbing;
+}
+
+/* Logo and text are draggable */
+.title-bar .logo,
+.title-bar .app-name {
     -webkit-app-region: drag;
     cursor: grab;
     pointer-events: none; /* Let drag events pass through */
 }
 
-.title-bar:active *:not(button):not(button *) {
+.title-bar:active .logo,
+.title-bar:active .app-name {
     cursor: grabbing;
 }
 
@@ -1048,14 +1065,20 @@ body.compact-mode .modal {
     cursor: grabbing;
 }
 
-/* Make non-interactive elements draggable */
-.meter-header *:not(button):not(select):not(input):not(button *):not(select *):not(input *) {
+/* Duration text is draggable */
+.meter-header .duration {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent-gold);
+    margin-left: auto;
+    margin-right: 8px;
+    flex-shrink: 0;
     -webkit-app-region: drag;
     cursor: grab;
-    pointer-events: none; /* Let drag events pass through */
+    pointer-events: none;
 }
 
-.meter-header:active *:not(button):not(select):not(input):not(button *):not(select *):not(input *) {
+.meter-header:active .duration {
     cursor: grabbing;
 }
 
@@ -1069,15 +1092,6 @@ body.compact-mode .modal {
     -webkit-app-region: no-drag !important;
     cursor: pointer !important;
     pointer-events: auto !important; /* Interactive elements must be clickable */
-}
-
-.meter-header .duration {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--accent-gold);
-    margin-left: auto;
-    margin-right: 8px;
-    flex-shrink: 0;
 }
 
 /* Settings Modal - Tabbed Interface */
