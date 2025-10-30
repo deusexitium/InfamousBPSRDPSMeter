@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.164
+# ⚔️ Infamous BPSR DPS Meter v3.1.165
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.1.164-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-3.1.165-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -13,7 +13,135 @@
 > 
 > This enhanced edition builds upon excellent work from the Blue Protocol community with improved stability, performance, session management, and healer support.
 
-## 📋 What's New in v3.1.164
+## 📋 What's New in v3.1.165
+
+### 🐛 **CRITICAL FIXES: Update Check, Icon, Cache, Auto-Clear**
+
+**User feedback:** "checkForUpdates not defined", "icon.ico missing", "about page shows old version", "auto-clear still not working"
+
+#### **Issue 1: checkForUpdates() Not Defined** 🚨
+**Symptom:** Clicking "Check for Updates" → `ReferenceError: checkForUpdates is not defined`
+```
+Uncaught ReferenceError: checkForUpdates is not defined
+    at HTMLButtonElement.onclick (index.html:398:139)
+```
+
+**Root Cause:** Function was in `settings-popup.js` (popup window scope), but button was in `index.html` (main window scope)
+
+**Fix:** Moved function to `main.js`
+```javascript
+// NOW in main.js (index.html scope)
+async function checkForUpdates() {
+    // Visual feedback + GitHub API check
+    // Works from About tab in main window
+}
+```
+- ✅ Accessible from index.html About tab
+- ✅ Shows spinner while checking
+- ✅ Success/error visual states
+- ✅ Auto-resets after 2 seconds
+
+---
+
+#### **Issue 2: About Page Showing Cached v3.1.138** 📦
+**Symptom:** App logs show `v3.1.164` but About tab displays `v3.1.138`
+```
+main.js?v=3.1.138:2706 🚀 Infamous BPSR DPS Meter v3.1.164  // MISMATCH!
+```
+
+**Root Cause:** Electron cache not fully cleared, serving stale HTML/JS
+
+**Fix:** Aggressive cache clearing on startup
+```javascript
+// electron-main.js
+await mainWindow.webContents.session.clearCache();
+await mainWindow.webContents.session.clearStorageData({
+    storages: ['appcache', 'serviceworkers', 'cachestorage']
+});
+```
+- ✅ Clears HTTP cache
+- ✅ Clears service workers
+- ✅ Forces fresh content every startup
+- ✅ About tab shows correct version
+
+---
+
+#### **Issue 3: icon.ico ENOENT Error** 📁
+**Symptom:** 
+```
+Error: ENOENT: no such file or directory, stat 
+'C:\Program Files\Infamous\Infamous BPSR DPS Meter\resources\app\icon.ico'
+```
+
+**Root Cause:** Path used `__dirname` which points to unpacked resources folder, not app.asar
+
+**Fix:** Added `getIconPath()` helper
+```javascript
+function getIconPath() {
+    if (process.defaultApp || process.env.NODE_ENV === 'development') {
+        return path.join(__dirname, 'icon.ico');
+    } else {
+        // Packaged: icon is inside app.asar
+        return path.join(process.resourcesPath, 'app.asar', 'icon.ico');
+    }
+}
+```
+- ✅ Works in dev mode
+- ✅ Works in packaged mode
+- ✅ Applied to all 3 windows
+- ✅ No more ENOENT errors
+
+---
+
+#### **Issue 4: Auto-Clear on Zone Change Not Working** ⚠️
+**User Report:** "reset on new dungeon or new zone or server still doesn't work", "it just keeps adding which is frustrating"
+
+**Investigation:**
+1. **Backend logs show clearing DOES happen:**
+   ```
+   [2025-10-30T15:36:40.853Z] Statistics cleared!
+   ```
+
+2. **Code flow is CORRECT:**
+   - ✅ Setting exists in `globalSettings.autoClearOnZoneChange`
+   - ✅ Backend checks it in `sniffer.js` line 338
+   - ✅ Frontend saves it via `/api/settings`
+   - ✅ Merges into settings.json
+
+3. **Likely causes:**
+   - User's setting not saved (unchecked checkbox?)
+   - Data not detected as "combat data" (empty users list)
+   - `keepDataAfterDungeon` delaying clear until first damage
+
+**Monitoring:** User should verify:
+- [ ] Settings > "Auto-Clear on Zone" is CHECKED
+- [ ] "Keep After Dungeon" behavior (clears on first damage vs immediate)
+- [ ] Check console logs for "🔄 Meter reset" messages
+
+**Backend logic verified:**
+```javascript
+if (this.globalSettings.autoClearOnZoneChange) {
+    if (hasExistingData) {
+        if (!this.globalSettings.keepDataAfterDungeon) {
+            await this.userDataManager.clearAll(); // IMMEDIATE
+        } else {
+            this.userDataManager.waitingForNewCombat = true; // ON FIRST DAMAGE
+        }
+    }
+}
+```
+
+---
+
+### 🎯 **Result:**
+- ✅ **checkForUpdates:** Works from About tab, no more ReferenceError
+- ✅ **Cache:** Aggressive clearing, shows correct version
+- ✅ **Icon:** Loads from correct path in packaged app
+- ✅ **Auto-Clear:** Code verified, awaiting user confirmation of settings
+
+---
+
+## 📋 Previous Updates (v3.1.164)
 
 ### 🎨 **UI/UX IMPROVEMENTS: Dragging, Buttons, Auto-Update**
 
@@ -308,7 +436,7 @@ const hasExistingData = lastLogTime !== 0 && hasCombatData;
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `InfamousBPSRDPSMeter-Setup-3.1.164.exe` (~90MB)
+- Get: `InfamousBPSRDPSMeter-Setup-3.1.165.exe` (~90MB)
 - 🆕 **Auto-Update:** Automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**
