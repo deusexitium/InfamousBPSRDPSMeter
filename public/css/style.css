@@ -596,6 +596,8 @@ body.compact-mode .modal {
 .modal-body {
     padding: 16px;
     overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 /* Details Grid */
@@ -1131,8 +1133,8 @@ body.compact-mode .modal {
 .settings-panel {
     display: none;
     padding: 12px;
-    max-height: calc(85vh - 120px); /* More space for content */
-    overflow-y: auto; /* Allow scrolling within panel */
+    /* Removed max-height to prevent content cutoff */
+    overflow-y: visible; /* Let parent modal-body handle scrolling */
     overflow-x: hidden;
 }
 
