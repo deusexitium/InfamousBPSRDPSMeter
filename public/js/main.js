@@ -2679,7 +2679,7 @@ async function checkPopupMode() {
 }
 
 async function initialize() {
-    console.log('🚀 Infamous BPSR DPS Meter v3.1.156 - Initializing...');
+    console.log('🚀 Infamous BPSR DPS Meter v3.1.157 - Initializing...');
     
     // CRITICAL: Check if this is a popup window
     const isPopup = await checkPopupMode();
@@ -2771,7 +2771,7 @@ async function initialize() {
         startAutoRefresh();
     }
     
-    console.log('✅ Infamous BPSR DPS Meter v3.1.156 - Ready!');
+    console.log('✅ Infamous BPSR DPS Meter v3.1.157 - Ready!');
 }
 
 // ============================================================================
@@ -3465,8 +3465,9 @@ function updateSessionDropdown() {
     const currentOption = document.createElement('option');
     currentOption.value = '';
     currentOption.id = 'current-session-option';
-    updateCurrentSessionText(); // Will update the text with live stats
-    dropdown.appendChild(currentOption);
+    currentOption.textContent = '⚡ Current Session (No data yet)'; // Initial text
+    dropdown.appendChild(currentOption); // Append to DOM FIRST
+    updateCurrentSessionText(); // THEN update the text with live stats
 
     // Filter sessions by current character (if we know the character)
     let filteredSessions = savedSessions;
