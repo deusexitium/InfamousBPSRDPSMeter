@@ -88,6 +88,13 @@ class AutoUpdaterManager {
         
         autoUpdater.on('update-not-available', () => {
             this.log('✅ App is up to date');
+            
+            // Send to frontend so user gets feedback
+            if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+                this.mainWindow.webContents.send('update-not-available', {
+                    currentVersion: this.app.getVersion()
+                });
+            }
         });
         
         autoUpdater.on('download-progress', (progress) => {

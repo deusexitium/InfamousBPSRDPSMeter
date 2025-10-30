@@ -333,18 +333,23 @@ async function checkForUpdates() {
         
         // Setup listeners
         window.electronAPI.onUpdateAvailable(updateAvailableHandler);
-        // Note: electron-updater doesn't expose update-not-available via IPC by default
-        // We'll rely on timeout
+        window.electronAPI.onUpdateNotAvailable((info) => {
+            console.log('✅ No update available, current version:', info.currentVersion);
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+            }
+            alert(`✅ You're up to date!\n\nCurrent version: v${info.currentVersion}`);
+        });
         
         // Trigger check
         window.electronAPI.checkForUpdates();
         
-        // Timeout fallback
+        // Timeout fallback (in case no event fires)
         setTimeout(() => {
             if (button && button.disabled) {
                 button.disabled = false;
                 button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
-                // Don't show "up to date" message - electron-updater handles it silently
             }
         }, 5000);
         

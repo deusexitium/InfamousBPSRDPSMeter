@@ -34,6 +34,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     openReleasePage: () => ipcRenderer.send('open-release-page'),
     // Auto-updater event listeners
     onUpdateAvailable: (callback) => ipcRenderer.on('update-available', (event, info) => callback(info)),
+    onUpdateNotAvailable: (callback) => ipcRenderer.on('update-not-available', (event, info) => callback(info)),
     onUpdateDownloadProgress: (callback) => ipcRenderer.on('update-download-progress', (event, progress) => callback(progress)),
     onUpdateDownloaded: (callback) => ipcRenderer.on('update-downloaded', (event, info) => callback(info)),
     onUpdateError: (callback) => ipcRenderer.on('update-error', (event, error) => callback(error)),
