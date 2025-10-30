@@ -839,6 +839,11 @@ function renderPlayers() {
     
     const players = Array.from(STATE.players.values());
     
+    // CRITICAL FIX: Save currently expanded players with cached skills
+    const expandedWithSkills = expandedPlayerIds
+        .filter(uid => skillsCache.has(uid))
+        .map(uid => ({ uid, skills: skillsCache.get(uid) }));
+    
     if (players.length === 0) {
         const list = document.getElementById('player-list');
         if (list) {
@@ -1151,6 +1156,16 @@ function renderPlayers() {
             const uid = parseInt(row.dataset.uid);
             togglePlayerDetails(uid, e);
         });
+    });
+    
+    // CRITICAL FIX: Immediately restore cached skills for expanded players
+    // This prevents "Loading..." from showing during combat re-renders
+    expandedWithSkills.forEach(({ uid, skills }) => {
+        const skillsContainer = document.getElementById(`skills-${uid}`);
+        if (skillsContainer && skillsContainer.textContent === 'Loading...') {
+            // Skills were reset by render, restore them immediately
+            renderSkillsTable(uid, skills);
+        }
     });
     
     // Auto-resize window after rendering (single RAF, not nested)
