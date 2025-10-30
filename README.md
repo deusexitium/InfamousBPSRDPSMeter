@@ -1,9 +1,9 @@
-# ⚔️ Infamous BPSR DPS Meter v3.1.167
+# ⚔️ Infamous BPSR DPS Meter v3.1.168
 
 **The Ultimate Blue Protocol Combat Tracker** - Real-time DPS/HPS analysis with modern UI
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.1.167-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
+[![Version](https://img.shields.io/badge/Version-3.1.168-green)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue)](#installation)
 [![Downloads](https://img.shields.io/github/downloads/ssalihsrz/InfamousBPSRDPSMeter/total)](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases)
 
@@ -13,7 +13,246 @@
 > 
 > This enhanced edition builds upon excellent work from the Blue Protocol community with improved stability, performance, session management, and healer support.
 
-## 📋 What's New in v3.1.167
+## 📋 What's New in v3.1.168
+
+### 🚨 **CRITICAL FIX: Zone Change Not Clearing Meter + Data Accumulation**
+
+**User Report:** "meters didnt clear and its not collecting or displaying realtime data still... after a new zone/channel is selected. It basically doesnt clear and doesnt reset meters and stream data reliably, this happens on both browser and app.. this is still frustrating and a big problem, the dps meters is the most fundamental and important part"
+
+---
+
+#### **The Problem** 💥
+
+**What User Saw:**
+- Changed zones/channels
+- Backend logs: "ZONE/SERVER CHANGE DETECTED"
+- But meter shows OLD players (bearSZT, Jiuhin, Hooshy)
+- Backend capturing NEW players (NoKudos4U, VoidZor, Jack, 70+ new names!)
+- Data accumulates across zones
+- Meter never clears
+- Display stuck
+
+**Evidence from Logs:**
+```
+[16:37:02] 🌍 ZONE/SERVER CHANGE DETECTED
+📊 Data check: users=0, hasCombat=false, willClear=false
+ℹ️ No data to clear - starting fresh (auto-clear enabled)
+
+[16:37:39] 🌍 ZONE/SERVER CHANGE DETECTED (LOGIN PACKET)
+[16:37:43] ✅ CAPTURED NAME FROM PACKET: NoKudos4U
+✅ CAPTURED NAME FROM PACKET: VoidZor
+✅ CAPTURED NAME FROM PACKET: Jack
+... 70+ more new players captured
+
+But UI still shows: bearSZT #27, Jiuhin #1, Hooshy #2 ❌
+```
+
+---
+
+#### **Root Cause 1: LOGIN PACKET Ignores Settings** 🐛
+
+**File:** `src/server/sniffer.js` line 416
+
+There are **TWO zone change detection code paths:**
+
+**Path 1:** Regular Zone Change (line 338)
+```javascript
+if (this.globalSettings.autoClearOnZoneChange) {  ✅
+    // Checks setting, clears data
+}
+```
+
+**Path 2:** LOGIN PACKET Zone Change (line 416)
+```javascript
+if (this.userDataManager.lastLogTime !== 0 && 
+    this.userDataManager.users.size !== 0) {  ❌
+    // NEVER checks autoClearOnZoneChange setting!
+}
+```
+
+**Problem:**
+- Path 2 completely ignores `autoClearOnZoneChange` setting
+- Only checks if users exist
+- Your logs show 3 zone changes in 2 minutes
+- All used LOGIN PACKET path (Path 2)
+- All skipped clearing because `users=0` at that moment
+- Old data persisted in frontend
+
+**The Fix:**
+```javascript
+// Now Path 2 matches Path 1
+if (this.globalSettings.autoClearOnZoneChange) {  ✅
+    const hasUsers = this.userDataManager.users.size > 0;
+    const hasCombatData = hasUsers && /* check damage */;
+    const hasExistingData = lastLogTime !== 0 && hasCombatData;
+    
+    if (hasExistingData) {
+        await this.userDataManager.clearAll();
+    }
+}
+```
+
+---
+
+#### **Root Cause 2: Frontend Never Notified** 📡
+
+**File:** `src/server/api.js` line 45
+
+**Before:**
+```javascript
+app.get('/api/data', (req, res) => {
+    const userData = userDataManager.getActiveUsersData(30);
+    res.json({ code: 0, players: userData });  ❌
+    // No serverChanged flag!
+});
+```
+
+**Problem:**
+- Backend detects zone change
+- Sets `serverChangeDetected = true` flag
+- But **never sends flag to frontend**!
+- Frontend has no way to know zone changed
+- Frontend keeps showing old data
+
+**The Fix:**
+```javascript
+app.get('/api/data', (req, res) => {
+    const userData = userDataManager.getActiveUsersData(30);
+    const serverChanged = userDataManager.checkAndResetServerChange();  ✅
+    
+    res.json({ 
+        code: 0, 
+        players: userData,
+        serverChanged: serverChanged  // Frontend can now detect!
+    });
+});
+```
+
+---
+
+#### **Root Cause 3: Frontend Doesn't Force Clear** 🎨
+
+**File:** `public/js/main.js` line 475
+
+**Before:**
+```javascript
+const payload = await res.json();
+const playerData = payload.players || [];
+
+// Check for zone change
+if (payload.zoneChanged && ...) {  ❌
+    // Wrong field name! API returns serverChanged, not zoneChanged
+}
+```
+
+**Problem:**
+- Checked wrong field (`zoneChanged` vs `serverChanged`)
+- Even if it worked, only reset stats, didn't clear display
+- Old players remained visible
+
+**The Fix:**
+```javascript
+const serverChanged = payload.serverChanged || false;  ✅
+
+if (serverChanged) {
+    console.log('🌍 ZONE/SERVER CHANGE DETECTED BY FRONTEND');
+    
+    // FORCE CLEAR everything
+    STATE.players.clear();
+    STATE.playerLastUpdate.clear();
+    STATE.startTime = null;
+    STATE.inCombat = false;
+    
+    // Force UI refresh
+    renderPlayers();
+    updateStatusBar();
+    stopDurationCounter();
+}
+```
+
+---
+
+### 🔄 **Complete Flow (Fixed)**
+
+**1. User Changes Zone/Channel**
+```
+User: Enters new dungeon
+```
+
+**2. Backend Detects (Both Paths Now Work)**
+```
+Regular OR LOGIN PACKET zone change detected
+✅ Checks autoClearOnZoneChange setting
+✅ Checks for existing combat data
+✅ Auto-saves if data exists
+✅ Clears meter if enabled
+✅ Sets serverChangeDetected = true
+```
+
+**3. Frontend Gets Notified**
+```
+Frontend: fetch('/api/data')
+API: { players: [], serverChanged: true }  ✅
+Frontend: Sees serverChanged flag
+```
+
+**4. Frontend Force Clears**
+```
+Frontend: WIPES all player data
+Frontend: Resets timers and state
+Frontend: Renders empty meter
+Frontend: "Waiting for combat data..."
+```
+
+**5. New Combat Starts**
+```
+Backend: New damage packets arrive
+Backend: New players (NoKudos4U, VoidZor, Jack)
+Frontend: Shows ONLY new players  ✅
+```
+
+---
+
+### 🎯 **Result:**
+
+**Before v3.1.168:**
+- ❌ Zone changes detected but ignored
+- ❌ Data accumulates across zones
+- ❌ Frontend stuck showing old players
+- ❌ New players mixed with old
+- ❌ Unreliable clearing
+
+**After v3.1.168:**
+- ✅ Zone changes clear reliably
+- ✅ Both detection paths respect settings
+- ✅ Frontend gets notified immediately
+- ✅ Display force clears on zone change
+- ✅ Only shows current zone combat
+- ✅ Works in browser AND app
+
+---
+
+### 📋 **Logs You'll See Now:**
+
+**Backend (when zone changes):**
+```
+🌍 ZONE/SERVER CHANGE DETECTED (LOGIN PACKET)
+📊 Data check: users=5, hasCombat=true, willClear=true  ✅
+💾 Auto-saving current session before zone change...
+✅ Session auto-saved successfully
+🔄 Meter reset immediately (LOGIN PACKET: auto-clear enabled)
+```
+
+**Frontend (same time):**
+```
+🌍 ZONE/SERVER CHANGE DETECTED BY FRONTEND - Forcing display clear
+💾 Auto-saving previous battle before zone clear...
+✨ FORCE CLEARING all data for zone change
+```
+
+---
+
+## 📋 Previous Updates (v3.1.167)
 
 ### 🐛 **CRITICAL FIXES: CSP Blocking API, Popup Missing Content, Choppy UI**
 
@@ -29,7 +268,7 @@
 
 **Symptom:**
 ```
-Browser (localhost:6969):  ✅ You're up to date! v3.1.167
+Browser (localhost:6969):  ✅ You're up to date! v3.1.168
 Electron Popup:            ❌ Failed to check for updates.
 ```
 
@@ -724,7 +963,7 @@ const hasExistingData = lastLogTime !== 0 && hasCombatData;
 
 **Step 1: Download the Latest Release**
 - 🔗 **[Download Installer](https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/latest)** ← Click here!
-- Get: `InfamousBPSRDPSMeter-Setup-3.1.167.exe` (~90MB)
+- Get: `InfamousBPSRDPSMeter-Setup-3.1.168.exe` (~90MB)
 - 🆕 **Auto-Update:** Automatic update notifications from GitHub!
 
 **Step 2: Install Npcap (Required)**
