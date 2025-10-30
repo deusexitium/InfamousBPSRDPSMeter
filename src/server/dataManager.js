@@ -872,8 +872,29 @@ class UserDataManager {
         // If waiting for new combat after zone change, clear old data now
         if (this.waitingForNewCombat) {
             console.log('🔄 First damage detected! Resetting meter for fresh tracking...');
+            
+            // CRITICAL: Preserve captured names before clearing!
+            // Name packets may have arrived before damage packets
+            const capturedNames = new Map();
+            for (const [userUid, user] of this.users.entries()) {
+                if (user.name && !user.name.startsWith('Unknown_')) {
+                    capturedNames.set(userUid, user.name);
+                }
+            }
+            
+            if (capturedNames.size > 0) {
+                console.log(`📝 Preserving ${capturedNames.size} captured names before reset`);
+            }
+            
             // Clear synchronously to avoid race condition - don't await async clearAll
             this.users = new Map();
+            
+            // Restore captured names
+            for (const [userUid, name] of capturedNames.entries()) {
+                const user = this.getUser(userUid);
+                user.setName(name);
+            }
+            
             this.startTime = Date.now();
             this.lastAutoSaveTime = 0;
             this.waitingForNewCombat = false;
@@ -900,8 +921,29 @@ class UserDataManager {
         // If waiting for new combat after zone change, clear old data now
         if (this.waitingForNewCombat) {
             console.log('🔄 First healing detected! Resetting meter for fresh tracking...');
+            
+            // CRITICAL: Preserve captured names before clearing!
+            // Name packets may have arrived before healing packets
+            const capturedNames = new Map();
+            for (const [userUid, user] of this.users.entries()) {
+                if (user.name && !user.name.startsWith('Unknown_')) {
+                    capturedNames.set(userUid, user.name);
+                }
+            }
+            
+            if (capturedNames.size > 0) {
+                console.log(`📝 Preserving ${capturedNames.size} captured names before reset`);
+            }
+            
             // Clear synchronously to avoid race condition - don't await async clearAll
             this.users = new Map();
+            
+            // Restore captured names
+            for (const [userUid, name] of capturedNames.entries()) {
+                const user = this.getUser(userUid);
+                user.setName(name);
+            }
+            
             this.startTime = Date.now();
             this.lastAutoSaveTime = 0;
             this.waitingForNewCombat = false;
