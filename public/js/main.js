@@ -2702,6 +2702,60 @@ async function checkPopupMode() {
     return false;
 }
 
+// Check for Updates Function with Visual Feedback (for index.html)
+async function checkForUpdates() {
+    const button = event?.target?.closest('button');
+    if (button) {
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+    }
+    
+    try {
+        const response = await fetch('https://api.github.com/repos/ssalihsrz/InfamousBPSRDPSMeter/releases/latest');
+        const data = await response.json();
+        
+        const latestVersion = data.tag_name.replace('v', '');
+        const currentVersion = '3.1.164';
+        
+        if (button) {
+            button.innerHTML = '<i class="fa-solid fa-check"></i> Check Complete';
+            setTimeout(() => {
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+            }, 2000);
+        }
+        
+        if (latestVersion > currentVersion) {
+            const downloadUrl = `https://github.com/ssalihsrz/InfamousBPSRDPSMeter/releases/download/${data.tag_name}/InfamousBPSRDPSMeter-Setup-${latestVersion}.exe`;
+            
+            const result = confirm(
+                `🎉 Update Available!\n\n` +
+                `Current: v${currentVersion}\n` +
+                `Latest: v${latestVersion}\n\n` +
+                `Would you like to download the update?`
+            );
+            
+            if (result) {
+                window.open(downloadUrl, '_blank');
+            }
+        } else {
+            alert(`✅ You're up to date!\n\nCurrent version: v${currentVersion}\nLatest version: v${latestVersion}`);
+        }
+    } catch (error) {
+        console.error('Update check failed:', error);
+        if (button) {
+            button.innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> Check Failed';
+            button.style.background = 'rgba(239, 68, 68, 0.3)';
+            setTimeout(() => {
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-sync"></i> Check for Updates';
+                button.style.background = '';
+            }, 2000);
+        }
+        alert('❌ Failed to check for updates.\n\nPlease check your internet connection and try again.');
+    }
+}
+
 async function initialize() {
     console.log('🚀 Infamous BPSR DPS Meter v3.1.164 - Initializing...');
     

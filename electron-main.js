@@ -97,6 +97,17 @@ const updaterManager = new AutoUpdaterManager(app, logToFile);
         });
     }
 
+    // Helper function to get icon path in both dev and packaged modes
+    function getIconPath() {
+        if (process.defaultApp || process.env.NODE_ENV === 'development') {
+            // Development mode
+            return path.join(__dirname, 'icon.ico');
+        } else {
+            // Packaged mode: icon.ico is in app.asar
+            return path.join(process.resourcesPath, 'app.asar', 'icon.ico');
+        }
+    }
+
     async function createWindow() {
         logToFile('Attempting to kill processes on port 8989...');
         await killProcessUsingPort(8989);
@@ -120,11 +131,14 @@ const updaterManager = new AutoUpdaterManager(app, logToFile);
                 sandbox: true,
                 cache: false // CRITICAL: Disable cache to always load fresh JS
             },
-            icon: path.join(__dirname, 'icon.ico'),
+            icon: getIconPath(),
         });
         
         // CRITICAL: Clear Electron cache on startup to force fresh code load
-        mainWindow.webContents.session.clearCache();
+        await mainWindow.webContents.session.clearCache();
+        await mainWindow.webContents.session.clearStorageData({
+            storages: ['appcache', 'serviceworkers', 'cachestorage']
+        });
         // REMOVED: User resize tracking - was causing window lock issues
         
         // Add Content Security Policy
@@ -558,7 +572,7 @@ const updaterManager = new AutoUpdaterManager(app, logToFile);
                 enableRemoteModule: false,
                 cache: false
             },
-            icon: path.join(__dirname, 'icon.ico'),
+            icon: getIconPath(),
             show: false  // Don't show until ready
         });
 
@@ -602,7 +616,7 @@ const updaterManager = new AutoUpdaterManager(app, logToFile);
                 enableRemoteModule: false,
                 cache: false
             },
-            icon: path.join(__dirname, 'icon.ico'),
+            icon: getIconPath(),
             show: false
         });
 
